@@ -1,0 +1,212 @@
+export interface DomainItem {
+  id: string;
+  number: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  tags: string[];
+}
+
+export interface JudgingCriterion {
+  id: string;
+  number: string;
+  title: string;
+  weight?: string;
+  description: string;
+}
+
+export interface EventFlowItem {
+  id: string;
+  number: string;
+  step: string;
+  title: string;
+  name: string;
+  time: string;
+}
+
+export const SPARKATHON_CONFIG = {
+  name: "SPARK-A-THON",
+  year: "2026",
+  tagline: "THE FRONTIER IS NOT FOUND. IT IS BUILT.",
+  subTagline: "Where elemental curiosity ignites the next paradigm.",
+
+  // Dates: strictly configurable (as published in brochure)
+  dates: {
+    display: "08.10.26",
+    raw: "2026-10-08",
+    note: "Official date published in brochure (pending final organizer re-confirmation)",
+    isConfirmed: true,
+  },
+
+  // Dynamic Pricing Engine
+  pricing: {
+    minTeamSize: 2,
+    maxTeamSize: 5,
+    baseFee: 300,
+    additionalMemberFee: 50,
+    allowedSizes: [2, 3, 4, 5] as const,
+    calculateFee: (participantCount: number): number => {
+      const count = Math.max(2, Math.min(5, Math.floor(participantCount)));
+      return 300 + (count - 2) * 50;
+    },
+    formatFee: (participantCount: number): string => {
+      const count = Math.max(2, Math.min(5, Math.floor(participantCount)));
+      const fee = 300 + (count - 2) * 50;
+      return `₹${fee}`;
+    },
+  },
+
+  // Payment: Centralized Razorpay configuration
+  // The organizers will provide the official Razorpay payment URL later.
+  // When provided, setting this single URL activates direct payment dispatch without UI rewrite.
+  payment: {
+    url: "", // Set official Razorpay payment link when provided (e.g. "https://rzp.io/...")
+    isConfigured: false,
+    provider: "Razorpay",
+    note: "Official Razorpay payment link awaited from organizers. No payment is processed on this website.",
+  },
+
+  // Registration Configuration
+  registration: {
+    chamberTitle: "JOIN THE FRONTIER",
+    chamberSubtitle: "Assemble your squad to construct the next paradigm.",
+    ctaText: "REGISTER YOUR TEAM",
+    label: "REGISTER YOUR TEAM",
+    url: "#register",
+    minMembers: 2,
+    maxMembers: 5,
+    teamSize: "2–5 members",
+    entryFee: "₹300/team + ₹50 for each additional member (up to 5)",
+    totalPool: "₹15,000",
+    note: "Official registration dispatch portal. No payment is processed on this website.",
+  },
+
+  // ACT VI — THE BOUNTY
+  bounty: {
+    totalPool: "₹15,000",
+    label: "CASH PRIZE POOL",
+    note: "Official verified prize pool awarded across frontier domains",
+  },
+
+  // ACT IV — THE 5 OFFICIAL DOMAINS
+  domains: [
+    {
+      id: "ai-cybersec",
+      number: "01",
+      title: "AI & Cybersec",
+      subtitle: "Autonomous Defense & Intelligence",
+      description: "Forging resilient neural systems, cryptographic architectures, and defensive autonomous agents to safeguard digital frontiers.",
+      tags: ["Agentic AI", "Zero-Trust", "Applied Cryptography", "Threat Detection"],
+    },
+    {
+      id: "smart-energy",
+      number: "02",
+      title: "Smart Energy Systems",
+      subtitle: "Decentralized Power & Grid Resiliency",
+      description: "Harnessing algorithmic load balancing, next-gen storage integration, and micro-generation infrastructure for a self-sustaining world.",
+      tags: ["Microgrids", "Battery Intelligence", "Clean Tech", "Grid Optimization"],
+    },
+    {
+      id: "robotics-drones",
+      number: "03",
+      title: "Robotics or Drone and Fixed Wing",
+      subtitle: "Autonomous Kinetics & Aerial Frontiers",
+      description: "Pioneering terrestrial kinetics, aerial aerodynamics, autonomous flight control, and field-deployable robotic platforms.",
+      tags: ["Aerial Autonomy", "Fixed-Wing Systems", "SLAM", "Field Kinetics"],
+    },
+    {
+      id: "iot-embedded",
+      number: "04",
+      title: "IoT or Embedded Systems",
+      subtitle: "Low-Power Sensing & Edge Silicon",
+      description: "Engineering rugged, hyper-efficient embedded compute architectures and edge-sensory mesh networks operating in harsh frontiers.",
+      tags: ["Edge Computing", "Mesh Networks", "Low-Power Hardware", "RTOS"],
+    },
+    {
+      id: "open-innovation",
+      number: "05",
+      title: "Open Innovation",
+      subtitle: "Radical Explorations & Unbounded Tech",
+      description: "Unconstrained frontier engineering tackling breakthrough cross-disciplinary challenges that redefine existing paradigms.",
+      tags: ["Cross-Disciplinary", "Wildcard Prototypes", "Novel Interfaces", "Breakthroughs"],
+    },
+  ] as DomainItem[],
+
+  // ACT V — THE ARENA (Official Judging Criteria)
+  judgingCriteria: [
+    {
+      id: "creativity",
+      number: "01",
+      title: "Creativity & Innovation",
+      description: "Novelty of foundational concepts, unconventional engineering ingenuity, and departure from derivative patterns.",
+    },
+    {
+      id: "technical",
+      number: "02",
+      title: "Technical Feasibility",
+      description: "Architectural robustness, engineering execution rigor, system stability, and real-world deployment viability.",
+    },
+    {
+      id: "scalability",
+      number: "03",
+      title: "Scalability & Market Potential",
+      description: "Long-term scaling resilience, resource efficiency, economic sustainability, and ecosystem adoption capability.",
+    },
+    {
+      id: "presentation",
+      number: "04",
+      title: "Presentation & Clarity",
+      description: "Articulation of problem landscape, narrative precision, live architectural defense, and technical communication.",
+    },
+    {
+      id: "impact",
+      number: "05",
+      title: "Problem-Solving Impact",
+      description: "Measurable efficacy and systemic transformation in confronting bottlenecks across frontier engineering domains.",
+    },
+  ] as JudgingCriterion[],
+
+  // ACT VII — THE FLOW (Officially Confirmed Schedule Only)
+  eventFlow: [
+    {
+      id: "registration",
+      number: "01",
+      step: "STAGE 01",
+      title: "PLAYER ENTRY / REGISTRATION",
+      name: "PLAYER ENTRY / REGISTRATION",
+      time: "9:00 AM — 9:45 AM",
+    },
+    {
+      id: "inauguration",
+      number: "02",
+      step: "STAGE 02",
+      title: "INAUGURATION",
+      name: "INAUGURATION",
+      time: "10:00 AM — 10:30 AM",
+    },
+    {
+      id: "exhibition",
+      number: "03",
+      step: "STAGE 03",
+      title: "EXHIBITION",
+      name: "EXHIBITION",
+      time: "10:30 AM — 12:30 PM",
+    },
+    {
+      id: "lunch",
+      number: "04",
+      step: "STAGE 04",
+      title: "LUNCH",
+      name: "LUNCH",
+      time: "12:30 PM — 1:00 PM",
+    },
+    {
+      id: "valedictory",
+      number: "05",
+      step: "STAGE 05",
+      title: "VALEDICTORY",
+      name: "VALEDICTORY",
+      time: "3:30 PM — 4:00 PM",
+    },
+  ] as EventFlowItem[],
+};
