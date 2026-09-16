@@ -194,11 +194,10 @@ export function WorldController() {
                 key={item.act}
                 type="button"
                 onClick={() => scrollToSection(item.sectionId)}
-                className={`font-mono text-[10px] lg:text-xs px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-full uppercase tracking-widest lg:tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap ${
-                  isActive
-                    ? "bg-amber-500/10 text-amber-500 border border-amber-500/60 shadow-[0_0_15px_rgba(255,140,0,0.15)] font-bold"
-                    : "text-neutral-400 hover:text-white border border-transparent"
-                }`}
+                className={`font-mono text-[10px] lg:text-xs px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-full uppercase tracking-widest lg:tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap ${isActive
+                  ? "bg-amber-500/10 text-amber-500 border border-amber-500/60 shadow-[0_0_15px_rgba(255,140,0,0.15)] font-bold"
+                  : "text-neutral-400 hover:text-white border border-transparent"
+                  }`}
               >
                 {item.label}
               </button>
@@ -237,7 +236,7 @@ export function WorldController() {
         {/* Mobile Menu Dropdown */}
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -15, scale: 0.95 }}
@@ -246,7 +245,7 @@ export function WorldController() {
             >
               {/* Decorative top glow */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-amber-500/80 to-transparent" />
-              
+
               {NAV_ITEMS.map((item, idx) => {
                 const isActive = currentAct === item.act;
                 return (
@@ -259,11 +258,10 @@ export function WorldController() {
                       scrollToSection(item.sectionId);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`text-left font-mono text-sm px-5 py-4 rounded-xl uppercase tracking-widest transition-all duration-300 flex items-center justify-between group ${
-                      isActive
-                        ? "bg-amber-500/15 text-amber-400 border border-amber-500/50 shadow-[inset_0_0_15px_rgba(251,191,36,0.1)]"
-                        : "text-neutral-400 hover:bg-white/5 hover:text-white"
-                    }`}
+                    className={`text-left font-mono text-sm px-5 py-4 rounded-xl uppercase tracking-widest transition-all duration-300 flex items-center justify-between group ${isActive
+                      ? "bg-amber-500/15 text-amber-400 border border-amber-500/50 shadow-[inset_0_0_15px_rgba(251,191,36,0.1)]"
+                      : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                      }`}
                   >
                     <span>{item.label}</span>
                     {isActive && <span className="text-amber-400 text-[10px]">◆</span>}
