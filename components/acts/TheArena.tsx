@@ -48,22 +48,22 @@ export function TheArena({
       </div>
 
       {/* 2. Top Monolith Quick-Select Bar (Mobile / Desktop Ergonomics) */}
-      <div className="my-6 w-full flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto py-1 no-scrollbar">
+      <div className="my-6 w-full flex items-center justify-between gap-1 sm:gap-2 py-1 w-full">
         {criteria.map((item: JudgingCriterion, idx: number) => {
           const isSelected = idx === activeIdx;
           return (
             <button
               key={item.id}
               onClick={() => handleSelect(idx)}
-              className={`group relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-mono text-[10px] sm:text-xs font-semibold tracking-wider uppercase transition-all duration-300 whitespace-nowrap border ${
+              className={`group relative flex-1 px-1 sm:px-4 py-1.5 sm:py-2 rounded-lg font-mono text-[8px] sm:text-xs font-semibold tracking-wider uppercase transition-all duration-300 border flex justify-center items-center ${
                 isSelected
                   ? "border-amber-400/90 bg-amber-500/15 text-amber-200 shadow-[0_0_20px_rgba(255,160,0,0.25)]"
                   : "border-neutral-800/80 bg-neutral-950/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
               }`}
             >
-              <span className="text-amber-500/80 font-bold mr-1.5">/{item.number}</span>
-              <span className="hidden md:inline">{item.title.split(" ")[0]}</span>
-              <span className="md:hidden">P{item.number}</span>
+              <span className="text-amber-500/80 font-bold sm:mr-1.5">/{item.number}</span>
+              <span className="hidden md:inline"> {item.title.split(" ")[0]}</span>
+              <span className="md:hidden ml-1">P0{item.number}</span>
             </button>
           );
         })}

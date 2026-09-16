@@ -142,11 +142,11 @@ export function FrontierPortal({
                     ENTRY PROTOCOL
                   </span>
                   <span className="font-mono text-base sm:text-lg font-black text-amber-200 mt-1">
-                    ₹300
-                    <span className="text-xs font-normal text-amber-300/80"> / team</span>
+                    ₹400
+                    <span className="text-xs font-normal text-amber-300/80"> / 2-4 members</span>
                   </span>
                   <span className="font-mono text-[9px] text-neutral-400 uppercase mt-0.5">
-                    + ₹50 / ADDL. MEMBER
+                    ₹450 / 5 MEMBERS
                   </span>
                 </div>
 
@@ -169,10 +169,10 @@ export function FrontierPortal({
                 <button
                   type="button"
                   onClick={handleRegisterClick}
-                  className="group relative inline-flex items-center justify-center gap-3 w-full rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 px-8 py-4 font-mono text-sm sm:text-base font-black tracking-[0.25em] text-neutral-950 uppercase transition-all duration-300 hover:shadow-[0_0_40px_rgba(251,191,36,0.6)] hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  className="group relative inline-flex items-center justify-center gap-2 sm:gap-3 w-full rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 px-2 sm:px-8 py-3.5 sm:py-4 font-mono text-[11px] xs:text-xs sm:text-base font-black tracking-widest sm:tracking-[0.25em] text-neutral-950 uppercase transition-all duration-300 hover:shadow-[0_0_40px_rgba(251,191,36,0.6)] hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
-                  <span>REGISTER YOUR TEAM</span>
-                  <span className="transition-transform duration-300 group-hover:translate-y-0.5 text-neutral-950">
+                  <span className="whitespace-nowrap">REGISTER YOUR TEAM</span>
+                  <span className="transition-transform duration-300 group-hover:translate-y-0.5 text-neutral-950 whitespace-nowrap">
                     ↓
                   </span>
                 </button>

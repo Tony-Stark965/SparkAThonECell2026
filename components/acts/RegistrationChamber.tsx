@@ -346,13 +346,14 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
           {/* Top Telemetry & Step Progress Tracker */}
           <div className="flex flex-col border-b border-neutral-800/80 bg-neutral-950/90 font-mono text-[9px] sm:text-[10px]">
             {/* Step Indicators */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-900 overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-1 sm:gap-2">
+            {/* Step Indicators */}
+            <div className="flex items-center justify-between px-1.5 sm:px-3 py-2 border-b border-neutral-900 w-full">
+              <div className="flex items-center justify-start gap-0.5 sm:gap-2 w-full">
                 {stepsList.map((st, idx) => {
                   const isActive = currentStep === st.num;
                   const isDone = currentStep > st.num;
                   return (
-                    <div key={st.num} className="flex items-center">
+                    <div key={st.num} className="flex items-center flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => {
@@ -360,26 +361,27 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                             setCurrentStep(st.num);
                           }
                         }}
-                        className={`px-2 py-1 rounded text-[9px] sm:text-[10px] font-bold uppercase transition-all ${
+                        className={`px-1 sm:px-2 py-1 rounded text-[6.5px] min-[360px]:text-[7.5px] sm:text-[10px] font-bold uppercase transition-all whitespace-nowrap ${
                           isActive
                             ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_8px_rgba(255,140,0,0.3)]"
                             : isDone
                             ? "text-neutral-300 hover:text-white cursor-pointer"
-                            : "text-neutral-600 cursor-not-allowed"
+                            : "text-neutral-600 cursor-not-allowed border border-transparent"
                         }`}
                       >
-                        <span>0{st.num} {st.label}</span>
+                        <span className="sm:hidden">0{st.num} {st.label.slice(0,3)}</span>
+                        <span className="hidden sm:inline">0{st.num} {st.label}</span>
                       </button>
                       {idx < stepsList.length - 1 && (
-                        <span className="text-neutral-700 mx-1">→</span>
+                        <span className="text-neutral-700 mx-0.5 sm:mx-1 text-[8px] sm:text-xs">→</span>
                       )}
                     </div>
                   );
                 })}
               </div>
 
-              <div className="flex items-center gap-2 pl-2">
-                <span className="text-amber-400 font-bold uppercase whitespace-nowrap">
+              <div className="flex items-center gap-2 pl-1 sm:pl-2 flex-shrink-0">
+                <span className="text-amber-400 font-bold uppercase whitespace-nowrap text-[8px] sm:text-xs">
                   {currentFeeDisplay} ({participantCount}P)
                 </span>
               </div>
@@ -571,12 +573,12 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                       {/* Fee Explanation Note */}
                       <div className="rounded-lg border border-neutral-800/80 bg-neutral-950/60 p-3 text-center">
                         <p className="font-mono text-[11px] text-neutral-400 uppercase">
-                          Pricing Structure: <span className="text-amber-300 font-bold">₹300 BASE TEAM FEE</span> (2 members) + <span className="text-amber-300 font-bold">₹50</span> per additional pioneer up to 5.
+                          Pricing Structure: <span className="text-amber-300 font-bold">₹400</span> for 2-4 members, and <span className="text-amber-300 font-bold">₹450</span> for 5 members.
                         </p>
                       </div>
 
                       {/* Step 1 CTA */}
-                      <div className="flex justify-end pt-2">
+                      <div className="flex justify-center pt-2">
                         <button
                           type="button"
                           onClick={() => handleNextStep(2)}

@@ -42,16 +42,16 @@ export const SPARKATHON_CONFIG = {
   pricing: {
     minTeamSize: 2,
     maxTeamSize: 5,
-    baseFee: 300,
+    baseFee: 400,
     additionalMemberFee: 50,
     allowedSizes: [2, 3, 4, 5] as const,
     calculateFee: (participantCount: number): number => {
       const count = Math.max(2, Math.min(5, Math.floor(participantCount)));
-      return 300 + (count - 2) * 50;
+      return count === 5 ? 450 : 400;
     },
     formatFee: (participantCount: number): string => {
       const count = Math.max(2, Math.min(5, Math.floor(participantCount)));
-      const fee = 300 + (count - 2) * 50;
+      const fee = count === 5 ? 450 : 400;
       return `₹${fee}`;
     },
   },
@@ -76,7 +76,7 @@ export const SPARKATHON_CONFIG = {
     minMembers: 2,
     maxMembers: 5,
     teamSize: "2–5 members",
-    entryFee: "₹300/team + ₹50 for each additional member (up to 5)",
+    entryFee: "₹400 for 2-4 members, ₹450 for 5 members",
     totalPool: "₹15,000",
     note: "Official registration dispatch portal. No payment is processed on this website.",
   },

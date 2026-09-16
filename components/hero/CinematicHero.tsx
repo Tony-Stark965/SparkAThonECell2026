@@ -132,20 +132,33 @@ export function CinematicHero({
       </AnimatePresence>
 
       {/* 4. Top Header & Institutional Council Branding */}
-      <header className="relative z-30 w-full max-w-7xl px-5 pt-6 sm:px-10 sm:pt-8 flex items-center justify-between">
-        {/* Left: Spark-A-Thon Monogram */}
+      <header className="relative z-30 w-full px-3 sm:px-6 pt-4 sm:pt-6 hidden md:flex items-center justify-between">
+        {/* Left: E-CELL Logo & Monogram */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: phase >= 5 ? 1 : 0, y: phase >= 5 ? 0 : -6 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-2.5"
+          className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/85 px-4 py-2 backdrop-blur-lg shadow-lg pointer-events-auto"
         >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
-          </span>
-          <span className="font-mono text-[11px] sm:text-xs tracking-[0.25em] text-neutral-300 uppercase font-semibold">
-            {SPARKATHON_CONFIG.name}
+          <div className="bg-white/90 rounded-md p-0.5 flex items-center justify-center gap-1.5">
+            <Image 
+              src="/images/iic-logo.png" 
+              alt="IIC Logo" 
+              width={28} 
+              height={28} 
+              className="h-6 sm:h-8 w-auto"
+            />
+            <div className="w-[1px] h-5 bg-neutral-300 mx-0.5" />
+            <Image 
+              src="/images/ecell-logo-new.png" 
+              alt="E-Cell Official Logo" 
+              width={28} 
+              height={28} 
+              className="h-6 sm:h-8 w-auto"
+            />
+          </div>
+          <span className="text-amber-500 font-black text-[10px] sm:text-xs tracking-widest font-mono">
+            ECELL FCRIT
           </span>
         </motion.div>
 

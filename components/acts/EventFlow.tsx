@@ -117,7 +117,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                     </div>
 
                     {/* Official Stage Title */}
-                    <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase leading-snug">
+                    <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase leading-snug break-words">
                       {s.title}
                     </h3>
 

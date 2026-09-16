@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { WorldAct } from "@/components/scene/CameraJourneyRig";
 import { CaveScene } from "@/components/scene/CaveScene";
 import { CinematicHero } from "@/components/hero/CinematicHero";
@@ -10,8 +11,8 @@ import { TheBounty } from "@/components/acts/TheBounty";
 import { EventFlow } from "@/components/acts/EventFlow";
 import { FrontierPortal } from "@/components/acts/FrontierPortal";
 import { RegistrationChamber } from "@/components/acts/RegistrationChamber";
-import { SparkCursor } from "@/components/interaction/SparkCursor";
 import { Footer } from "@/components/ui/Footer";
+import { Menu, X } from "lucide-react";
 
 const NAV_ITEMS: { act: WorldAct; label: string; hash: string; sectionId: string }[] = [
   { act: "HERO", label: "HEARTH", hash: "#hearth", sectionId: "hearth" },
@@ -25,6 +26,7 @@ const NAV_ITEMS: { act: WorldAct; label: string; hash: string; sectionId: string
 
 export function WorldController() {
   const [currentAct, setCurrentAct] = useState<WorldAct>("HERO");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTerritory, setActiveTerritory] = useState<number>(0);
   const [selectedStele, setSelectedStele] = useState<number>(0);
   const [heroSceneProgress, setHeroSceneProgress] = useState<number>(() => {
@@ -110,9 +112,6 @@ export function WorldController() {
 
   return (
     <div className="relative min-h-screen w-full bg-[#020202] text-white overflow-x-hidden select-none">
-      {/* 0. Signature Physical Spark Brush Cursor Overlay */}
-      <SparkCursor />
-
       {/* 1. Single Persistent 3D WebGL Cavern with Multi-Act Camera Rig */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <CaveScene
@@ -123,16 +122,7 @@ export function WorldController() {
         />
       </div>
 
-      {/* 2. Micro-Film Grain Overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 z-10 opacity-[0.14] mix-blend-screen"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")`,
-        }}
-        aria-hidden="true"
-      />
-
-      {/* 3. Continuous Native Experience Layer (Scroll-Driven World Journey) */}
+      {/* 2. Continuous Native Experience Layer (Scroll-Driven World Journey) */}
       <main className="relative z-20 w-full flex flex-col">
         {/* ACT I / II / III: HEARTH / HERO */}
         <section id="hearth" className="relative w-full min-h-[100svh] flex flex-col justify-between">
@@ -190,29 +180,100 @@ export function WorldController() {
         </div>
       </main>
 
-      {/* 4. Floating Frontier HUD Navigation Dock (Thumb-Friendly on 390px Mobile) */}
-      <nav
-        aria-label="Frontier Journey Navigation"
-        className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[96vw] overflow-x-auto rounded-full border border-neutral-800/90 bg-neutral-950/85 px-2.5 sm:px-3 py-1.5 sm:py-2 backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.85)] flex items-center gap-1 sm:gap-1.5 no-scrollbar"
-      >
-        {NAV_ITEMS.map((item) => {
-          const isActive = currentAct === item.act;
-          return (
-            <button
-              key={item.act}
-              type="button"
-              onClick={() => scrollToSection(item.sectionId)}
-              className={`font-mono text-[9px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 rounded-full uppercase tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap ${
-                isActive
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/60 shadow-[0_0_12px_rgba(255,140,0,0.3)] font-bold"
-                  : "text-neutral-400 hover:text-white border border-transparent"
-              }`}
+      {/* 3. Top Navigation Bar (Desktop + Mobile Hamburger) */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center w-full max-w-7xl px-4 justify-center pointer-events-none">
+        {/* Desktop Nav */}
+        <nav
+          aria-label="Frontier Journey Navigation"
+          className="hidden md:flex items-center gap-1 lg:gap-1.5 rounded-full border border-neutral-800/90 bg-neutral-950/85 px-2 lg:px-3 py-1.5 lg:py-2 backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.85)] pointer-events-auto"
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = currentAct === item.act;
+            return (
+              <button
+                key={item.act}
+                type="button"
+                onClick={() => scrollToSection(item.sectionId)}
+                className={`font-mono text-[10px] lg:text-xs px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-full uppercase tracking-widest lg:tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? "bg-amber-500/10 text-amber-500 border border-amber-500/60 shadow-[0_0_15px_rgba(255,140,0,0.15)] font-bold"
+                    : "text-neutral-400 hover:text-white border border-transparent"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Mobile Nav Toggle */}
+        <div className="md:hidden flex items-center justify-between w-full relative z-50 pointer-events-none">
+          {/* E-CELL Left Pill */}
+          <div className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/85 px-4 py-2 backdrop-blur-lg shadow-lg pointer-events-auto">
+            <div className="bg-white/90 rounded p-0.5 flex items-center justify-center gap-1.5">
+              <img src="/images/iic-logo.png" alt="IIC Logo" className="h-4 sm:h-5 w-auto" />
+              <div className="w-[1px] h-3.5 bg-neutral-300 mx-0.5" />
+              <img src="/images/ecell-logo-new.png" alt="E-Cell Official Logo" className="h-4 sm:h-5 w-auto" />
+            </div>
+            <span className="text-amber-500 font-black text-[10px] sm:text-xs tracking-[0.25em] font-mono">
+              ECELL FCRIT
+            </span>
+          </div>
+
+          {/* Hamburger Right Pill */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="rounded-full border border-neutral-800/90 bg-neutral-950/85 backdrop-blur-lg shadow-lg relative w-12 h-12 flex items-center justify-center text-white focus:outline-none pointer-events-auto"
+            aria-label="Toggle Menu"
+          >
+            <div className="flex flex-col gap-[5px] items-center justify-center w-5">
+              <span className={`block h-[2px] w-full bg-amber-400 rounded-full transition-all duration-300 ${isMobileMenuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
+              <span className={`block h-[2px] w-full bg-amber-400 rounded-full transition-all duration-300 ${isMobileMenuOpen ? "opacity-0 translate-x-2" : ""}`} />
+              <span className={`block h-[2px] w-full bg-amber-400 rounded-full transition-all duration-300 ${isMobileMenuOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
+            </div>
+          </button>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -15, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute top-16 left-4 right-4 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black border border-amber-500/30 rounded-2xl p-4 flex flex-col gap-2 backdrop-blur-xl md:hidden pointer-events-auto shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.15)] origin-top z-40 overflow-hidden"
             >
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
+              {/* Decorative top glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-amber-500/80 to-transparent" />
+              
+              {NAV_ITEMS.map((item, idx) => {
+                const isActive = currentAct === item.act;
+                return (
+                  <motion.button
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 * idx, duration: 0.3 }}
+                    key={item.act}
+                    onClick={() => {
+                      scrollToSection(item.sectionId);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`text-left font-mono text-sm px-5 py-4 rounded-xl uppercase tracking-widest transition-all duration-300 flex items-center justify-between group ${
+                      isActive
+                        ? "bg-amber-500/15 text-amber-400 border border-amber-500/50 shadow-[inset_0_0_15px_rgba(251,191,36,0.1)]"
+                        : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {isActive && <span className="text-amber-400 text-[10px]">◆</span>}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

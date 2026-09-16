@@ -314,7 +314,7 @@ function TreasuryMechanicalRings() {
     >
       {/* Central Volumetric Core Glow Behind Rings */}
       <div
-        className="absolute w-[450px] sm:w-[620px] md:w-[750px] h-[450px] sm:h-[620px] md:h-[750px] rounded-full blur-[70px] opacity-45"
+        className="absolute w-[280px] h-[280px] sm:w-[450px] sm:h-[450px] md:w-[620px] md:h-[620px] lg:w-[750px] lg:h-[750px] rounded-full blur-[70px] opacity-45"
         style={{
           background:
             "radial-gradient(circle, rgba(245, 158, 11, 0.28) 0%, rgba(180, 83, 9, 0.12) 45%, transparent 70%)",
@@ -325,7 +325,7 @@ function TreasuryMechanicalRings() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 110, repeat: Infinity, ease: "linear" }}
-        className="relative w-[520px] h-[520px] sm:w-[720px] sm:h-[720px] md:w-[880px] md:h-[880px] flex items-center justify-center"
+        className="relative w-[320px] h-[320px] sm:w-[520px] sm:h-[520px] md:w-[720px] md:h-[720px] lg:w-[880px] lg:h-[880px] flex items-center justify-center"
       >
         <svg
           className="w-full h-full"
@@ -403,7 +403,7 @@ function TreasuryMechanicalRings() {
       <motion.div
         animate={{ rotate: -360 }}
         transition={{ duration: 75, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[400px] h-[400px] sm:w-[560px] sm:h-[560px] md:w-[680px] md:h-[680px] flex items-center justify-center"
+        className="absolute w-[240px] h-[240px] sm:w-[400px] sm:h-[400px] md:w-[560px] md:h-[560px] lg:w-[680px] lg:h-[680px] flex items-center justify-center"
       >
         <svg
           className="w-full h-full"
@@ -491,7 +491,7 @@ function TreasuryMechanicalRings() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[300px] h-[300px] sm:w-[420px] sm:h-[420px] md:w-[500px] md:h-[500px] flex items-center justify-center"
+        className="absolute w-[180px] h-[180px] sm:w-[300px] sm:h-[300px] md:w-[420px] md:h-[420px] lg:w-[500px] lg:h-[500px] flex items-center justify-center"
       >
         <svg
           className="w-full h-full"
