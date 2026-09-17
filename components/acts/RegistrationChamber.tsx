@@ -14,6 +14,9 @@ interface RegistrationSuccessData {
   teamName: string;
   college: string;
   participantCount: number;
+  teamLeaderName?: string;
+  teamLeaderRollNo?: string;
+  teamLeaderMobile?: string;
   participants: Array<{ name: string; mobile: string; isLeader?: boolean }>;
   fee: number;
   paymentStatus: string;
@@ -49,6 +52,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
 
   // Leader state (synced with Participant 01)
   const [leaderName, setLeaderName] = useState("");
+  const [leaderRollNo, setLeaderRollNo] = useState("");
   const [leaderMobile, setLeaderMobile] = useState("");
 
   // Dynamic participants 02, 03, 04, 05
@@ -109,6 +113,10 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
     const errs: Record<string, string> = {};
     if (!leaderName.trim()) {
       errs.leaderName = "Team Leader Full Name is required.";
+    }
+
+    if (!leaderRollNo.trim()) {
+      errs.leaderRollNo = "Team Leader Roll Number is required.";
     }
 
     const normLeaderMobile = normalizeIndianMobile(leaderMobile);
@@ -277,6 +285,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
           college: college.trim(),
           participantCount,
           teamLeaderName: leaderName.trim(),
+          teamLeaderRollNo: leaderRollNo.trim(),
           teamLeaderMobile: normalizeIndianMobile(leaderMobile),
           participants: participantsPayload,
         }),
@@ -728,6 +737,31 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                         )}
                       </div>
 
+                      {/* Leader Roll Number */}
+                      <div>
+                        <label htmlFor="leader-roll-no" className="block font-mono text-xs text-neutral-300 uppercase tracking-wider mb-1.5">
+                          TEAM LEADER ROLL NUMBER <span className="text-amber-400">*</span>
+                        </label>
+                        <input
+                          id="leader-roll-no"
+                          type="text"
+                          value={leaderRollNo}
+                          onChange={(e) => {
+                            setLeaderRollNo(e.target.value);
+                            if (errors.leaderRollNo) setErrors({ ...errors, leaderRollNo: "" });
+                          }}
+                          placeholder="Leader Roll Number (e.g. 23BCE10482)"
+                          className={`w-full px-4 py-3 rounded-lg border font-mono text-xs sm:text-sm bg-neutral-950 text-white placeholder-neutral-600 focus:outline-none transition-colors ${
+                            errors.leaderRollNo
+                              ? "border-red-500 focus:border-red-400 shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                              : "border-neutral-800 focus:border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.1)]"
+                          }`}
+                        />
+                        {errors.leaderRollNo && (
+                          <p className="mt-1 font-mono text-[10px] text-red-400">{errors.leaderRollNo}</p>
+                        )}
+                      </div>
+
                       {/* Leader Mobile Number */}
                       <div>
                         <label htmlFor="leader-mobile" className="block font-mono text-xs text-neutral-300 uppercase tracking-wider mb-1.5">
@@ -812,10 +846,14 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                             [LEADER // SYNCED]
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
                           <div>
                             <span className="text-[10px] text-neutral-500 uppercase block">FULL NAME</span>
                             <span className="text-white font-semibold">{leaderName || "—"}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-neutral-500 uppercase block">ROLL NUMBER</span>
+                            <span className="text-amber-200 font-semibold">{leaderRollNo || "—"}</span>
                           </div>
                           <div>
                             <span className="text-[10px] text-neutral-500 uppercase block">MOBILE NUMBER</span>
@@ -1123,7 +1161,9 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                         </div>
                         <div className="flex justify-between border-b border-neutral-800/60 pb-2">
                           <span className="text-neutral-500 uppercase">TEAM LEADER</span>
-                          <span className="text-amber-300 font-semibold">{leaderName} ({leaderMobile})</span>
+                          <span className="text-amber-300 font-semibold">
+                            {leaderName} {leaderRollNo ? `(${leaderRollNo})` : ""} • {leaderMobile}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-neutral-500 uppercase">SQUAD ROSTER</span>

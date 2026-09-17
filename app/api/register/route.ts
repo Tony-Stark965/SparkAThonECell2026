@@ -15,6 +15,8 @@ interface RegistrationRequestBody {
   participantCount: number;
   teamLeaderName?: string;
   leaderName?: string;
+  teamLeaderRollNo?: string;
+  leaderRollNo?: string;
   teamLeaderMobile?: string;
   leaderMobile?: string;
   participants: ParticipantInput[];
@@ -27,6 +29,7 @@ interface DevRecord {
   college: string;
   participantCount: number;
   teamLeaderName: string;
+  teamLeaderRollNo: string;
   teamLeaderMobile: string;
   participants: ParticipantInput[];
   registrationFee: number;
@@ -56,6 +59,7 @@ export async function POST(request: Request) {
     const college = (body.college || "").trim();
     const participantCount = body.participantCount;
     const teamLeaderName = (body.teamLeaderName || body.leaderName || "").trim();
+    const teamLeaderRollNo = (body.teamLeaderRollNo || body.leaderRollNo || "").trim();
     const rawLeaderMobile = (body.teamLeaderMobile || body.leaderMobile || "").trim();
     const participants = body.participants || [];
 
@@ -75,6 +79,12 @@ export async function POST(request: Request) {
     if (!teamLeaderName) {
       return NextResponse.json(
         { error: "Team Leader Name is required." },
+        { status: 400 }
+      );
+    }
+    if (!teamLeaderRollNo) {
+      return NextResponse.json(
+        { error: "Team Leader Roll Number is required." },
         { status: 400 }
       );
     }
@@ -185,6 +195,7 @@ export async function POST(request: Request) {
             college: college.trim(),
             participant_count: count,
             team_leader_name: teamLeaderName.trim(),
+            team_leader_roll_no: teamLeaderRollNo.trim(),
             team_leader_mobile: normLeaderMobile,
             participants: cleanedParticipants,
             registration_fee: fee,
@@ -214,6 +225,9 @@ export async function POST(request: Request) {
           teamName: savedRecord.team_name,
           college: savedRecord.college,
           participantCount: savedRecord.participant_count,
+          teamLeaderName: savedRecord.team_leader_name,
+          teamLeaderRollNo: savedRecord.team_leader_roll_no,
+          teamLeaderMobile: savedRecord.team_leader_mobile,
           participants: savedRecord.participants,
           fee: savedRecord.registration_fee,
           paymentStatus: savedRecord.payment_status,
@@ -241,6 +255,7 @@ export async function POST(request: Request) {
       college: college.trim(),
       participantCount: count,
       teamLeaderName: teamLeaderName.trim(),
+      teamLeaderRollNo: teamLeaderRollNo.trim(),
       teamLeaderMobile: normLeaderMobile,
       participants: cleanedParticipants,
       registrationFee: fee,
@@ -261,6 +276,9 @@ export async function POST(request: Request) {
       teamName: devRecord.teamName,
       college: devRecord.college,
       participantCount: count,
+      teamLeaderName: devRecord.teamLeaderName,
+      teamLeaderRollNo: devRecord.teamLeaderRollNo,
+      teamLeaderMobile: devRecord.teamLeaderMobile,
       participants: devRecord.participants,
       fee,
       paymentStatus: "pending",

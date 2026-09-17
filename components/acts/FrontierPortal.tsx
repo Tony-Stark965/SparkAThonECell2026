@@ -28,7 +28,7 @@ export function FrontierPortal({
   };
 
   return (
-    <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-10 sm:py-14 flex flex-col justify-between items-center text-center min-h-[88vh]">
+    <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-2 sm:py-4 flex flex-col justify-between items-center text-center">
       {/* 1. Act Header */}
       <div className="flex flex-col items-center">
         <div className="inline-flex items-center gap-2.5 mb-2.5">
@@ -43,7 +43,7 @@ export function FrontierPortal({
           ENTER THE FRONTIER
         </h2>
 
-        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-400 uppercase max-w-md">
+        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-300 font-medium uppercase max-w-md">
           The event horizon is reached. Assemble your squad to construct the next paradigm.
         </p>
       </div>
@@ -53,7 +53,7 @@ export function FrontierPortal({
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="relative my-auto w-full max-w-2xl mt-6 sm:mt-8"
+        className="relative my-auto w-full max-w-2xl mt-3 sm:mt-4"
       >
         {/* Exterior Atmospheric Core Radiance */}
         <div
@@ -83,7 +83,7 @@ export function FrontierPortal({
           </div>
 
           {/* Inner Portal Chamber */}
-          <div className="relative w-full rounded-xl sm:rounded-2xl border border-neutral-800/70 bg-gradient-to-b from-[#0e0a06]/95 via-[#050403]/98 to-black p-6 sm:p-10 flex flex-col items-center justify-center overflow-hidden">
+          <div className="relative w-full rounded-xl sm:rounded-2xl border border-neutral-800/70 bg-gradient-to-b from-[#0e0a06]/95 via-[#050403]/98 to-black p-3.5 sm:p-6 flex flex-col items-center justify-center overflow-hidden">
             {/* Corner Industrial Locking Pins */}
             <div className="pointer-events-none absolute top-3 left-3 h-3 w-3 rounded-full border border-neutral-700 bg-neutral-800 flex items-center justify-center">
               <span className="h-1 w-1 rounded-full bg-amber-500/80" />
@@ -122,13 +122,13 @@ export function FrontierPortal({
               </div>
 
               {/* 3 Verified Expedition Specifications */}
-              <div className="my-6 sm:my-8 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+              <div className="my-3 sm:my-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 w-full">
                 {/* 1. Team Size */}
-                <div className="rounded-xl border border-neutral-800/80 bg-neutral-950/80 p-3.5 flex flex-col items-center text-center">
-                  <span className="font-mono text-[9px] tracking-widest text-neutral-400 uppercase">
+                <div className="rounded-xl border border-neutral-800/80 bg-neutral-950/80 p-2.5 sm:p-3.5 flex flex-col items-center text-center">
+                  <span className="font-mono text-[9px] tracking-widest text-neutral-300 uppercase">
                     TEAM STRUCTURE
                   </span>
-                  <span className="font-mono text-base sm:text-lg font-bold text-white mt-1">
+                  <span className="font-mono text-base sm:text-lg font-bold text-white mt-0.5 sm:mt-1">
                     {regConfig.teamSize}
                   </span>
                   <span className="font-mono text-[9px] text-amber-400/80 uppercase mt-0.5">
@@ -137,25 +137,25 @@ export function FrontierPortal({
                 </div>
 
                 {/* 2. Entry Fee */}
-                <div className="rounded-xl border border-amber-500/30 bg-[#140e08]/80 p-3.5 flex flex-col items-center text-center shadow-[0_0_15px_rgba(255,140,0,0.08)]">
+                <div className="rounded-xl border border-amber-500/30 bg-[#140e08]/80 p-2.5 sm:p-3.5 flex flex-col items-center text-center shadow-[0_0_15px_rgba(255,140,0,0.08)]">
                   <span className="font-mono text-[9px] tracking-widest text-amber-400 uppercase font-semibold">
                     ENTRY PROTOCOL
                   </span>
-                  <span className="font-mono text-base sm:text-lg font-black text-amber-200 mt-1">
+                  <span className="font-mono text-base sm:text-lg font-black text-amber-200 mt-0.5 sm:mt-1">
                     ₹400
                     <span className="text-xs font-normal text-amber-300/80"> / 2-4 members</span>
                   </span>
-                  <span className="font-mono text-[9px] text-neutral-400 uppercase mt-0.5">
+                  <span className="font-mono text-[9px] text-neutral-300 uppercase mt-0.5">
                     ₹450 / 5 MEMBERS
                   </span>
                 </div>
 
                 {/* 3. Prize Pool */}
-                <div className="rounded-xl border border-neutral-800/80 bg-neutral-950/80 p-3.5 flex flex-col items-center text-center">
-                  <span className="font-mono text-[9px] tracking-widest text-neutral-400 uppercase">
+                <div className="rounded-xl border border-neutral-800/80 bg-neutral-950/80 p-2.5 sm:p-3.5 flex flex-col items-center text-center">
+                  <span className="font-mono text-[9px] tracking-widest text-neutral-300 uppercase">
                     BOUNTY TREASURY
                   </span>
-                  <span className="font-mono text-base sm:text-lg font-bold text-white mt-1">
+                  <span className="font-mono text-base sm:text-lg font-bold text-white mt-0.5 sm:mt-1">
                     {regConfig.totalPool}
                   </span>
                   <span className="font-mono text-[9px] text-emerald-400 uppercase mt-0.5">
@@ -179,14 +179,14 @@ export function FrontierPortal({
               </div>
 
               {/* Explicit Verification & Payment Policy Guarantee */}
-              <p className="mt-4 font-mono text-[10px] sm:text-[11px] text-neutral-400 uppercase tracking-wider max-w-md">
+              <p className="mt-4 font-mono text-[10px] sm:text-[11px] text-neutral-300 uppercase tracking-wider max-w-md">
                 {regConfig.note}
               </p>
             </div>
           </div>
 
           {/* Bottom Chassis Telemetry Strip */}
-          <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/90 font-mono text-[9px] sm:text-[10px] text-neutral-500 tracking-wider">
+          <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/90 font-mono text-[9px] sm:text-[10px] text-neutral-400 tracking-wider">
             <div className="flex items-center gap-2">
               <span className="text-neutral-400">DISPATCH PROTOCOL:</span>
               <span className="text-amber-400/90">TERMINAL REGISTRATION ACTIVE</span>
@@ -203,7 +203,7 @@ export function FrontierPortal({
       {onReturnToHero && (
         <button
           onClick={onReturnToHero}
-          className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-500 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors cursor-pointer"
+          className="mt-3.5 sm:mt-4 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-400 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors cursor-pointer"
         >
           <span>↑ RETURN TO THE HEARTH</span>
         </button>

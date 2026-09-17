@@ -27,7 +27,7 @@ export function TheArena({
   const activeCriterion = criteria[activeIdx] || criteria[0];
 
   return (
-    <div className="relative z-30 w-full max-w-6xl mx-auto px-4 sm:px-8 py-10 sm:py-14 flex flex-col justify-between min-h-[90vh]">
+    <div className="relative z-30 w-full max-w-6xl mx-auto px-4 sm:px-8 py-2 sm:py-4 flex flex-col justify-between">
       {/* 1. Act Header */}
       <div className="flex flex-col items-center text-center">
         <div className="inline-flex items-center gap-2.5 mb-2.5">
@@ -42,13 +42,13 @@ export function TheArena({
           EVALUATION PILLARS
         </h2>
 
-        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-400 uppercase max-w-lg">
+        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-300 font-medium uppercase max-w-lg">
           Five monumental standards governing jury deliberation in the frontier chamber.
         </p>
       </div>
 
       {/* 2. Top Monolith Quick-Select Bar (Mobile / Desktop Ergonomics) */}
-      <div className="my-6 w-full flex items-center justify-between gap-1 sm:gap-2 py-1 w-full">
+      <div className="my-2 sm:my-3 w-full flex items-center justify-between gap-1 sm:gap-2 py-1 w-full">
         {criteria.map((item: JudgingCriterion, idx: number) => {
           const isSelected = idx === activeIdx;
           return (
@@ -58,7 +58,7 @@ export function TheArena({
               className={`group relative flex-1 px-1 sm:px-4 py-1.5 sm:py-2 rounded-lg font-mono text-[8px] sm:text-xs font-semibold tracking-wider uppercase transition-all duration-300 border flex justify-center items-center ${
                 isSelected
                   ? "border-amber-400/90 bg-amber-500/15 text-amber-200 shadow-[0_0_20px_rgba(255,160,0,0.25)]"
-                  : "border-neutral-800/80 bg-neutral-950/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                  : "border-neutral-800/80 bg-neutral-950/60 text-neutral-300 hover:border-neutral-700 hover:text-neutral-200"
               }`}
             >
               <span className="text-amber-500/80 font-bold sm:mr-1.5">/{item.number}</span>
@@ -79,7 +79,7 @@ export function TheArena({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
             className="relative rounded-2xl border border-amber-500/80 bg-gradient-to-b from-[#161009]/95 via-[#0b0805]/98 to-black/95 p-6 flex flex-col justify-between shadow-[0_10px_35px_rgba(0,0,0,0.9),0_0_25px_rgba(255,130,0,0.18)] overflow-hidden"
-            style={{ minHeight: "280px" }}
+            style={{ minHeight: "245px" }}
           >
             {/* Slender Vertical Amber Energy Seam along the left border */}
             <div
@@ -102,7 +102,7 @@ export function TheArena({
               </h3>
 
               {/* Doctrine Text */}
-              <p className="mt-3 text-sm text-neutral-300 leading-relaxed font-sans">
+              <p className="mt-3 text-sm text-neutral-200 leading-relaxed font-sans">
                 {activeCriterion.description}
               </p>
             </div>
@@ -112,7 +112,7 @@ export function TheArena({
               <button
                 type="button"
                 onClick={() => handleSelect((activeIdx - 1 + criteria.length) % criteria.length)}
-                className="font-mono text-[10px] tracking-wider uppercase text-neutral-400 hover:text-amber-300 flex items-center gap-1.5 py-1.5 px-3 rounded border border-neutral-800 bg-neutral-900/60"
+                className="font-mono text-[10px] tracking-wider uppercase text-neutral-300 hover:text-amber-300 flex items-center gap-1.5 py-1.5 px-3 rounded border border-neutral-800 bg-neutral-900/60"
               >
                 <span>←</span>
                 <span>PREV</span>
@@ -150,13 +150,13 @@ export function TheArena({
                 opacity: isSelected ? 1 : 0.65,
               }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className={`relative rounded-2xl border p-5 sm:p-6 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 overflow-hidden ${
+              className={`relative rounded-2xl border p-4 sm:p-5 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 overflow-hidden ${
                 isSelected
                   ? "border-amber-500/90 bg-gradient-to-b from-[#18110a]/95 via-[#0c0804]/98 to-[#050402]/98 shadow-[0_10px_35px_rgba(0,0,0,0.9),0_0_30px_rgba(255,130,0,0.22)]"
                   : "border-neutral-800/70 bg-gradient-to-b from-neutral-900/60 via-neutral-950/70 to-black/80 hover:border-neutral-700/90 hover:opacity-85"
               }`}
               style={{
-                minHeight: "340px",
+                minHeight: "300px",
               }}
             >
               {/* Slender Vertical Amber Energy Seam along the left border */}
@@ -172,7 +172,7 @@ export function TheArena({
               {/* Top Stele Cap & Runic Number */}
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-neutral-800/60">
-                  <span className="font-mono text-[10px] tracking-[0.25em] text-neutral-500 uppercase font-bold">
+                  <span className="font-mono text-[10px] tracking-[0.25em] text-neutral-400 uppercase font-bold">
                     PILLAR //{item.number}
                   </span>
                   <div
@@ -194,7 +194,7 @@ export function TheArena({
                 </h3>
 
                 {/* Concise Doctrine Text */}
-                <p className="mt-3 text-xs sm:text-[13px] text-neutral-400 leading-relaxed font-sans">
+                <p className="mt-3 text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-sans">
                   {item.description}
                 </p>
               </div>
@@ -241,7 +241,7 @@ export function TheArena({
             </span>
           </div>
 
-          <div className="font-mono text-[10px] sm:text-xs text-neutral-400 tracking-wider uppercase">
+          <div className="font-mono text-[10px] sm:text-xs text-neutral-300 tracking-wider uppercase">
             JURY PROTOCOL LOCKED • PHYSICAL STELE ELEVATED IN WEBGL
           </div>
         </motion.div>
@@ -252,7 +252,7 @@ export function TheArena({
         <div className="mt-6 flex justify-center">
           <button
             onClick={onNextAct}
-            className="group inline-flex items-center gap-2.5 font-mono text-xs tracking-[0.22em] text-neutral-400 hover:text-amber-300 uppercase transition-all duration-300 py-2.5 px-6 rounded-full border border-neutral-800 hover:border-amber-500/60 bg-neutral-950/70 hover:shadow-[0_0_25px_rgba(255,140,0,0.2)] cursor-pointer"
+            className="group inline-flex items-center gap-2.5 font-mono text-xs tracking-[0.22em] text-neutral-300 hover:text-amber-300 uppercase transition-all duration-300 py-2.5 px-6 rounded-full border border-neutral-800 hover:border-amber-500/60 bg-neutral-950/70 hover:shadow-[0_0_25px_rgba(255,140,0,0.2)] cursor-pointer"
           >
             <span>CONTINUE TO BOUNTY</span>
             <span className="text-amber-400 group-hover:translate-y-0.5 transition-transform">↓</span>

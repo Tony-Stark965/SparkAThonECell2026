@@ -13,7 +13,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
   const [activeStage, setActiveStage] = useState<number | null>(null);
 
   return (
-    <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-10 sm:py-14 flex flex-col justify-between min-h-[88vh]">
+    <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-2 sm:py-4 flex flex-col justify-between">
       {/* 1. Act Header */}
       <div className="flex flex-col items-center text-center">
         <div className="inline-flex items-center gap-2.5 mb-2.5">
@@ -28,13 +28,13 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
           EXPEDITION TIMELINE
         </h2>
 
-        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-400 uppercase max-w-md">
+        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-300 font-medium uppercase max-w-md">
           Official chronological sequence charting the Spark-A-Thon frontier itinerary.
         </p>
       </div>
 
       {/* 2. Cinematic Amber Conduit Timeline */}
-      <div className="my-8 sm:my-12 relative w-full max-w-3xl mx-auto">
+      <div className="my-3 sm:my-4 relative w-full max-w-3xl mx-auto">
         {/* Continuous Glowing Energy Conduit Spine */}
         <div
           className="absolute left-4 sm:left-1/2 top-4 bottom-4 w-[2px] sm:-translate-x-1/2"
@@ -47,7 +47,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
         />
 
         {/* Milestone Waypoints */}
-        <div className="space-y-6 sm:space-y-10">
+        <div className="space-y-2.5 sm:space-y-3.5">
           {steps.map((s: EventFlowItem, idx: number) => {
             const isEven = idx % 2 === 0;
             const isHovered = activeStage === idx;
@@ -89,7 +89,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                   }`}
                 >
                   <div
-                    className={`group relative rounded-xl border p-4 sm:p-5 transition-all duration-300 backdrop-blur-md overflow-hidden ${
+                    className={`group relative rounded-xl border p-2.5 sm:p-3.5 transition-all duration-300 backdrop-blur-md overflow-hidden ${
                       isHovered
                         ? "border-amber-500/80 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.18)] translate-y-[-2px]"
                         : "border-neutral-800/80 bg-gradient-to-b from-neutral-900/80 via-neutral-950/90 to-black/95 hover:border-neutral-700/90"
@@ -111,7 +111,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                       <span className="font-mono text-xs font-bold text-amber-400/90 tracking-widest uppercase">
                         /{s.number}
                       </span>
-                      <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider">
+                      <span className="font-mono text-[9px] text-neutral-400 uppercase tracking-wider">
                         • WAYPOINT {s.number}
                       </span>
                     </div>
@@ -162,7 +162,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
               ↓
             </span>
           </button>
-          <span className="font-mono text-[10px] tracking-wider text-neutral-500 uppercase">
+          <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
             ACT VIII // THE PORTAL • FINAL FRONTIER DESTINATION
           </span>
         </div>

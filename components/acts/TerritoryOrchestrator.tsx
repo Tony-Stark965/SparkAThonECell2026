@@ -34,7 +34,7 @@ export function TerritoryOrchestrator({
   };
 
   return (
-    <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-12 flex flex-col justify-between min-h-[90vh]">
+    <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-2 sm:py-4 flex flex-col justify-between">
       {/* 1. Act Header */}
       <div className="flex flex-col items-center text-center">
         <div className="inline-flex items-center gap-2 mb-2">
@@ -46,13 +46,13 @@ export function TerritoryOrchestrator({
         <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white uppercase">
           FIVE UNCHARTED SECTORS
         </h2>
-        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-400 uppercase max-w-md">
+        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-300 font-medium uppercase max-w-md">
           Swipe or tap to explore verified engineering domains.
         </p>
       </div>
 
       {/* 2. Territory Selector Bar (Touch Ergonomic on 390px) */}
-      <div className="my-6 w-full flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto py-2 no-scrollbar">
+      <div className="my-2.5 sm:my-3.5 w-full flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto py-2 no-scrollbar">
         {domains.map((d, idx) => {
           const isActive = idx === activeIndex;
           return (
@@ -62,7 +62,7 @@ export function TerritoryOrchestrator({
               className={`font-mono text-[10px] sm:text-xs px-3 py-1.5 rounded-full border transition-all duration-300 uppercase tracking-wider ${
                 isActive
                   ? "border-amber-500 bg-amber-500/20 text-amber-300 shadow-[0_0_14px_rgba(255,140,0,0.3)]"
-                  : "border-neutral-800 bg-neutral-950/80 text-neutral-500 hover:text-neutral-300 hover:border-neutral-700"
+                  : "border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-neutral-300 hover:border-neutral-700"
               }`}
             >
               /{d.number}
@@ -108,7 +108,7 @@ export function TerritoryOrchestrator({
             </p>
 
             {/* Description */}
-            <p className="mt-4 text-xs sm:text-sm text-neutral-300 leading-relaxed">
+            <p className="mt-4 text-xs sm:text-sm text-neutral-200 leading-relaxed">
               {currentDomain.description}
             </p>
 
@@ -118,7 +118,7 @@ export function TerritoryOrchestrator({
                 {currentDomain.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="font-mono text-[10px] tracking-wider text-neutral-400 bg-neutral-900/80 border border-neutral-800/90 px-2.5 py-1 rounded"
+                    className="font-mono text-[10px] tracking-wider text-neutral-300 bg-neutral-900 border border-neutral-700/80 px-2.5 py-1 rounded"
                   >
                     {tag}
                   </span>
@@ -147,7 +147,7 @@ export function TerritoryOrchestrator({
 
       {/* 4. Advance to Next Act Button */}
       {onNextAct && (
-        <div className="mt-8 flex justify-center">
+        <div className="mt-4 sm:mt-5 flex justify-center">
           <button
             onClick={onNextAct}
             className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-400 hover:text-amber-300 uppercase transition-colors py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 cursor-pointer"

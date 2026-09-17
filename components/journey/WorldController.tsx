@@ -134,7 +134,7 @@ export function WorldController() {
         </section>
 
         {/* ACT IV: SECTORS */}
-        <section id="sectors" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
+        <section id="sectors" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           <TerritoryOrchestrator
             activeIndex={activeTerritory}
             onSelectIndex={setActiveTerritory}
@@ -143,7 +143,7 @@ export function WorldController() {
         </section>
 
         {/* ACT V: THE ARENA */}
-        <section id="arena" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
+        <section id="arena" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           <TheArena
             selectedIndex={selectedStele}
             onSelectIndex={setSelectedStele}
@@ -152,17 +152,17 @@ export function WorldController() {
         </section>
 
         {/* ACT VI: THE BOUNTY */}
-        <section id="bounty" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
+        <section id="bounty" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           <TheBounty onNextAct={() => scrollToSection("flow")} />
         </section>
 
         {/* ACT VII: THE FLOW */}
-        <section id="flow" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
+        <section id="flow" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           <EventFlow onNextAct={() => scrollToSection("portal")} />
         </section>
 
         {/* ACT VIII: THE PORTAL */}
-        <section id="portal" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
+        <section id="portal" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           <FrontierPortal
             onProceedToRegister={() => scrollToSection("register")}
             onReturnToHero={() => scrollToSection("hearth")}

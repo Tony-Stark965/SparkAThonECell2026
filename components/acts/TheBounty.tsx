@@ -37,10 +37,15 @@ function VaultAtmosphereCanvas() {
     };
     window.addEventListener("resize", handleResize);
 
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const dustCount = isMobile ? 8 : 20;
+    const emberCount = isMobile ? 4 : 14;
+    const goldCount = isMobile ? 2 : 6;
+
     // 3 Volumetric Particle Layers: Distant micro-dust, Midground amber embers, Foreground gold drift
     const particles = [
       // Layer 1: Distant micro-dust (20 slow, tiny motes)
-      ...Array.from({ length: 20 }, () => ({
+      ...Array.from({ length: dustCount }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.08,
@@ -53,7 +58,7 @@ function VaultAtmosphereCanvas() {
         type: "dust" as const,
       })),
       // Layer 2: Midground floating embers (14 warm amber motes)
-      ...Array.from({ length: 14 }, () => ({
+      ...Array.from({ length: emberCount }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.14,
@@ -66,7 +71,7 @@ function VaultAtmosphereCanvas() {
         type: "ember" as const,
       })),
       // Layer 3: Foreground incandescent sparks (6 golden drift motes)
-      ...Array.from({ length: 6 }, () => ({
+      ...Array.from({ length: goldCount }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.20,
@@ -713,6 +718,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
 
   // Subtle interactive 3D perspective tracking (Restrained ±2.5 deg tilt)
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
     const el = vaultRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -731,7 +737,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
   };
 
   return (
-    <div className="relative z-30 w-full overflow-hidden px-4 sm:px-8 py-10 sm:py-16 flex flex-col justify-between items-center text-center min-h-[92vh]">
+    <div className="relative z-30 w-full overflow-hidden px-4 sm:px-8 py-2 sm:py-4 flex flex-col justify-between items-center text-center">
       {/* 1. Subterranean Treasury Chamber Backdrop (Arches, Wall Shapes, Monumental Pylons) */}
       <TreasuryChamberBackdrop />
 
@@ -762,7 +768,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
 
       {/* 5. Subterranean Vault Bulkhead Frame with 3D Depth & Tilt Parallax */}
       <div
-        className="relative z-20 my-auto w-full max-w-2xl mt-6 sm:mt-8"
+        className="relative z-20 my-auto w-full max-w-2xl mt-3 sm:mt-4"
         style={{ perspective: 1100 }}
       >
         {/* Enormous Mechanical Concentric Rings directly behind the Vault */}
@@ -895,7 +901,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
           </div>
 
           {/* Core Vault Chamber */}
-          <div className="relative w-full min-h-[320px] sm:min-h-[380px] rounded-xl sm:rounded-2xl border border-neutral-800/70 bg-gradient-to-b from-[#0e0a06]/95 via-[#060503]/98 to-black p-6 sm:p-10 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_4px_30px_rgba(0,0,0,0.95)]">
+          <div className="relative w-full min-h-[270px] sm:min-h-[310px] rounded-xl sm:rounded-2xl border border-neutral-800/70 bg-gradient-to-b from-[#0e0a06]/95 via-[#060503]/98 to-black p-4 sm:p-6 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_4px_30px_rgba(0,0,0,0.95)]">
             {/* Corner Industrial Locking Bolts */}
             <div className="pointer-events-none absolute top-3 left-3 h-3 w-3 rounded-full border border-neutral-700 bg-neutral-800/80 flex items-center justify-center">
               <span className="h-1 w-1 rounded-full bg-amber-500/60" />
@@ -1122,7 +1128,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
 
       {/* 6. Advance to Event Flow Navigation CTA */}
       {onNextAct && (
-        <div className="relative z-20 mt-6 sm:mt-8 flex flex-col items-center gap-2">
+        <div className="relative z-20 mt-3 sm:mt-4 flex flex-col items-center gap-2">
           <button
             onClick={onNextAct}
             className="group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-800 hover:border-amber-400 bg-neutral-950/80 hover:bg-amber-500/10 font-mono text-xs tracking-[0.25em] text-neutral-300 hover:text-amber-300 uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)] cursor-pointer"

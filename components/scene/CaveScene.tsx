@@ -76,7 +76,7 @@ export function CaveScene({
     }
 
     const isMobile = window.innerWidth < 768;
-    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -117,14 +117,17 @@ export function CaveScene({
     let isVisible = true;
 
     const handlePointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || window.innerWidth < 768) return;
       interaction.onPointerMove(e.clientX, e.clientY, window.innerWidth, window.innerHeight);
     };
 
-    const handlePointerDown = () => {
+    const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || window.innerWidth < 768) return;
       interaction.onPointerDown();
     };
 
-    const handlePointerUp = () => {
+    const handlePointerUp = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || window.innerWidth < 768) return;
       interaction.onPointerUp();
     };
 
@@ -132,7 +135,7 @@ export function CaveScene({
       const width = window.innerWidth;
       const height = window.innerHeight;
       cameraRig.updateAspect(width / height);
-      const newDpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.5 : 2);
+      const newDpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.0 : 2);
       renderer.setPixelRatio(newDpr);
       renderer.setSize(width, height);
       emberSystem.setPixelRatio(newDpr);
