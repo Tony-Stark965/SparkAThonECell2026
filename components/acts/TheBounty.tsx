@@ -155,58 +155,20 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
             </div>
 
             {/* Glowing Amber Hydraulic Energy Seams with breathing pulse */}
-            <motion.div
-              animate={{
-                opacity: isUnsealed ? [0.65, 0.95, 0.65] : [0.25, 0.45, 0.25],
-              }}
-              transition={{
-                duration: 4.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="hidden md:block pointer-events-none absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)]"
+            <div
+              className={`hidden md:block pointer-events-none absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)] transition-opacity duration-1000 animate-pulse ${isUnsealed ? 'opacity-90' : 'opacity-40'}`}
             />
-            <motion.div
-              animate={{
-                opacity: isUnsealed ? [0.65, 0.95, 0.65] : [0.25, 0.45, 0.25],
-              }}
-              transition={{
-                duration: 4.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 2.2,
-              }}
-              className="hidden md:block pointer-events-none absolute inset-x-8 bottom-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)]"
+            <div
+              className={`hidden md:block pointer-events-none absolute inset-x-8 bottom-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)] transition-opacity duration-1000 animate-pulse delay-500 ${isUnsealed ? 'opacity-90' : 'opacity-40'}`}
             />
 
             {/* Micro Hydraulic Seam Sparks */}
-            <motion.span
-              className="hidden md:block pointer-events-none absolute left-1/4 top-0 h-1 w-1 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] motion-reduce:hidden"
-              animate={{
-                opacity: [0, 0.9, 0],
-                scale: [0, 1.4, 0],
-              }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                repeatDelay: 6.2,
-                ease: "easeInOut",
-              }}
+            <span
+              className="hidden md:block pointer-events-none absolute left-1/4 top-0 h-1 w-1 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] motion-reduce:hidden animate-pulse"
               aria-hidden="true"
             />
-            <motion.span
-              className="hidden md:block pointer-events-none absolute right-1/3 bottom-0 h-1 w-1 translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] motion-reduce:hidden"
-              animate={{
-                opacity: [0, 0.85, 0],
-                scale: [0, 1.3, 0],
-              }}
-              transition={{
-                duration: 1.0,
-                repeat: Infinity,
-                repeatDelay: 8.5,
-                delay: 3.0,
-                ease: "easeInOut",
-              }}
+            <span
+              className="hidden md:block pointer-events-none absolute right-1/3 bottom-0 h-1 w-1 translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] motion-reduce:hidden animate-pulse delay-1000"
               aria-hidden="true"
             />
 

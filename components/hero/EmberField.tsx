@@ -242,8 +242,15 @@ export function EmberField({
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     let time = 0;
+    let isVisible = true;
+    let isRunning = false;
 
     const render = () => {
+      if (!isVisible) {
+        isRunning = false;
+        return;
+      }
+      isRunning = true;
       time += 0.015;
 
       // Dampen scroll velocity smoothly each frame
@@ -298,7 +305,10 @@ export function EmberField({
             
             // Gentle swirling updraft away from finger / cursor
             e.vx -= (dx / dist) * force * 0.9;
-            e.vy -= force * 1.2; // Updraft
+            e.vy -= (dy / dist) * force * 1.5;
+            
+            // Brighten near pointer interaction
+            e.alpha = Math.min(1, e.alpha + force * 0.5);
           }
         }
 
@@ -350,16 +360,28 @@ export function EmberField({
       animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible && !isRunning) {
+            render();
+          }
+        });
+      },
+      { threshold: 0, rootMargin: "0px 0px 100px 0px" }
+    );
+    observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointerup", handlePointerLeave);
       window.removeEventListener("pointercancel", handlePointerLeave);
       window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(animationFrameId);
     };
   }, [interactive]);
 

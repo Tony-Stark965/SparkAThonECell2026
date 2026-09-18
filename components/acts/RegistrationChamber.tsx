@@ -546,11 +546,12 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                     <div className="bg-neutral-900/50 rounded-xl border border-neutral-800 p-5 space-y-4">
                       <div className="text-center">
                         <p className="font-mono text-xs text-neutral-300 mb-4">{SPARKATHON_CONFIG.payment.gpay.note}</p>
-                        <div className="inline-block p-2 bg-white rounded-xl shadow-lg border border-neutral-700">
-                           {/* Add an actual Image when you have the local QR codes, using placeholder below */}
-                           <div className="w-48 h-48 bg-neutral-200 flex flex-col items-center justify-center text-neutral-900 rounded-lg">
-                             {successData.fee === 400 ? <img src={SPARKATHON_CONFIG.payment.gpay.qr400} alt="QR 400" className="w-full h-full object-cover" /> : <img src={SPARKATHON_CONFIG.payment.gpay.qr350} alt="QR 350" className="w-full h-full object-cover" />}
-                           </div>
+                        <div className="mx-auto w-[85%] sm:w-[80%] max-w-[280px] p-2 sm:p-2.5 bg-white rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                           {successData.fee === 400 ? (
+                             <img src={SPARKATHON_CONFIG.payment.gpay.qr400} alt="QR 400" className="w-full h-auto object-contain rounded-xl block" />
+                           ) : (
+                             <img src={SPARKATHON_CONFIG.payment.gpay.qr350} alt="QR 350" className="w-full h-auto object-contain rounded-xl block" />
+                           )}
                         </div>
                       </div>
                       <div>

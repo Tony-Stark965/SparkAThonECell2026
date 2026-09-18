@@ -47,7 +47,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
       });
     }, { threshold: 0.15, rootMargin: "0px 0px -10% 0px" });
 
-    const items = document.querySelectorAll('.mobile-timeline-item');
+    const items = document.querySelectorAll('.mobile-timeline-item, .desktop-timeline-item');
     items.forEach(item => observer.observe(item));
 
     return () => observer.disconnect();
@@ -162,15 +162,12 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
             const isJudging = s.id.includes("judging");
 
             return (
-              <motion.div
+              <div
                 key={`desktop-${s.id}`}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
                 onMouseEnter={() => setActiveStage(idx)}
                 onMouseLeave={() => setActiveStage(null)}
-                className={`relative flex flex-row items-center ${isEven ? "flex-row-reverse" : ""}`}
+                className={`desktop-timeline-item relative flex flex-row items-center opacity-0 translate-y-6 transition-all duration-500 ease-out [&.mobile-timeline-visible]:opacity-100 [&.mobile-timeline-visible]:translate-y-0 ${isEven ? "flex-row-reverse" : ""}`}
+                style={{ transitionDelay: `${idx * 80}ms` }}
               >
                 {/* Central / Left Energy Node */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
@@ -234,7 +231,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
