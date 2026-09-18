@@ -23,6 +23,9 @@ export interface CaveSceneProps {
 
 const isWebGLAvailable = (): boolean => {
   if (typeof window === "undefined") return true;
+  // Zero-lag optimization: Completely disable WebGL on mobile devices
+  if (typeof window !== "undefined" && window.innerWidth < 768) return false;
+
   try {
     const canvas = document.createElement("canvas");
     return !!(
@@ -150,13 +153,16 @@ export function CaveScene({
       const height = window.innerHeight;
       const widthChanged = Math.abs(width - lastWidth) > 8;
       const heightChanged = Math.abs(height - lastHeight) > 100;
-      isMobile = width < 768;
+      
+      // If the device rotates or is resized to a mobile width, we should technically reload to disable WebGL, 
+      // but for now we just handle resizing the existing canvas if it's already active.
+      const isCurrentlyMobile = width < 768;
 
       // Mobile keyboard freeze protection:
       // When software keyboard opens/closes, only height changes.
       // Do NOT destroy and recreate WebGL canvas buffers (renderer.setSize),
       // as buffer reallocation causes noticeable frame freezes and keyboard stutter.
-      if (isMobile && !widthChanged && heightChanged) {
+      if (isCurrentlyMobile && !widthChanged && heightChanged) {
         cameraRig.updateAspect(width / height);
         updateTotalScroll();
         return;
@@ -166,7 +172,7 @@ export function CaveScene({
       lastHeight = height;
 
       cameraRig.updateAspect(width / height);
-      const newDpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 2);
+      const newDpr = Math.min(window.devicePixelRatio || 1, isCurrentlyMobile ? 1.0 : 2);
       renderer.setPixelRatio(newDpr);
       renderer.setSize(width, height);
       emberSystem.setPixelRatio(newDpr);

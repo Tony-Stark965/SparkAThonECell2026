@@ -17,6 +17,9 @@ function VaultAtmosphereCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    // Zero-lag optimization: Completely disable background dust particle system on mobile
+    if (typeof window !== "undefined" && window.innerWidth < 768) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -159,7 +162,7 @@ function VaultAtmosphereCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0 -z-10 h-full w-full opacity-60 motion-reduce:hidden"
+      className="pointer-events-none absolute inset-0 -z-10 hidden md:block h-full w-full opacity-60 motion-reduce:hidden"
       aria-hidden="true"
     />
   );
@@ -354,7 +357,7 @@ function TreasuryMechanicalRings() {
       {/* RING 1: Enormous Outer Heavy Industrial Gear Ring (~880px diameter on desktop) */}
       <motion.div
         animate={{ rotate: 360 }}
-        transition={{ duration: 110, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 250, repeat: Infinity, ease: "linear" }}
         className="relative w-[280px] h-[280px] sm:w-[520px] sm:h-[520px] md:w-[720px] md:h-[720px] lg:w-[880px] lg:h-[880px] flex items-center justify-center"
       >
         <svg
@@ -432,7 +435,7 @@ function TreasuryMechanicalRings() {
       {/* RING 2: Middle Precision Astronomical / Calibrator Ring (~680px diameter, Counter-Rotating) */}
       <motion.div
         animate={{ rotate: -360 }}
-        transition={{ duration: 75, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
         className="absolute w-[220px] h-[220px] sm:w-[400px] sm:h-[400px] md:w-[560px] md:h-[560px] lg:w-[680px] lg:h-[680px] flex items-center justify-center"
       >
         <svg
@@ -520,7 +523,7 @@ function TreasuryMechanicalRings() {
       {/* RING 3: Inner Gimbal Focus Core (~500px diameter, Rotating Smoothly) */}
       <motion.div
         animate={{ rotate: 360 }}
-        transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
         className="absolute w-[160px] h-[160px] sm:w-[300px] sm:h-[300px] md:w-[420px] md:h-[420px] lg:w-[500px] lg:h-[500px] flex items-center justify-center"
       >
         <svg
@@ -773,7 +776,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
       <VaultAtmosphereCanvas />
 
       {/* 4. Act Header */}
-      <div className="relative z-30 flex flex-col items-center px-6 py-3 rounded-2xl bg-black/45 backdrop-blur-[3px] border border-amber-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.85)]">
+      <div className="relative z-30 flex flex-col items-center px-6 py-3 rounded-2xl bg-black/95 md:bg-black/45 md:backdrop-blur-[3px] border border-amber-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.85)]">
         <div className="inline-flex items-center gap-2.5 mb-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
           <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-amber-400 uppercase font-bold">

@@ -103,7 +103,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                        <path d={isEven ? "M0,24 C12,24 12,0 24,0" : "M24,24 C12,24 12,0 0,0"} stroke="currentColor" strokeWidth="2" strokeDasharray="2 2" />
                     </svg>
 
-                    <div className={`p-4 rounded-xl border bg-black/80 backdrop-blur-sm shadow-xl transition-all duration-500
+                    <div className={`p-4 rounded-xl border bg-black/95 md:bg-black/80 md:backdrop-blur-sm shadow-xl transition-all duration-500
                       ${isJudging ? 'border-amber-500/60 shadow-[0_5px_20px_rgba(251,191,36,0.15)] bg-gradient-to-b from-[#1a1305] to-black' : 'border-neutral-800/80 hover:border-neutral-600'}
                     `}>
                       <div className="flex flex-col gap-2">
@@ -181,7 +181,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                 {/* Content Basalt Slab */}
                 <div className={`w-[calc(50%-2rem)] ${isEven ? "text-right pr-8" : "text-left pl-8"}`}>
                   <div
-                    className={`group relative rounded-xl border p-3.5 transition-all duration-300 backdrop-blur-md overflow-hidden ${
+                    className={`group relative rounded-xl border p-3.5 transition-all duration-300 bg-black/95 md:bg-transparent md:backdrop-blur-md overflow-hidden ${
                       isHovered || isJudging
                         ? "border-amber-500/80 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.18)] translate-y-[-2px]"
                         : "border-neutral-800/80 bg-gradient-to-b from-neutral-900/80 via-neutral-950/90 to-black/95 hover:border-neutral-700/90"

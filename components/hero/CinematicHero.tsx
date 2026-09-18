@@ -147,7 +147,7 @@ export function CinematicHero({
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: phase >= 5 ? 1 : 0, y: phase >= 5 ? 0 : -6 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/85 px-4 py-2 backdrop-blur-lg shadow-lg pointer-events-auto"
+          className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-4 py-2 md:backdrop-blur-lg shadow-lg pointer-events-auto"
         >
           <div className="bg-white/90 rounded-md p-0.5 flex items-center justify-center gap-1.5">
             <Image 
@@ -178,7 +178,7 @@ export function CinematicHero({
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
           className="flex items-center gap-3 sm:gap-4"
         >
-          <div className="hidden xs:inline-flex items-center rounded-full border border-neutral-800/80 bg-neutral-950/70 px-3 py-1 backdrop-blur-md">
+          <div className="hidden xs:inline-flex items-center rounded-full border border-neutral-800/80 bg-neutral-950/95 md:bg-neutral-950/70 px-3 py-1 md:backdrop-blur-md">
             <span className="font-mono text-xs sm:text-sm tracking-wider text-amber-300/85 uppercase">
               {SPARKATHON_CONFIG.dates.display}
             </span>

@@ -60,6 +60,9 @@ export function EmberField({
   const lastScrollYRef = useRef<number>(0);
 
   useEffect(() => {
+    // Zero-lag optimization: Completely disable 2D Canvas particle system on mobile
+    if (window.innerWidth < 768) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -363,7 +366,7 @@ export function EmberField({
   return (
     <canvas
       ref={canvasRef}
-      className={`pointer-events-none absolute inset-0 z-10 block h-full w-full ${className}`}
+      className={`pointer-events-none absolute inset-0 z-10 hidden md:block h-full w-full ${className}`}
       style={{ touchAction: "none" }}
     />
   );

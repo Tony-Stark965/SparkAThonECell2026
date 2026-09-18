@@ -123,7 +123,7 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
           y: phase >= 5 ? 0 : 12,
         }}
         transition={{ duration: 0.9, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-5 sm:mt-7 max-w-2xl mx-auto px-5 sm:px-7 py-2.5 sm:py-3 rounded-full bg-black/65 backdrop-blur-md border border-neutral-800/90 shadow-[0_12px_36px_rgba(0,0,0,0.92)]"
+        className="mt-5 sm:mt-7 max-w-2xl mx-auto px-5 sm:px-7 py-2.5 sm:py-3 rounded-full bg-black/95 md:bg-black/65 md:backdrop-blur-md border border-neutral-800/90 shadow-[0_12px_36px_rgba(0,0,0,0.92)]"
       >
         <p className="text-xs sm:text-sm md:text-[15px] font-bold tracking-[0.20em] sm:tracking-[0.26em] text-neutral-200 leading-relaxed uppercase">
           THE FRONTIER IS NOT FOUND.

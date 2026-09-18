@@ -144,7 +144,7 @@ export function WorldController() {
         {/* ACT IV: SECTORS */}
         <section id="sectors" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           {/* Subtle background treatment for readability on scroll */}
-          <div className="pointer-events-none absolute inset-0 z-0 bg-black/35 backdrop-blur-[4px] [mask-image:linear-gradient(to_bottom,transparent_0%,black_15%,black_85%,transparent_100%)]" />
+          <div className="pointer-events-none absolute inset-0 z-0 bg-black/95 md:bg-black/35 md:backdrop-blur-[4px] [mask-image:linear-gradient(to_bottom,transparent_0%,black_15%,black_85%,transparent_100%)]" />
           
           <div className="relative z-10 w-full">
             <TerritoryOrchestrator
@@ -226,7 +226,7 @@ export function WorldController() {
         {/* Mobile Nav Toggle */}
         <div className="md:hidden flex items-center justify-between w-full relative z-50 pointer-events-none">
           {/* E-CELL Left Pill */}
-          <div className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/85 px-4 py-2 backdrop-blur-lg shadow-lg pointer-events-auto">
+          <div className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-4 py-2 md:backdrop-blur-lg shadow-lg pointer-events-auto">
             <div className="bg-white/90 rounded p-0.5 flex items-center justify-center gap-1.5">
               <Image src="/images/iic-logo.png" alt="IIC Logo" width={20} height={20} className="h-4 sm:h-5 w-auto" />
               <div className="w-[1px] h-3.5 bg-neutral-300 mx-0.5" />
@@ -240,7 +240,7 @@ export function WorldController() {
           {/* Hamburger Right Pill */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="rounded-full border border-neutral-800/90 bg-neutral-950/85 backdrop-blur-lg shadow-lg relative w-12 h-12 flex items-center justify-center text-white focus:outline-none pointer-events-auto"
+            className="rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 md:backdrop-blur-lg shadow-lg relative w-12 h-12 flex items-center justify-center text-white focus:outline-none pointer-events-auto"
             aria-label="Toggle Menu"
           >
             <div className="flex flex-col gap-[5px] items-center justify-center w-5">
@@ -259,7 +259,7 @@ export function WorldController() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -15, scale: 0.95 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute top-16 left-4 right-4 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black border border-amber-500/30 rounded-2xl p-4 flex flex-col gap-2 backdrop-blur-xl md:hidden pointer-events-auto shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.15)] origin-top z-40 overflow-hidden"
+              className="absolute top-16 left-4 right-4 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black border border-amber-500/30 rounded-2xl p-4 flex flex-col gap-2 md:backdrop-blur-xl md:hidden pointer-events-auto shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.15)] origin-top z-40 overflow-hidden"
             >
               {/* Decorative top glow */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-amber-500/80 to-transparent" />
