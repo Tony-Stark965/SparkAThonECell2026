@@ -26,6 +26,7 @@ interface RegistrationSuccessData {
   persisted: boolean;
   message?: string;
   displayId?: string;
+  registrationId?: string;
 }
 
 interface RegistrationChamberProps {

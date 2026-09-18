@@ -265,7 +265,7 @@ export async function POST(request: Request) {
 
     const paymentUrl =
       process.env.NEXT_PUBLIC_PAYMENT_URL ||
-      SPARKATHON_CONFIG.payment.url ||
+      SPARKATHON_CONFIG.payment.external.url ||
       "";
 
     const isSupabaseConfigured =
