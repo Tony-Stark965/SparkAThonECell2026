@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WorldAct } from "@/components/scene/CameraJourneyRig";
-import { CaveScene } from "@/components/scene/CaveScene";
+
 import { CinematicHero } from "@/components/hero/CinematicHero";
 import dynamic from "next/dynamic";
 import { TerritoryOrchestrator } from "@/components/acts/TerritoryOrchestrator";
@@ -117,16 +117,8 @@ export function WorldController() {
   }, [scrollToSection]);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#020202] text-white overflow-x-hidden select-none">
-      {/* 1. Single Persistent 3D WebGL Cavern with Multi-Act Camera Rig */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <CaveScene
-          progressRef={heroProgressRef}
-          currentAct={currentAct}
-          activeTerritory={activeTerritory}
-          selectedStele={selectedStele}
-        />
-      </div>
+    <div className="relative min-h-screen w-full bg-transparent text-white overflow-x-hidden select-none">
+
 
       {/* 2. Continuous Native Experience Layer (Scroll-Driven World Journey) */}
       <main className="relative z-20 w-full flex flex-col">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SPARKATHON_CONFIG, EventFlowItem } from "@/config/sparkathon.config";
 
@@ -31,6 +31,27 @@ const getEventIcon = (id: string, isJudging: boolean) => {
 export function EventFlow({ onNextAct }: EventFlowProps) {
   const steps = SPARKATHON_CONFIG.eventFlow;
   const [activeStage, setActiveStage] = useState<number | null>(null);
+
+  // Zero-lag mobile timeline observer
+  useEffect(() => {
+    // Only run intersection observer logic for mobile timeline items
+    if (typeof window === "undefined") return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('mobile-timeline-visible');
+          // Disconnect once revealed for 0 ongoing CPU load
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -10% 0px" });
+
+    const items = document.querySelectorAll('.mobile-timeline-item');
+    items.forEach(item => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="relative z-30 w-full max-w-5xl mx-auto px-4 sm:px-8 py-2 sm:py-4 flex flex-col justify-between">
@@ -69,31 +90,21 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
             const isJudging = s.id.includes("judging");
 
             return (
-              <motion.div
+              <div
                 key={`mobile-${s.id}`}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-15%" }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="relative flex flex-col items-center w-full group"
+                className="mobile-timeline-item group relative flex flex-col items-center w-full transition-all duration-500 ease-out translate-y-8 opacity-0 [&.mobile-timeline-visible]:translate-y-0 [&.mobile-timeline-visible]:opacity-100"
               >
                 {/* Scroll Reveal Step 1: Glowing Node */}
-                <motion.div 
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  whileInView={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                  className={`z-20 h-5 w-5 rounded-full border-2 flex items-center justify-center mb-4 transition-colors duration-500
-                    ${isJudging ? 'border-amber-400 bg-black shadow-[0_0_15px_rgba(251,191,36,0.9)] scale-110' : 'border-neutral-500 bg-black group-hover:border-amber-500/70'}`}
+                <div 
+                  className={`z-20 h-5 w-5 rounded-full border-2 flex items-center justify-center mb-4 transition-all duration-700 delay-100 scale-50 opacity-0 group-[.mobile-timeline-visible]:scale-100 group-[.mobile-timeline-visible]:opacity-100
+                    ${isJudging ? 'border-amber-400 bg-black shadow-[0_0_15px_rgba(251,191,36,0.9)] group-[.mobile-timeline-visible]:!scale-110' : 'border-neutral-500 bg-black group-hover:border-amber-500/70'}`}
                 >
                   <div className={`h-2 w-2 rounded-full transition-colors duration-500 ${isJudging ? 'bg-amber-400' : 'bg-neutral-500 group-hover:bg-amber-500/70'}`} />
-                </motion.div>
+                </div>
 
                 {/* Scroll Reveal Step 2: Event Card (Alternating) */}
-                <motion.div 
-                  initial={{ x: isEven ? -20 : 20, opacity: 0 }}
-                  whileInView={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                  className={`w-full flex ${isEven ? 'justify-start' : 'justify-end'}`}
+                <div 
+                  className={`w-full flex transition-all duration-700 delay-200 opacity-0 ${isEven ? '-translate-x-5 justify-start' : 'translate-x-5 justify-end'} group-[.mobile-timeline-visible]:translate-x-0 group-[.mobile-timeline-visible]:opacity-100`}
                 >
                   {/* Card wrapper to strictly prevent overflow */}
                   <div className={`w-[88%] relative max-w-[300px] ${isEven ? 'pr-2' : 'pl-2'}`}>
@@ -121,8 +132,8 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             );
           })}
         </div>

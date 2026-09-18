@@ -27,7 +27,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-import { GlobalMotionBackground } from "@/components/ui/GlobalMotionBackground";
+
 
 export default function RootLayout({
   children,
@@ -37,11 +37,25 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full bg-black text-white antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full bg-transparent text-white antialiased dark`}
       style={{ colorScheme: "dark" }}
     >
-      <body className="min-h-full flex flex-col bg-black text-neutral-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 cursor-crosshair">
-        <GlobalMotionBackground />
+      <body className="min-h-full flex flex-col bg-transparent text-neutral-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 cursor-crosshair">
+        {/* GLOBAL AMBIENT VIDEO BACKGROUND */}
+        <div className="fixed inset-0 w-full h-full z-0 bg-black overflow-hidden pointer-events-none">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover opacity-70"
+          >
+            <source src="/bg.mp4" type="video/mp4" />
+          </video>
+          {/* Lightweight static gradient overlay to integrate video with dark theme */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-[#020202] mix-blend-overlay" />
+        </div>
         
         {/* Global CRT Scanline Overlay: active on desktop, hidden on mobile to eliminate compositor lag */}
         <div className="hidden md:block fixed inset-0 z-[9999] pointer-events-none mix-blend-overlay opacity-10" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,1) 2px, rgba(0,0,0,1) 4px)", backgroundSize: "100% 4px" }} aria-hidden="true" />
@@ -49,7 +63,9 @@ export default function RootLayout({
         {/* Global Deep Vignette */}
         <div className="fixed inset-0 z-[9998] pointer-events-none opacity-30 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.9)_100%)]" aria-hidden="true" />
         
-        {children}
+        <div className="relative z-10 flex-1 flex flex-col w-full">
+          {children}
+        </div>
       </body>
     </html>
   );
