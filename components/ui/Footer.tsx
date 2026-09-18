@@ -92,16 +92,6 @@ export function Footer() {
                 </svg>
               </a>
 
-              {/* Club Logo (E-Cell) */}
-              <a href="#" className="group relative px-4 py-2 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center h-[46px]" aria-label="Visit official E-Cell website">
-                <Image
-                  src="/images/ecell-logo-new.png"
-                  alt="E-Cell FCRIT Logo"
-                  width={56}
-                  height={24}
-                  className="object-contain opacity-70 group-hover:opacity-100 transition-opacity drop-shadow-md grayscale group-hover:grayscale-0"
-                />
-              </a>
             </div>
           </div>
         </div>
