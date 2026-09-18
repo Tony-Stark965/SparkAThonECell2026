@@ -1163,9 +1163,6 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
               ↓
             </span>
           </button>
-          <span className="font-mono text-xs tracking-wider text-neutral-300 uppercase">
-            STAGE 01 // REGISTRATION → STAGE 05 // VALEDICTORY
-          </span>
         </div>
       )}
     </div>

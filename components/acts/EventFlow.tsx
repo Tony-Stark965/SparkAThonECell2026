@@ -241,9 +241,6 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
               ↓
             </span>
           </button>
-          <span className="font-mono text-xs tracking-wider text-neutral-300 uppercase">
-            ACT VIII // THE PORTAL • FINAL FRONTIER DESTINATION
-          </span>
         </div>
       )}
     </div>
