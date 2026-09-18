@@ -26,8 +26,6 @@ export function Footer() {
             <div className="pt-2">
               <p className="text-[10px] tracking-widest text-neutral-500 uppercase leading-loose">
                 Organized by E-Cell FCRIT
-                <br />
-                In collaboration with IIC
               </p>
             </div>
           </div>
