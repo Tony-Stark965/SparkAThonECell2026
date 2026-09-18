@@ -8,7 +8,7 @@ export class EmberSystem {
 
   constructor(isMobile: boolean, pixelRatio: number) {
     // Crisp, atmospheric spark count: sparks rising from the central hearth, braziers, and fissures
-    this.count = isMobile ? 80 : 480;
+    this.count = isMobile ? 45 : 480;
 
     const geometry = new THREE.BufferGeometry();
 

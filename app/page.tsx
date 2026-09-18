@@ -10,9 +10,11 @@ export default function Home() {
   return (
     <main className="min-h-screen w-full bg-[#020202] text-white">
       {!isLoaded && <SplashScreen onComplete={() => setIsLoaded(true)} />}
-      <div className={`transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0 h-0 overflow-hidden"}`}>
-        <WorldController />
-      </div>
+      {isLoaded && (
+        <div className="transition-opacity duration-700 opacity-100">
+          <WorldController />
+        </div>
+      )}
     </main>
   );
 }

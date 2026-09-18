@@ -89,7 +89,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                   }`}
                 >
                   <div
-                    className={`group relative rounded-xl border px-2.5 py-2 sm:p-3.5 transition-all duration-300 backdrop-blur-md overflow-hidden ${
+                    className={`group relative rounded-xl border px-2.5 py-2 sm:p-3.5 transition-all duration-300 md:backdrop-blur-md overflow-hidden ${
                       isHovered
                         ? "border-amber-500/80 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.18)] translate-y-[-2px]"
                         : "border-neutral-800/80 bg-gradient-to-b from-neutral-900/80 via-neutral-950/90 to-black/95 hover:border-neutral-700/90"

@@ -43,17 +43,26 @@ export function CinematicHero({
       return;
     }
 
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     const timers: NodeJS.Timeout[] = [];
 
-    // Phase 2: 500ms (Single Spark)
-    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 2)), 500));
+    const tP2 = isMobile ? 150 : 500;
+    const tP3 = isMobile ? 350 : 1000;
+    const rampDur = isMobile ? 250 : 800;
+    const tP4 = isMobile ? 550 : 1600;
+    const tP5 = isMobile ? 750 : 2200;
+    const tP6 = isMobile ? 950 : 2700;
+    const tP7 = isMobile ? 1150 : 3400;
 
-    // Phase 3: 1000ms (World Reveal begins ramping from 0 to 1)
+    // Phase 2: Single Spark
+    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 2)), tP2));
+
+    // Phase 3: World Reveal begins ramping from 0 to 1
     timers.push(
       setTimeout(() => {
         setPhase((p) => Math.max(p, 3));
         const startTime = performance.now();
-        const duration = 800; // 1000ms to 1800ms
+        const duration = rampDur;
         const rampProgress = (now: number) => {
           const elapsed = now - startTime;
           const t = Math.min(1, elapsed / duration);
@@ -67,20 +76,20 @@ export function CinematicHero({
           }
         };
         requestAnimationFrame(rampProgress);
-      }, 1000)
+      }, tP3)
     );
 
-    // Phase 4: 1600ms (Title Reveal: SPARK-A-THON)
-    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 4)), 1600));
+    // Phase 4: Title Reveal: SPARK-A-THON
+    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 4)), tP4));
 
-    // Phase 5: 2200ms (Year + Creed)
-    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 5)), 2200));
+    // Phase 5: Year + Creed
+    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 5)), tP5));
 
-    // Phase 6: 2700ms (CTA)
-    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 6)), 2700));
+    // Phase 6: CTA
+    timers.push(setTimeout(() => setPhase((p) => Math.max(p, 6)), tP6));
 
-    // Phase 7: 3400ms (Complete)
-    timers.push(setTimeout(() => setPhase(7), 3400));
+    // Phase 7: Complete
+    timers.push(setTimeout(() => setPhase(7), tP7));
 
     return () => timers.forEach(clearTimeout);
   }, [onProgressChange]);

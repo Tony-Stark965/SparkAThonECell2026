@@ -11,8 +11,9 @@ import { TheBounty } from "@/components/acts/TheBounty";
 import { EventFlow } from "@/components/acts/EventFlow";
 import { FrontierPortal } from "@/components/acts/FrontierPortal";
 import { RegistrationChamber } from "@/components/acts/RegistrationChamber";
+import { EventFAQ } from "@/components/acts/EventFAQ";
 import { Footer } from "@/components/ui/Footer";
-import { Menu, X } from "lucide-react";
+import Image from "next/image";
 
 const NAV_ITEMS: { act: WorldAct; label: string; hash: string; sectionId: string }[] = [
   { act: "HERO", label: "HEARTH", hash: "#hearth", sectionId: "hearth" },
@@ -44,7 +45,7 @@ export function WorldController() {
     }
   }, []);
 
-  // Continuous passive scroll-driven navigation tracking across all acts (mobile & desktop)
+  // Zero-overhead scroll tracking using native IntersectionObserver (no layout reflows or scroll thrashing)
   useEffect(() => {
     const sectionToAct: Record<string, WorldAct> = {
       hearth: "HERO",
@@ -54,79 +55,45 @@ export function WorldController() {
       flow: "FLOW",
       portal: "PORTAL",
       register: "REGISTER",
+      faq: "REGISTER",
     };
 
     const sectionIds = Object.keys(sectionToAct);
-
-    interface SectionOffset {
-      id: string;
-      top: number;
-      bottom: number;
-    }
-    let cachedOffsets: SectionOffset[] = [];
-
-    const measureSections = () => {
-      cachedOffsets = sectionIds
-        .map((id) => {
-          const el = document.getElementById(id);
-          if (!el) return null;
-          const rect = el.getBoundingClientRect();
-          const top = rect.top + window.scrollY;
-          return { id, top, bottom: top + rect.height };
-        })
-        .filter((s): s is SectionOffset => s !== null);
-    };
-
-    measureSections();
-    const settleTimer = setTimeout(measureSections, 500);
-
-    let ticking = false;
     let historyTimeout: NodeJS.Timeout | null = null;
-    let lastAct: WorldAct = "HERO";
 
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollPos = window.scrollY + window.innerHeight * 0.45;
-          let matchedAct: WorldAct | null = null;
-          let matchedId: string | null = null;
-
-          for (const s of cachedOffsets) {
-            if (scrollPos >= s.top && scrollPos < s.bottom) {
-              matchedAct = sectionToAct[s.id];
-              matchedId = s.id;
-              break;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const act = sectionToAct[entry.target.id];
+            if (act) {
+              setCurrentAct(act);
+              if (historyTimeout) clearTimeout(historyTimeout);
+              const targetId = entry.target.id;
+              historyTimeout = setTimeout(() => {
+                if (targetId && typeof window !== "undefined") {
+                  window.history.replaceState(null, "", `#${targetId}`);
+                }
+              }, 200);
             }
           }
-
-          if (matchedAct && matchedAct !== lastAct) {
-            lastAct = matchedAct;
-            setCurrentAct(matchedAct);
-
-            if (historyTimeout) clearTimeout(historyTimeout);
-            const targetId = matchedId;
-            historyTimeout = setTimeout(() => {
-              if (targetId && typeof window !== "undefined") {
-                window.history.replaceState(null, "", `#${targetId}`);
-              }
-            }, 150);
-          }
-
-          ticking = false;
-        });
-        ticking = true;
+        }
+      },
+      {
+        root: null,
+        rootMargin: "-35% 0px -35% 0px", // Centered viewport trigger band
+        threshold: 0,
       }
-    };
+    );
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", measureSections, { passive: true });
-    handleScroll();
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
 
     return () => {
-      clearTimeout(settleTimer);
+      observer.disconnect();
       if (historyTimeout) clearTimeout(historyTimeout);
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", measureSections);
     };
   }, []);
 
@@ -213,6 +180,11 @@ export function WorldController() {
           <RegistrationChamber onReturnToHero={() => scrollToSection("hearth")} />
         </section>
 
+        {/* FAQ SECTION */}
+        <section id="faq" className="relative w-full min-h-[90vh] py-12 sm:py-16 flex flex-col justify-center">
+          <EventFAQ />
+        </section>
+
         {/* Platform Footer */}
         <div className="w-full mt-10">
           <Footer />
@@ -249,9 +221,9 @@ export function WorldController() {
           {/* E-CELL Left Pill */}
           <div className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/85 px-4 py-2 backdrop-blur-lg shadow-lg pointer-events-auto">
             <div className="bg-white/90 rounded p-0.5 flex items-center justify-center gap-1.5">
-              <img src="/images/iic-logo.png" alt="IIC Logo" className="h-4 sm:h-5 w-auto" />
+              <Image src="/images/iic-logo.png" alt="IIC Logo" width={20} height={20} className="h-4 sm:h-5 w-auto" />
               <div className="w-[1px] h-3.5 bg-neutral-300 mx-0.5" />
-              <img src="/images/ecell-logo-new.png" alt="E-Cell Official Logo" className="h-4 sm:h-5 w-auto" />
+              <Image src="/images/ecell-logo-new.png" alt="E-Cell Official Logo" width={20} height={20} className="h-4 sm:h-5 w-auto" />
             </div>
             <span className="text-amber-500 font-black text-[10px] sm:text-xs tracking-[0.25em] font-mono">
               ECELL FCRIT

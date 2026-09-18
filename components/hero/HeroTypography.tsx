@@ -35,14 +35,13 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
       {/* 2. Main Title: SPARK-A-THON (Monumental Chiseled Basalt with Refined Amber Gold Face) */}
       <div className="w-full flex justify-center overflow-visible my-1 sm:my-1.5">
         <motion.h1
-          initial={{ opacity: 0, scale: 0.92, filter: "blur(14px)", y: 16 }}
+          initial={{ opacity: 0, scale: 0.94, y: 14 }}
           animate={{
             opacity: phase >= 4 ? 1 : 0,
-            scale: phase >= 4 ? 1 : 0.92,
-            filter: phase >= 4 ? "blur(0px)" : "blur(14px)",
-            y: phase >= 4 ? 0 : 16,
+            scale: phase >= 4 ? 1 : 0.94,
+            y: phase >= 4 ? 0 : 14,
           }}
-          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative whitespace-nowrap select-none font-black leading-none text-[clamp(2.2rem,8.8vw,7.4rem)] uppercase tracking-[0.035em] sm:tracking-[0.05em]"
         >
           {/* Layer 1: Ambient Occlusion & Deep Grounding Silhouette */}
@@ -83,13 +82,12 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
 
       {/* 3. Year Sub-Anchor: 2026 (Intentionally Designed Monumental Year) */}
       <motion.div
-        initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{
           opacity: phase >= 5 ? 1 : 0,
-          y: phase >= 5 ? 0 : 10,
-          filter: phase >= 5 ? "blur(0px)" : "blur(6px)",
+          y: phase >= 5 ? 0 : 8,
         }}
-        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="mt-1.5 sm:mt-2.5 relative inline-block select-none"
       >
         {/* Deep Silhouette backing for crystal clarity over 3D background */}

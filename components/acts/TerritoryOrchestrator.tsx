@@ -80,7 +80,7 @@ export function TerritoryOrchestrator({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.98 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="relative rounded-2xl border border-neutral-800/90 bg-gradient-to-b from-neutral-900/80 via-neutral-950/90 to-black p-6 sm:p-9 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+            className="relative rounded-2xl border border-neutral-800/90 bg-gradient-to-b from-neutral-900/80 via-neutral-950/90 to-black p-6 sm:p-9 md:backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
           >
             {/* Top Card Telemetry */}
             <div className="flex items-center justify-between border-b border-neutral-800/80 pb-4 mb-5">

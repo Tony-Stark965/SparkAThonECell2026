@@ -57,7 +57,7 @@ export function FrontierPortal({
       >
         {/* Exterior Atmospheric Core Radiance */}
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[85%] rounded-full blur-[100px] opacity-35"
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[85%] rounded-full blur-[35px] md:blur-[100px] opacity-35"
           style={{
             background:
               "radial-gradient(circle, rgba(255, 140, 0, 0.6) 0%, rgba(255, 60, 0, 0.2) 50%, transparent 75%)",

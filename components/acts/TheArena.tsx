@@ -230,7 +230,7 @@ export function TheArena({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.3 }}
-          className="my-2 p-3 sm:p-4 rounded-xl border border-amber-500/30 bg-[#0c0805]/80 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"
+          className="my-2 p-3 sm:p-4 rounded-xl border border-amber-500/30 bg-[#0c0805]/80 md:backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"
         >
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs font-black text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">

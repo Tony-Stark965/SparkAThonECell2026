@@ -24,6 +24,13 @@ export interface EventFlowItem {
   time: string;
 }
 
+export interface FAQItem {
+  id: string;
+  number: string;
+  question: string;
+  answer: string;
+}
+
 export const SPARKATHON_CONFIG = {
   name: "SPARK-A-THON",
   year: "2026",
@@ -56,14 +63,27 @@ export const SPARKATHON_CONFIG = {
     },
   },
 
-  // Payment: Centralized Razorpay configuration
-  // The organizers will provide the official Razorpay payment URL later.
-  // When provided, setting this single URL activates direct payment dispatch without UI rewrite.
+  // Official Spark-A-Thon Sector Domains (Allowlist for Team Selection)
+  sectors: {
+    domains: [
+      "AI and Cybersec",
+      "Smart Energy Systems",
+      "Robotics or Drone and Fixed Wing",
+      "IoT or Embedded Systems",
+      "Open Innovation",
+    ] as const,
+  },
+
+  // Payment: Centralized payment configuration
+  // Official payment links will be provided by event organizers.
+  // Setting enabled to true with valid URLs activates direct payment redirection on the success screen.
   payment: {
-    url: "", // Set official Razorpay payment link when provided (e.g. "https://rzp.io/...")
-    isConfigured: false,
+    enabled: false,
+    url: "", // Maintained for route handler backwards compatibility
+    url400: "", // Official payment link for 2-4 member teams (₹400)
+    url450: "", // Official payment link for 5 member teams (₹450)
     provider: "Razorpay",
-    note: "Official Razorpay payment link awaited from organizers. No payment is processed on this website.",
+    note: "Official payment link awaited from organizers. No payment is processed on this website.",
   },
 
   // Registration Configuration
@@ -209,4 +229,50 @@ export const SPARKATHON_CONFIG = {
       time: "3:30 PM — 4:00 PM",
     },
   ] as EventFlowItem[],
+
+  // Confirmed Official FAQ
+  faq: [
+    {
+      id: "team-size",
+      number: "01",
+      question: "What is the allowed team size?",
+      answer: "Teams can have 2 to 5 members.",
+    },
+    {
+      id: "registration-fee",
+      number: "02",
+      question: "What is the registration fee?",
+      answer: "₹400 for teams of 2–4 members and ₹450 for teams of 5 members.",
+    },
+    {
+      id: "prize-pool",
+      number: "03",
+      question: "What is the prize pool?",
+      answer: "The official cash prize pool is ₹15,000.",
+    },
+    {
+      id: "judging-criteria",
+      number: "04",
+      question: "What are the judging criteria?",
+      answer: "Creativity & Innovation; Technical Feasibility; Scalability & Market Potential; Presentation & Clarity; Problem-Solving Impact.",
+    },
+    {
+      id: "event-schedule",
+      number: "05",
+      question: "What is the event-day schedule?",
+      answer: "Player Entry / Registration 9:00–9:45 AM; Inauguration 10:00–10:30 AM; Exhibition 10:30 AM–12:30 PM; Lunch 12:30–1:00 PM; Valedictory 3:30–4:00 PM.",
+    },
+    {
+      id: "registration-payment",
+      number: "06",
+      question: "How do we register and pay?",
+      answer: "Teams submit their registration details through the website. Payment gateway integration is not active yet, so online payment is not currently processed on this website.",
+    },
+  ] as FAQItem[],
+
+  // Official Contact Information
+  contacts: [
+    { name: "Joviee", phone: "+91 62829 08679", raw: "+916282908679" },
+    { name: "Abhinaya Gowda", phone: "+91 84540 10645", raw: "+918454010645" },
+  ],
 };

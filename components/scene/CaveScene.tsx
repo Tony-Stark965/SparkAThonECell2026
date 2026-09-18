@@ -77,7 +77,7 @@ export function CaveScene({
       return;
     }
 
-    const isMobile = window.innerWidth < 768;
+    let isMobile = window.innerWidth < 768;
     const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -95,8 +95,8 @@ export function CaveScene({
     const caveEnv = new CaveEnvironment();
     scene.add(caveEnv.group);
 
-    // 2. Compact Living Flame Core (Living 3D flame volume at hearth)
-    const flameCore = new FlameCore();
+    // 2. Compact Living Flame Core (Living 3D flame volume at hearth: 6 planes on mobile vs 18 on desktop)
+    const flameCore = new FlameCore(isMobile);
     scene.add(flameCore.group);
 
     // 3. Fine Rising Embers
@@ -142,11 +142,31 @@ export function CaveScene({
     updateTotalScroll();
     const settleTimer = setTimeout(updateTotalScroll, 500);
 
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      const widthChanged = Math.abs(width - lastWidth) > 8;
+      const heightChanged = Math.abs(height - lastHeight) > 100;
+      isMobile = width < 768;
+
+      // Mobile keyboard freeze protection:
+      // When software keyboard opens/closes, only height changes.
+      // Do NOT destroy and recreate WebGL canvas buffers (renderer.setSize),
+      // as buffer reallocation causes noticeable frame freezes and keyboard stutter.
+      if (isMobile && !widthChanged && heightChanged) {
+        cameraRig.updateAspect(width / height);
+        updateTotalScroll();
+        return;
+      }
+
+      lastWidth = width;
+      lastHeight = height;
+
       cameraRig.updateAspect(width / height);
-      const newDpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.0 : 2);
+      const newDpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 2);
       renderer.setPixelRatio(newDpr);
       renderer.setSize(width, height);
       emberSystem.setPixelRatio(newDpr);
@@ -157,22 +177,40 @@ export function CaveScene({
       isVisible = !document.hidden;
     };
 
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
-    window.addEventListener("pointerup", handlePointerUp, { passive: true });
+    // Attach mouse pointer listeners only on non-touch desktop devices
+    if (!isMobile) {
+      window.addEventListener("pointermove", handlePointerMove, { passive: true });
+      window.addEventListener("pointerdown", handlePointerDown, { passive: true });
+      window.addEventListener("pointerup", handlePointerUp, { passive: true });
+    }
     window.addEventListener("resize", handleResize);
     document.addEventListener("visibilitychange", handleVisibility);
 
     let lastRenderTime = 0;
-    const mobileFrameInterval = 1 / 60; // 60 FPS cap on mobile displays (avoids 120Hz thermal throttling)
+    const mobileFrameInterval = 1 / 30; // 30 FPS cap on mobile displays (cuts GPU draw load in half, prevents thermal throttling and frame drops)
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       if (!isVisible) return;
 
+      const act = actRef.current;
+
+      // Dynamic Occlusion Pausing:
+      // When the user is in the Registration Chamber, FAQ, or below Arena on mobile,
+      // the entire screen is covered by 100% opaque industrial basalt panels.
+      // Skipping 3D WebGL computation and render() drops GPU/CPU consumption to 0%
+      // during form typing and reading!
+      const isOccluded =
+        act === "REGISTER" ||
+        (isMobile && (act === "FLOW" || act === "BOUNTY"));
+
+      if (isOccluded) {
+        return;
+      }
+
       const elapsedTime = clock.getElapsedTime();
 
-      // Mobile frame pacing: throttle 120Hz mobile screens to smooth 60 FPS
+      // Mobile frame pacing: throttle mobile screens (including 90/120Hz LTPO) to stable 30 FPS
       if (isMobile) {
         const delta = elapsedTime - lastRenderTime;
         if (delta < mobileFrameInterval - 0.002) {
@@ -182,14 +220,16 @@ export function CaveScene({
       }
 
       const currentProg =
-        actRef.current && actRef.current !== "HERO"
+        act && act !== "HERO"
           ? 1
           : (externalProgressRef && externalProgressRef.current !== null
               ? externalProgressRef.current
               : progressRef.current);
 
-      // Update interaction inertia and 3D world projection
-      interaction.update(cameraRig.camera);
+      // Update interaction inertia and 3D world projection (desktop only)
+      if (!isMobile) {
+        interaction.update(cameraRig.camera);
+      }
 
       // Sample instantaneous native window scroll without forced document reflow
       const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
@@ -199,7 +239,7 @@ export function CaveScene({
       // Camera dolly forward and multi-act trajectory with immediate scroll response
       cameraRig.update(
         elapsedTime,
-        actRef.current,
+        act,
         currentProg,
         interaction.pointerNormalized.x,
         interaction.pointerNormalized.y,
@@ -221,8 +261,8 @@ export function CaveScene({
       );
 
       // Multi-act 3D physical chamber structures
-      worldChambers.updateVisibility(actRef.current, territoryRef.current, steleRef.current);
-      worldChambers.update(elapsedTime, actRef.current);
+      worldChambers.updateVisibility(act, territoryRef.current, steleRef.current);
+      worldChambers.update(elapsedTime, act);
 
       renderer.render(scene, cameraRig.camera);
     };
@@ -232,9 +272,11 @@ export function CaveScene({
     return () => {
       cancelAnimationFrame(animationFrameId);
       clearTimeout(settleTimer);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("pointerup", handlePointerUp);
+      if (!isMobile) {
+        window.removeEventListener("pointermove", handlePointerMove);
+        window.removeEventListener("pointerdown", handlePointerDown);
+        window.removeEventListener("pointerup", handlePointerUp);
+      }
       window.removeEventListener("resize", handleResize);
       document.removeEventListener("visibilitychange", handleVisibility);
 

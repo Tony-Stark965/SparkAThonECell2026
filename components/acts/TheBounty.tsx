@@ -86,7 +86,21 @@ function VaultAtmosphereCanvas() {
     ];
 
     let frame = 0;
-    const render = () => {
+    let isIntersecting = false;
+    let lastTime = 0;
+    const frameInterval = isMobile ? 33 : 16;
+
+    const render = (time: number) => {
+      if (!isIntersecting) return;
+
+      if (isMobile && time - lastTime < frameInterval - 2) {
+        if (!prefersReducedMotion) {
+          animId = requestAnimationFrame(render);
+        }
+        return;
+      }
+      lastTime = time;
+
       ctx.clearRect(0, 0, width, height);
       frame++;
 
@@ -118,14 +132,25 @@ function VaultAtmosphereCanvas() {
         ctx.fill();
       }
 
-      if (!prefersReducedMotion) {
+      if (!prefersReducedMotion && isIntersecting) {
         animId = requestAnimationFrame(render);
       }
     };
 
-    render();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasIntersecting = isIntersecting;
+        isIntersecting = entry.isIntersecting;
+        if (isIntersecting && !wasIntersecting && !prefersReducedMotion) {
+          animId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(canvas);
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("resize", handleResize);
       if (animId) cancelAnimationFrame(animId);
     };
@@ -319,7 +344,7 @@ function TreasuryMechanicalRings() {
     >
       {/* Central Volumetric Core Glow Behind Rings */}
       <div
-        className="absolute w-[280px] h-[280px] sm:w-[450px] sm:h-[450px] md:w-[620px] md:h-[620px] lg:w-[750px] lg:h-[750px] rounded-full blur-[70px] opacity-45"
+        className="absolute w-[280px] h-[280px] sm:w-[450px] sm:h-[450px] md:w-[620px] md:h-[620px] lg:w-[750px] lg:h-[750px] rounded-full blur-[25px] md:blur-[70px] opacity-45"
         style={{
           background:
             "radial-gradient(circle, rgba(245, 158, 11, 0.28) 0%, rgba(180, 83, 9, 0.12) 45%, transparent 70%)",
@@ -784,7 +809,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] h-[82%] rounded-full blur-[90px] motion-reduce:animate-none"
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] h-[82%] rounded-full blur-[30px] md:blur-[90px] motion-reduce:animate-none"
           style={{
             background: isUnsealed
               ? "radial-gradient(circle, rgba(255, 150, 0, 0.45) 0%, rgba(200, 60, 0, 0.12) 50%, transparent 80%)"

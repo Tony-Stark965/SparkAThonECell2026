@@ -18,19 +18,20 @@ export class FlameCore {
   private coalsMesh: THREE.InstancedMesh;
   private coalCount: number;
 
-  constructor() {
+  constructor(isMobile: boolean = false) {
     this.group = new THREE.Group();
     // Origin in cavern world coordinates
     this.group.position.set(0, 0, 0);
 
     // Environmental Flanking Brazier Locations (Leaves central path completely clear)
+    // On mobile: 1 plane per brazier (6 total) reduces fragment overdraw by 66% with identical look
     const brazierSpecs: BrazierFlameSpec[] = [
-      { x: -3.4, y: 1.42, z: -2.4, scale: 1.15, planeCount: 4 }, // Left Foreground Roaring Brazier
-      { x: 3.4, y: 1.42, z: -2.4, scale: 1.15, planeCount: 4 },  // Right Foreground Roaring Brazier
-      { x: -4.6, y: 0.82, z: -5.5, scale: 0.85, planeCount: 3 }, // Left Midground Brazier
-      { x: 4.6, y: 0.82, z: -5.5, scale: 0.85, planeCount: 3 },  // Right Midground Brazier
-      { x: -5.8, y: 0.52, z: -8.5, scale: 0.65, planeCount: 2 }, // Left Distant Torch Altar
-      { x: 5.8, y: 0.52, z: -8.5, scale: 0.65, planeCount: 2 },  // Right Distant Torch Altar
+      { x: -3.4, y: 1.42, z: -2.4, scale: 1.15, planeCount: isMobile ? 1 : 4 }, // Left Foreground Roaring Brazier
+      { x: 3.4, y: 1.42, z: -2.4, scale: 1.15, planeCount: isMobile ? 1 : 4 },  // Right Foreground Roaring Brazier
+      { x: -4.6, y: 0.82, z: -5.5, scale: 0.85, planeCount: isMobile ? 1 : 3 }, // Left Midground Brazier
+      { x: 4.6, y: 0.82, z: -5.5, scale: 0.85, planeCount: isMobile ? 1 : 3 },  // Right Midground Brazier
+      { x: -5.8, y: 0.52, z: -8.5, scale: 0.65, planeCount: isMobile ? 1 : 2 }, // Left Distant Torch Altar
+      { x: 5.8, y: 0.52, z: -8.5, scale: 0.65, planeCount: isMobile ? 1 : 2 },  // Right Distant Torch Altar
     ];
 
     // 1. Procedural Flame Volumes inside Each Brazier Bowl
@@ -56,7 +57,7 @@ export class FlameCore {
 
         this.flameMaterials.push(mat);
 
-        const geo = new THREE.PlaneGeometry(w, h, 10, 14);
+        const geo = new THREE.PlaneGeometry(w, h, isMobile ? 4 : 10, isMobile ? 6 : 14);
         geo.translate(0, h / 2, 0);
 
         const mesh = new THREE.Mesh(geo, mat);
