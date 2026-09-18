@@ -25,6 +25,7 @@ interface RegistrationSuccessData {
   paymentUrl?: string;
   persisted: boolean;
   message?: string;
+  displayId?: string;
 }
 
 interface RegistrationChamberProps {
@@ -48,8 +49,8 @@ function isValidEmail(email: string): boolean {
 }
 
 export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps) {
-  // New 5-Step Workflow
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1); // 6 is HANDOFF (Success)
+  // New 7-Step Workflow
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1); // 7 is HANDOFF (Success)
 
   // Form State
   const [participantCount, setParticipantCount] = useState<2 | 3 | 4 | 5>(2);
@@ -76,6 +77,11 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
   const [successData, setSuccessData] = useState<RegistrationSuccessData | null>(null);
   const [domainCapacities, setDomainCapacities] = useState<Record<string, number>>({});
   const [isFetchingCapacities, setIsFetchingCapacities] = useState(false);
+  
+  // Payment State
+  const [utr, setUtr] = useState("");
+  const [isPaymentSubmitting, setIsPaymentSubmitting] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (step === 2) {
@@ -212,7 +218,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
         throw new Error(data.error || "Registration failed. Please review your inputs and try again.");
       }
       setSuccessData(data);
-      setStep(6);
+      setStep(6); // Go to Payment Screen
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : "An unexpected network error occurred.");
     } finally {
@@ -232,6 +238,34 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
     setP5({ name: "", rollNo: "", mobile: "" });
     setParticipantCount(2);
     setStep(1);
+  };
+
+  const handlePaymentSubmit = async () => {
+    setPaymentError(null);
+    const paymentMode = SPARKATHON_CONFIG.payment?.mode || "GPay";
+
+    if (paymentMode === "GPay") {
+      if (!utr || utr.trim().length < 5) {
+        setPaymentError("Please enter a valid UTR or Transaction ID.");
+        return;
+      }
+      setIsPaymentSubmitting(true);
+      try {
+        const res = await fetch("/api/register/payment", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ registrationId: successData?.registrationId, utr: utr.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to submit payment details.");
+        
+        setStep(7);
+      } catch (err: unknown) {
+        setPaymentError(err instanceof Error ? err.message : "Network error");
+      } finally {
+        setIsPaymentSubmitting(false);
+      }
+    }
   };
 
   const stagesList = [
@@ -465,11 +499,11 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                 </motion.div>
               )}
 
-              {/* STEP 5: PAYMENT & SUMMARY */}
+              {/* STEP 5: REVIEW & SAVE */}
               {step === 5 && (
                 <motion.div key="step-5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="space-y-6">
                   <div className="text-center pb-1">
-                    <span className="font-mono text-xs tracking-[0.3em] text-amber-400 uppercase font-bold">STEP 05 // REVIEW & PAYMENT</span>
+                    <span className="font-mono text-xs tracking-[0.3em] text-amber-400 uppercase font-bold">STEP 05 // REVIEW SQUAD</span>
                     <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mt-1">CONFIRM DISPATCH</h3>
                   </div>
 
@@ -485,15 +519,70 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                     <button type="button" onClick={handleBack} disabled={isSubmitting} className="w-full sm:w-auto font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 hover:border-neutral-700 transition-colors cursor-pointer">← EDIT DETAILS</button>
                     <button type="button" onClick={handleCompleteRegistration} disabled={isSubmitting} className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full font-mono text-xs sm:text-sm font-black tracking-widest uppercase transition-all cursor-pointer ${isSubmitting ? "bg-neutral-800 text-neutral-300 border border-neutral-700 cursor-not-allowed" : "border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.01] active:scale-[0.99]"}`}>
-                      {isSubmitting ? <span>PROCESSING...</span> : <span>PAY {currentFeeDisplay} →</span>}
+                      {isSubmitting ? <span>SAVING...</span> : <span>SAVE REGISTRATION →</span>}
                     </button>
                   </div>
                 </motion.div>
               )}
 
-              {/* STEP 6: HANDOFF SUCCESS */}
+              {/* STEP 6: PAYMENT SCREEN */}
               {step === 6 && successData && (
-                <motion.div key="step-6" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center py-3">
+                <motion.div key="step-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="space-y-6">
+                  <div className="text-center pb-1">
+                    <span className="font-mono text-xs tracking-[0.3em] text-amber-400 uppercase font-bold">STEP 06 // FEE SETTLEMENT</span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mt-1">PAYMENT PROTOCOL</h3>
+                  </div>
+
+                  <div className="rounded-xl border border-neutral-800 bg-neutral-950/80 p-4 font-mono text-xs text-left space-y-2.5">
+                    <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-400 uppercase">REGISTRATION ID</span><span className="text-amber-300 font-bold uppercase select-all">{successData.displayId || successData.id}</span></div>
+                    <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-400 uppercase">SQUAD STRENGTH</span><span className="text-white font-semibold">{successData.participantCount} MEMBERS</span></div>
+                    <div className="flex justify-between items-center"><span className="text-neutral-400 uppercase">AMOUNT DUE</span><span className="text-amber-400 font-bold text-base">₹{successData.fee}</span></div>
+                  </div>
+
+                  {paymentError && <div className="p-3 rounded-lg border border-red-500/60 bg-red-500/10 text-red-300 font-mono text-xs text-center">{paymentError}</div>}
+
+                  {SPARKATHON_CONFIG.payment?.mode === "GPay" ? (
+                    <div className="bg-neutral-900/50 rounded-xl border border-neutral-800 p-5 space-y-4">
+                      <div className="text-center">
+                        <p className="font-mono text-xs text-neutral-300 mb-4">{SPARKATHON_CONFIG.payment.gpay.note}</p>
+                        <div className="inline-block p-2 bg-white rounded-xl shadow-lg border border-neutral-700">
+                           {/* Add an actual Image when you have the local QR codes, using placeholder below */}
+                           <div className="w-48 h-48 bg-neutral-200 flex flex-col items-center justify-center text-neutral-900 rounded-lg">
+                             {successData.fee === 400 ? <img src={SPARKATHON_CONFIG.payment.gpay.qr400} alt="QR 400" className="w-full h-full object-cover" /> : <img src={SPARKATHON_CONFIG.payment.gpay.qr350} alt="QR 350" className="w-full h-full object-cover" />}
+                           </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block font-mono text-xs text-neutral-300 uppercase tracking-wider mb-1">ENTER UTR / TRANSACTION ID <span className="text-amber-400">*</span></label>
+                        <input type="text" value={utr} onChange={(e) => { setUtr(e.target.value); if(paymentError) setPaymentError(null);}} className="w-full px-3.5 py-3 rounded-lg border font-mono text-sm bg-neutral-950 text-white border-neutral-800 focus:border-amber-400 focus:outline-none transition-colors" placeholder="e.g. 3154XXXXXXXX" />
+                      </div>
+                      <button type="button" onClick={handlePaymentSubmit} disabled={isPaymentSubmitting || utr.trim().length < 5} className="w-full inline-flex justify-center items-center gap-2 px-8 py-3.5 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none">
+                        {isPaymentSubmitting ? "VERIFYING..." : "SUBMIT UTR"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-neutral-900/50 rounded-xl border border-neutral-800 p-5 space-y-4 text-center">
+                      <p className="font-mono text-xs text-neutral-300">{SPARKATHON_CONFIG.payment?.external?.note}</p>
+                      {SPARKATHON_CONFIG.payment?.external?.url ? (
+                        <a href={SPARKATHON_CONFIG.payment.external.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full py-4 px-6 rounded-full font-mono text-sm font-black tracking-widest uppercase border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 transition-all hover:shadow-[0_0_25px_rgba(251,191,36,0.5)]">
+                          <span>PAY NOW VIA RAZORPAY (₹{successData.fee})</span><span>→</span>
+                        </a>
+                      ) : (
+                        <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center mt-3">
+                           <span className="font-mono text-xs text-amber-400 font-bold tracking-wider uppercase block">PAYMENT LINK AWAITED</span>
+                           <p className="font-mono text-[10px] text-neutral-300 mt-2">The official college payment portal is currently being provisioned. Your registration is saved under ID <strong className="text-amber-300">{successData.displayId || successData.id}</strong>.</p>
+                        </div>
+                      )}
+                      {/* Allow advancing to step 7 even in external mode to clear the screen, or they just close the site */}
+                      <button type="button" onClick={() => setStep(7)} className="mt-4 font-mono text-[10px] text-neutral-500 hover:text-neutral-300 uppercase underline underline-offset-4">I HAVE COMPLETED PAYMENT</button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* STEP 7: HANDOFF SUCCESS */}
+              {step === 7 && successData && (
+                <motion.div key="step-7" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center py-3">
                   <div className="h-12 w-12 rounded-full border border-amber-400/80 bg-amber-500/10 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="2.2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                   </div>
@@ -502,32 +591,15 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                   <p className="mt-1 font-mono text-xs text-neutral-300 uppercase">{successData.college}</p>
                   
                   <div className="my-5 w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-950/80 p-4 space-y-2.5 font-mono text-xs text-left">
-                    <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-300 uppercase">REGISTRATION ID</span><span className="text-amber-300 font-bold uppercase select-all">{successData.id}</span></div>
+                    <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-300 uppercase">REGISTRATION ID</span><span className="text-amber-300 font-bold uppercase select-all">{successData.displayId || successData.id}</span></div>
                     <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-300 uppercase">SQUAD STRENGTH</span><span className="text-white font-semibold">{successData.participantCount} MEMBERS</span></div>
-                    <div className="flex justify-between items-center"><span className="text-neutral-300 uppercase">ENTRY PROTOCOL FEE</span><span className="text-amber-400 font-bold text-sm">₹{successData.fee}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-neutral-300 uppercase">PAYMENT STATUS</span><span className="text-amber-400 font-bold text-sm">PENDING VERIFICATION</span></div>
                   </div>
 
-                  {(() => {
-                    const isPaymentEnabled = Boolean(SPARKATHON_CONFIG.payment?.enabled);
-                    const feeAmount = Number(successData.fee);
-                    const paymentUrl = isPaymentEnabled && feeAmount === 350 && SPARKATHON_CONFIG.payment?.url400?.trim() ? SPARKATHON_CONFIG.payment.url400.trim() : isPaymentEnabled && feeAmount === 400 && SPARKATHON_CONFIG.payment?.url450?.trim() ? SPARKATHON_CONFIG.payment.url450.trim() : successData.paymentUrl?.trim() || null;
-                    if (paymentUrl) {
-                      return (
-                        <div className="w-full max-w-md p-4 rounded-xl border border-amber-500/40 bg-gradient-to-b from-amber-500/10 via-neutral-950 to-neutral-950 text-center mb-5 shadow-[0_0_25px_rgba(245,158,11,0.1)] space-y-3">
-                          <span className="font-mono text-xs text-amber-400 font-bold tracking-widest uppercase block">ENTRY PROTOCOL FEE READY</span>
-                          <a href={paymentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-full font-mono text-xs sm:text-sm font-black tracking-widest uppercase border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 transition-all">
-                            <span>PROCEED TO RAZORPAY (₹{successData.fee})</span><span>→</span>
-                          </a>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div className="w-full max-w-md p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center mb-5 space-y-1.5">
-                        <span className="font-mono text-xs text-amber-400 font-bold tracking-wider uppercase block">OFFICIAL PAYMENT LINK AWAITED</span>
-                        <p className="font-mono text-xs text-neutral-300 leading-relaxed">Your squad dossier has been officially recorded under Registration ID <strong className="text-amber-300 select-all">{successData.id}</strong>. Official Razorpay payment gateway credentials and links are currently being provisioned by the event committee.</p>
-                      </div>
-                    );
-                  })()}
+                  <div className="w-full max-w-md p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center mb-5 space-y-1.5">
+                     <p className="font-mono text-xs text-neutral-300 leading-relaxed">Your squad dossier has been officially recorded. Our operators will manually verify your payment and finalize your domain dispatch.</p>
+                  </div>
+
                   <button type="button" onClick={handleRegisterAnother} className="font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">REGISTER ANOTHER SQUAD</button>
                 </motion.div>
               )}

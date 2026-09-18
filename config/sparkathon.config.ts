@@ -74,16 +74,19 @@ export const SPARKATHON_CONFIG = {
     ] as const,
   },
 
-  // Payment: Centralized payment configuration
-  // Official payment links will be provided by event organizers.
-  // Setting enabled to true with valid URLs activates direct payment redirection on the success screen.
+  // Payment Configuration (Dual Mode)
   payment: {
-    enabled: false,
-    url: "", // Maintained for route handler backwards compatibility
-    url400: "", // Official payment link for 2-4 member teams (₹400)
-    url450: "", // Official payment link for 5 member teams (₹450)
-    provider: "Razorpay",
-    note: "Official payment link awaited from organizers. No payment is processed on this website.",
+    mode: "GPay" as "GPay" | "External",
+    gpay: {
+      qr350: "/images/qr_350.png", // Path to ₹350 QR code (2-4 members)
+      qr400: "/images/qr_400.png", // Path to ₹400 QR code (5 members)
+      note: "Scan QR code to pay using any UPI app. Submit your UTR for verification.",
+    },
+    external: {
+      provider: "College Razorpay",
+      url: "", // Update this later when college provides Razorpay link
+      note: "You will be redirected to the official college payment gateway.",
+    }
   },
 
   // Registration Configuration

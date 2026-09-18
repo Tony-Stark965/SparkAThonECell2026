@@ -9,11 +9,11 @@ export function Footer() {
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:32px_32px]"></div>
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-2xl h-[1px] bg-gradient-to-r from-transparent via-amber-500/60 to-transparent"></div>
       
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-8 items-start">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8 md:py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-8 items-start">
           
           {/* Column 1: Branding */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3">
             <div className="flex items-center gap-2.5">
               <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,1)]" />
               <span className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
@@ -21,9 +21,9 @@ export function Footer() {
               </span>
             </div>
             <p className="text-xs sm:text-sm tracking-[0.2em] text-neutral-400 uppercase leading-relaxed max-w-xs">
-              {SPARKATHON_CONFIG.tagline}
+              THE FRONTIER IS NOT FOUND.<br />IT IS BUILT.
             </p>
-            <div className="pt-2">
+            <div>
               <p className="text-[10px] tracking-widest text-neutral-500 uppercase leading-loose">
                 Organized by E-Cell FCRIT
               </p>
@@ -31,7 +31,7 @@ export function Footer() {
           </div>
 
           {/* Column 2: Contact */}
-          <div className="flex flex-col items-center text-center space-y-5">
+          <div className="flex flex-col items-center text-center space-y-4">
             <div className="inline-flex items-center gap-2 mb-1">
               <span className="h-1 w-1 rounded-full bg-amber-400" />
               <span className="text-sm font-bold tracking-[0.3em] text-amber-400 uppercase">
@@ -62,7 +62,7 @@ export function Footer() {
           </div>
 
           {/* Column 3: Connect & Socials */}
-          <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-5">
+          <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-4">
             <div className="inline-flex items-center gap-2 mb-1">
               <span className="h-1 w-1 rounded-full bg-amber-400" />
               <span className="text-sm font-bold tracking-[0.3em] text-amber-400 uppercase">
@@ -95,7 +95,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Copyright */}
-        <div className="mt-14 pt-6 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] tracking-widest text-neutral-600 uppercase">
+        <div className="mt-8 md:mt-12 pt-6 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] tracking-widest text-neutral-600 uppercase">
           <p>© {new Date().getFullYear()} {SPARKATHON_CONFIG.name}. All rights reserved.</p>
           <p>Frontier Engine • V2.0</p>
         </div>

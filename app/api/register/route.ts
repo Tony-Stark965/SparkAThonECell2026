@@ -394,10 +394,14 @@ export async function POST(request: Request) {
           );
         }
 
+        const displayId = "REG-2026-" + savedRecord.id.substring(0, 6).toUpperCase();
+
         return NextResponse.json({
           success: true,
           persisted: true,
           registrationId: savedRecord.id,
+          displayId: displayId,
+          id: savedRecord.id, // For backward compat with frontend
           teamName: savedRecord.team_name,
           college: savedRecord.college,
           domain: savedRecord.domain || domain,
@@ -447,11 +451,14 @@ export async function POST(request: Request) {
       `[Spark-A-Thon Dev Registration] Received valid registration for "${devRecord.teamName}" (${count} members, ₹${fee}). Supabase env not provided; saved in dev buffer.`
     );
 
+    const displayId = `REG-2026-${Date.now().toString(36).substring(0, 6).toUpperCase()}`;
+
     return NextResponse.json({
       success: true,
       persisted: false,
       mode: "dev_fallback",
       id: devId,
+      displayId: displayId,
       teamName: devRecord.teamName,
       college: devRecord.college,
       domain: devRecord.domain,
