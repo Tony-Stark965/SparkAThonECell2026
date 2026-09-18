@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WorldAct } from "@/components/scene/CameraJourneyRig";
 import { CaveScene } from "@/components/scene/CaveScene";
@@ -29,12 +29,9 @@ export function WorldController() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTerritory, setActiveTerritory] = useState<number>(0);
   const [selectedStele, setSelectedStele] = useState<number>(0);
-  const [heroSceneProgress, setHeroSceneProgress] = useState<number>(() => {
-    if (typeof window !== "undefined" && window.location.hash && window.location.hash !== "#hearth") {
-      return 1;
-    }
-    return 0;
-  });
+  const heroProgressRef = useRef<number>(
+    typeof window !== "undefined" && window.location.hash && window.location.hash !== "#hearth" ? 1 : 0
+  );
 
   const scrollToSection = useCallback((sectionId: string, updateHash = true) => {
     const target = sectionId.replace("#", "");
@@ -61,25 +58,60 @@ export function WorldController() {
 
     const sectionIds = Object.keys(sectionToAct);
 
+    interface SectionOffset {
+      id: string;
+      top: number;
+      bottom: number;
+    }
+    let cachedOffsets: SectionOffset[] = [];
+
+    const measureSections = () => {
+      cachedOffsets = sectionIds
+        .map((id) => {
+          const el = document.getElementById(id);
+          if (!el) return null;
+          const rect = el.getBoundingClientRect();
+          const top = rect.top + window.scrollY;
+          return { id, top, bottom: top + rect.height };
+        })
+        .filter((s): s is SectionOffset => s !== null);
+    };
+
+    measureSections();
+    const settleTimer = setTimeout(measureSections, 500);
+
     let ticking = false;
+    let historyTimeout: NodeJS.Timeout | null = null;
+    let lastAct: WorldAct = "HERO";
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          const centerY = window.innerHeight * 0.45;
-          for (const id of sectionIds) {
-            const el = document.getElementById(id);
-            if (el) {
-              const rect = el.getBoundingClientRect();
-              if (rect.top <= centerY && rect.bottom > centerY) {
-                const act = sectionToAct[id];
-                if (act) {
-                  setCurrentAct(act);
-                  window.history.replaceState(null, "", `#${id}`);
-                }
-                break;
-              }
+          const scrollPos = window.scrollY + window.innerHeight * 0.45;
+          let matchedAct: WorldAct | null = null;
+          let matchedId: string | null = null;
+
+          for (const s of cachedOffsets) {
+            if (scrollPos >= s.top && scrollPos < s.bottom) {
+              matchedAct = sectionToAct[s.id];
+              matchedId = s.id;
+              break;
             }
           }
+
+          if (matchedAct && matchedAct !== lastAct) {
+            lastAct = matchedAct;
+            setCurrentAct(matchedAct);
+
+            if (historyTimeout) clearTimeout(historyTimeout);
+            const targetId = matchedId;
+            historyTimeout = setTimeout(() => {
+              if (targetId && typeof window !== "undefined") {
+                window.history.replaceState(null, "", `#${targetId}`);
+              }
+            }, 150);
+          }
+
           ticking = false;
         });
         ticking = true;
@@ -87,10 +119,15 @@ export function WorldController() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Initial check
+    window.addEventListener("resize", measureSections, { passive: true });
     handleScroll();
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      clearTimeout(settleTimer);
+      if (historyTimeout) clearTimeout(historyTimeout);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", measureSections);
+    };
   }, []);
 
   // Deep-link URL hash synchronization on initial load & hashchange
@@ -115,7 +152,7 @@ export function WorldController() {
       {/* 1. Single Persistent 3D WebGL Cavern with Multi-Act Camera Rig */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <CaveScene
-          progress={currentAct === "HERO" ? heroSceneProgress : 1}
+          progressRef={heroProgressRef}
           currentAct={currentAct}
           activeTerritory={activeTerritory}
           selectedStele={selectedStele}
@@ -129,7 +166,9 @@ export function WorldController() {
           <CinematicHero
             onEnter={() => scrollToSection("sectors")}
             hasOwnScene={false}
-            onProgressChange={setHeroSceneProgress}
+            onProgressChange={(p) => {
+              heroProgressRef.current = p;
+            }}
           />
         </section>
 

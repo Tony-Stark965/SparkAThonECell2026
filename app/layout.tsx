@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: `${SPARKATHON_CONFIG.name} ${SPARKATHON_CONFIG.year} | The Frontier`,
-  description: `${SPARKATHON_CONFIG.tagline} Official portal for Spark-A-Thon 2026.`,
+  description:
+    "SPARK-A-THON 2026 — Official hackathon portal organized by E-Cell FCRIT in collaboration with IIC. The frontier is not found. It is built.",
 };
 
 export const viewport: Viewport = {

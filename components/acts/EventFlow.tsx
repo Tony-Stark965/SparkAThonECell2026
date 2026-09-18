@@ -34,7 +34,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
       </div>
 
       {/* 2. Cinematic Amber Conduit Timeline */}
-      <div className="my-3 sm:my-4 relative w-full max-w-3xl mx-auto">
+      <div className="my-2 sm:my-4 relative w-full max-w-3xl mx-auto">
         {/* Continuous Glowing Energy Conduit Spine */}
         <div
           className="absolute left-4 sm:left-1/2 top-4 bottom-4 w-[2px] sm:-translate-x-1/2"
@@ -47,7 +47,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
         />
 
         {/* Milestone Waypoints */}
-        <div className="space-y-2.5 sm:space-y-3.5">
+        <div className="space-y-2 sm:space-y-3.5">
           {steps.map((s: EventFlowItem, idx: number) => {
             const isEven = idx % 2 === 0;
             const isHovered = activeStage === idx;
@@ -66,7 +66,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                 }`}
               >
                 {/* Central / Left Energy Node */}
-                <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 top-5 sm:top-auto z-10 flex items-center justify-center">
+                <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
                   <div
                     className={`h-6 w-6 rounded-full border transition-all duration-300 flex items-center justify-center bg-neutral-950 ${
                       isHovered
@@ -89,7 +89,7 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                   }`}
                 >
                   <div
-                    className={`group relative rounded-xl border p-2.5 sm:p-3.5 transition-all duration-300 backdrop-blur-md overflow-hidden ${
+                    className={`group relative rounded-xl border px-2.5 py-2 sm:p-3.5 transition-all duration-300 backdrop-blur-md overflow-hidden ${
                       isHovered
                         ? "border-amber-500/80 bg-gradient-to-b from-[#161009]/95 via-[#0b0804]/98 to-black shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,140,0,0.18)] translate-y-[-2px]"
                         : "border-neutral-800/80 bg-gradient-to-b from-neutral-900/80 via-neutral-950/90 to-black/95 hover:border-neutral-700/90"
@@ -102,45 +102,77 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
                       } ${isHovered ? "opacity-100" : "opacity-30"}`}
                     />
 
-                    {/* Stage Number & Waypoint Tag */}
-                    <div
-                      className={`flex items-center gap-2 mb-2 ${
-                        isEven ? "sm:justify-end" : "sm:justify-start"
-                      }`}
-                    >
-                      <span className="font-mono text-xs font-bold text-amber-400/90 tracking-widest uppercase">
-                        /{s.number}
-                      </span>
-                      <span className="font-mono text-[9px] text-neutral-400 uppercase tracking-wider">
-                        • WAYPOINT {s.number}
-                      </span>
+                    {/* Mobile Layout (<640px): Compact single horizontal row */}
+                    <div className="flex sm:hidden items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-mono text-xs font-bold text-amber-400/90 tracking-wider shrink-0">
+                          /{s.number}
+                        </span>
+                        <h3 className="text-xs font-bold tracking-tight text-white uppercase leading-tight">
+                          {s.title}
+                        </h3>
+                      </div>
+
+                      <div className="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 font-mono text-[10px] text-amber-200 tracking-wider font-semibold">
+                        <svg
+                          className="h-2.5 w-2.5 text-amber-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span>{s.time}</span>
+                      </div>
                     </div>
 
-                    {/* Official Stage Title */}
-                    <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase leading-snug break-words">
-                      {s.title}
-                    </h3>
-
-                    {/* Official Time Badge */}
-                    <div
-                      className={`mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 font-mono text-[11px] sm:text-xs text-amber-200 tracking-wider font-semibold ${
-                        isEven ? "sm:ml-auto" : ""
-                      }`}
-                    >
-                      <svg
-                        className="h-3 w-3 text-amber-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="2"
-                        stroke="currentColor"
+                    {/* Desktop Layout (>=640px): Unaltered original multi-row layout */}
+                    <div className="hidden sm:block">
+                      {/* Stage Number & Waypoint Tag */}
+                      <div
+                        className={`flex items-center gap-2 mb-2 ${
+                          isEven ? "sm:justify-end" : "sm:justify-start"
+                        }`}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>{s.time}</span>
+                        <span className="font-mono text-xs font-bold text-amber-400/90 tracking-widest uppercase">
+                          /{s.number}
+                        </span>
+                        <span className="font-mono text-[9px] text-neutral-400 uppercase tracking-wider">
+                          • WAYPOINT {s.number}
+                        </span>
+                      </div>
+
+                      {/* Official Stage Title */}
+                      <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase leading-snug break-words">
+                        {s.title}
+                      </h3>
+
+                      {/* Official Time Badge */}
+                      <div
+                        className={`mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 font-mono text-[11px] sm:text-xs text-amber-200 tracking-wider font-semibold ${
+                          isEven ? "sm:ml-auto" : ""
+                        }`}
+                      >
+                        <svg
+                          className="h-3 w-3 text-amber-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span>{s.time}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

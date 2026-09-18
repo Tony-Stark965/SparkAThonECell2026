@@ -12,7 +12,8 @@ import { EmberField } from "@/components/hero/EmberField";
 import { CaveAtmosphere } from "@/components/hero/CaveAtmosphere";
 
 export interface CaveSceneProps {
-  progress: number; // 0 (darkness) to 1 (revelation)
+  progress?: number; // 0 (darkness) to 1 (revelation)
+  progressRef?: React.RefObject<number | null> | React.MutableRefObject<number>;
   currentAct?: WorldAct;
   activeTerritory?: number;
   selectedStele?: number;
@@ -34,7 +35,8 @@ const isWebGLAvailable = (): boolean => {
 };
 
 export function CaveScene({
-  progress,
+  progress = 1,
+  progressRef: externalProgressRef,
   currentAct,
   activeTerritory = 0,
   selectedStele = 0,
@@ -131,6 +133,15 @@ export function CaveScene({
       interaction.onPointerUp();
     };
 
+    let cachedTotalScroll = 1;
+    const updateTotalScroll = () => {
+      if (typeof document !== "undefined" && typeof window !== "undefined") {
+        cachedTotalScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      }
+    };
+    updateTotalScroll();
+    const settleTimer = setTimeout(updateTotalScroll, 500);
+
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -139,6 +150,7 @@ export function CaveScene({
       renderer.setPixelRatio(newDpr);
       renderer.setSize(width, height);
       emberSystem.setPixelRatio(newDpr);
+      updateTotalScroll();
     };
 
     const handleVisibility = () => {
@@ -151,24 +163,38 @@ export function CaveScene({
     window.addEventListener("resize", handleResize);
     document.addEventListener("visibilitychange", handleVisibility);
 
+    let lastRenderTime = 0;
+    const mobileFrameInterval = 1 / 60; // 60 FPS cap on mobile displays (avoids 120Hz thermal throttling)
+
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       if (!isVisible) return;
 
       const elapsedTime = clock.getElapsedTime();
-      const currentProg = progressRef.current;
+
+      // Mobile frame pacing: throttle 120Hz mobile screens to smooth 60 FPS
+      if (isMobile) {
+        const delta = elapsedTime - lastRenderTime;
+        if (delta < mobileFrameInterval - 0.002) {
+          return;
+        }
+        lastRenderTime = elapsedTime;
+      }
+
+      const currentProg =
+        actRef.current && actRef.current !== "HERO"
+          ? 1
+          : (externalProgressRef && externalProgressRef.current !== null
+              ? externalProgressRef.current
+              : progressRef.current);
 
       // Update interaction inertia and 3D world projection
       interaction.update(cameraRig.camera);
 
-      // Sample instantaneous native window scroll directly on animation frame (zero React re-render overhead)
+      // Sample instantaneous native window scroll without forced document reflow
       const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
-      const totalScroll =
-        typeof document !== "undefined"
-          ? document.documentElement.scrollHeight - window.innerHeight
-          : 0;
       const liveScroll =
-        totalScroll > 0 ? Math.min(1, Math.max(0, scrollY / totalScroll)) : scrollProgressRef.current;
+        cachedTotalScroll > 0 ? Math.min(1, Math.max(0, scrollY / cachedTotalScroll)) : scrollProgressRef.current;
 
       // Camera dolly forward and multi-act trajectory with immediate scroll response
       cameraRig.update(
@@ -205,6 +231,7 @@ export function CaveScene({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      clearTimeout(settleTimer);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointerup", handlePointerUp);
@@ -217,7 +244,7 @@ export function CaveScene({
       worldChambers.dispose();
       renderer.dispose();
     };
-  }, [webglSupported]);
+  }, [webglSupported, externalProgressRef]);
 
   if (!webglSupported) {
     return (

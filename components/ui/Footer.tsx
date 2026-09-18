@@ -17,10 +17,17 @@ export function Footer() {
           </p>
         </div>
 
-        <div className="text-center sm:text-right text-[11px] tracking-wider text-neutral-600 uppercase">
-          <span>OFFICIAL EVENT PLATFORM</span>
-          <span className="mx-2">•</span>
-          <span>FRONTIER ENGINE</span>
+        <div className="flex flex-col items-center sm:items-end gap-1 text-center sm:text-right text-[11px] tracking-wider uppercase">
+          <p className="text-neutral-500">
+            <span>ORGANIZED BY E-CELL FCRIT</span>
+            <span className="mx-2">•</span>
+            <span>IN COLLABORATION WITH IIC</span>
+          </p>
+          <p className="text-neutral-600">
+            <span>OFFICIAL EVENT PLATFORM</span>
+            <span className="mx-2">•</span>
+            <span>FRONTIER ENGINE</span>
+          </p>
         </div>
       </div>
     </footer>

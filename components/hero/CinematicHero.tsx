@@ -162,24 +162,13 @@ export function CinematicHero({
           </span>
         </motion.div>
 
-        {/* Right: IIC Logo, Date Pill & Minimalist Menu Icon */}
+        {/* Right: Date Pill & Minimalist Menu Icon */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: phase >= 5 ? 1 : 0, y: phase >= 5 ? 0 : -6 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
           className="flex items-center gap-3 sm:gap-4"
         >
-          <div className="relative rounded-md border border-neutral-800/80 bg-neutral-950/70 px-2.5 py-1 backdrop-blur-md">
-            <Image
-              src="/images/iic-logo.png"
-              alt="Institution's Innovation Council"
-              width={76}
-              height={32}
-              className="h-6 sm:h-7 w-auto object-contain filter brightness-95 contrast-105"
-              priority
-            />
-          </div>
-
           <div className="hidden xs:inline-flex items-center rounded-full border border-neutral-800/80 bg-neutral-950/70 px-3 py-1 backdrop-blur-md">
             <span className="font-mono text-[10px] sm:text-[11px] tracking-wider text-amber-300/85 uppercase">
               {SPARKATHON_CONFIG.dates.display}
