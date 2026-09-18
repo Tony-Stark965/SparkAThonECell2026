@@ -129,7 +129,7 @@ export function TerritoryOrchestrator({
         </AnimatePresence>
 
         {/* Previous / Next Tactical Buttons */}
-        <div className="flex items-center justify-between mt-5 px-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-5 px-2">
           <button
             onClick={handlePrev}
             className="flex items-center gap-2 font-mono text-xs text-neutral-300 hover:text-white uppercase tracking-wider py-2 px-3 rounded-lg border border-neutral-800 bg-neutral-950/80 active:scale-95 transition-all"

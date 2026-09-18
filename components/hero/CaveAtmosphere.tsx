@@ -13,7 +13,7 @@ export function CaveAtmosphere({ glowLevel, className = "" }: CaveAtmosphereProp
 
   return (
     <div
-      className={`pointer-events-none absolute inset-0 overflow-hidden select-none ${className}`}
+      className={`pointer-events-none absolute inset-0 overflow-clip select-none ${className}`}
       aria-hidden="true"
     >
       {/* 1. Deep Cavern Transparent Atmospheric Shroud */}
@@ -34,14 +34,14 @@ export function CaveAtmosphere({ glowLevel, className = "" }: CaveAtmosphereProp
       >
         {/* Flanking Side Brazier Illumination (Frames the screen, leaves central stepping stone path crystal clear) */}
         <div
-          className="absolute -left-10 bottom-[18%] w-[50vw] max-w-[420px] h-[50vh] rounded-full blur-[80px] md:blur-[110px] opacity-65 pointer-events-none"
+          className="absolute -left-10 bottom-[18%] w-[50vw] max-w-[420px] h-[50vh] rounded-full blur-[60px] md:blur-[110px] opacity-65 pointer-events-none"
           style={{
             background:
               "radial-gradient(circle at center, rgba(255, 100, 10, 0.35) 0%, rgba(200, 50, 0, 0.15) 50%, transparent 80%)",
           }}
         />
         <div
-          className="absolute -right-10 bottom-[18%] w-[50vw] max-w-[420px] h-[50vh] rounded-full blur-[80px] md:blur-[110px] opacity-65 pointer-events-none"
+          className="absolute -right-10 bottom-[18%] w-[50vw] max-w-[420px] h-[50vh] rounded-full blur-[60px] md:blur-[110px] opacity-65 pointer-events-none"
           style={{
             background:
               "radial-gradient(circle at center, rgba(255, 100, 10, 0.35) 0%, rgba(200, 50, 0, 0.15) 50%, transparent 80%)",
@@ -50,7 +50,7 @@ export function CaveAtmosphere({ glowLevel, className = "" }: CaveAtmosphereProp
 
         {/* Ambient Cave Wall Glow: Diffused illumination revealing depth */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110vw] max-w-[1000px] h-[75vh] rounded-full blur-[110px] md:blur-[170px] opacity-60"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110vw] max-w-[1000px] h-[75vh] rounded-full blur-[80px] md:blur-[170px] opacity-60"
           style={{
             background:
               "radial-gradient(circle at center, rgba(255, 140, 20, 0.22) 0%, rgba(160, 40, 0, 0.12) 45%, transparent 75%)",

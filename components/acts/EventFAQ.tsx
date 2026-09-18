@@ -54,11 +54,11 @@ export function EventFAQ() {
                 onClick={() => toggleItem(item.id)}
                 className="w-full px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 cursor-pointer"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="font-mono text-xs sm:text-sm font-bold text-amber-400/90 tracking-widest shrink-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                  <span className="font-mono text-xs sm:text-sm font-bold text-amber-400/90 tracking-widest shrink-0 mt-[2px] self-start">
                     {item.number}
                   </span>
-                  <span className="font-mono text-xs sm:text-sm font-semibold text-neutral-200 tracking-wide">
+                  <span className="font-mono text-xs sm:text-sm font-semibold text-neutral-200 tracking-wide text-left">
                     {item.question}
                   </span>
                 </div>

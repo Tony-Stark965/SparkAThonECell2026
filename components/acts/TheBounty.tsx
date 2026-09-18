@@ -186,7 +186,7 @@ function TreasuryChamberBackdrop() {
 
       {/* 2. Vertical Treasury Light Shaft behind Vault */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[420px] sm:w-[600px] opacity-40 blur-3xl"
+        className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[90vw] max-w-[420px] sm:max-w-none sm:w-[600px] opacity-40 blur-3xl"
         style={{
           background:
             "linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.02) 60%, transparent 100%)",
@@ -344,7 +344,7 @@ function TreasuryMechanicalRings() {
     >
       {/* Central Volumetric Core Glow Behind Rings */}
       <div
-        className="absolute w-[280px] h-[280px] sm:w-[450px] sm:h-[450px] md:w-[620px] md:h-[620px] lg:w-[750px] lg:h-[750px] rounded-full blur-[25px] md:blur-[70px] opacity-45"
+        className="absolute w-[240px] h-[240px] sm:w-[450px] sm:h-[450px] md:w-[620px] md:h-[620px] lg:w-[750px] lg:h-[750px] rounded-full blur-[25px] md:blur-[70px] opacity-45"
         style={{
           background:
             "radial-gradient(circle, rgba(245, 158, 11, 0.28) 0%, rgba(180, 83, 9, 0.12) 45%, transparent 70%)",
@@ -355,7 +355,7 @@ function TreasuryMechanicalRings() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 110, repeat: Infinity, ease: "linear" }}
-        className="relative w-[320px] h-[320px] sm:w-[520px] sm:h-[520px] md:w-[720px] md:h-[720px] lg:w-[880px] lg:h-[880px] flex items-center justify-center"
+        className="relative w-[280px] h-[280px] sm:w-[520px] sm:h-[520px] md:w-[720px] md:h-[720px] lg:w-[880px] lg:h-[880px] flex items-center justify-center"
       >
         <svg
           className="w-full h-full"
@@ -433,7 +433,7 @@ function TreasuryMechanicalRings() {
       <motion.div
         animate={{ rotate: -360 }}
         transition={{ duration: 75, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[240px] h-[240px] sm:w-[400px] sm:h-[400px] md:w-[560px] md:h-[560px] lg:w-[680px] lg:h-[680px] flex items-center justify-center"
+        className="absolute w-[220px] h-[220px] sm:w-[400px] sm:h-[400px] md:w-[560px] md:h-[560px] lg:w-[680px] lg:h-[680px] flex items-center justify-center"
       >
         <svg
           className="w-full h-full"
@@ -521,7 +521,7 @@ function TreasuryMechanicalRings() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[180px] h-[180px] sm:w-[300px] sm:h-[300px] md:w-[420px] md:h-[420px] lg:w-[500px] lg:h-[500px] flex items-center justify-center"
+        className="absolute w-[160px] h-[160px] sm:w-[300px] sm:h-[300px] md:w-[420px] md:h-[420px] lg:w-[500px] lg:h-[500px] flex items-center justify-center"
       >
         <svg
           className="w-full h-full"
@@ -926,7 +926,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
           </div>
 
           {/* Core Vault Chamber */}
-          <div className="relative w-full min-h-[270px] sm:min-h-[310px] rounded-xl sm:rounded-2xl border border-neutral-800/70 bg-gradient-to-b from-[#0e0a06]/95 via-[#060503]/98 to-black p-4 sm:p-6 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_4px_30px_rgba(0,0,0,0.95)]">
+          <div className="relative w-full min-h-[auto] sm:min-h-[310px] rounded-xl sm:rounded-2xl border border-neutral-800/70 bg-gradient-to-b from-[#0e0a06]/95 via-[#060503]/98 to-black p-4 sm:p-6 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_4px_30px_rgba(0,0,0,0.95)]">
             {/* Corner Industrial Locking Bolts */}
             <div className="pointer-events-none absolute top-3 left-3 h-3 w-3 rounded-full border border-neutral-700 bg-neutral-800/80 flex items-center justify-center">
               <span className="h-1 w-1 rounded-full bg-amber-500/60" />

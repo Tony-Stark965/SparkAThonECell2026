@@ -9,12 +9,12 @@ export function GlobalMotionBackground() {
           50% { transform: scale(1.3) translate(10%, 10%); opacity: 0.35; }
         }
         @keyframes float-orb1 {
-          0%, 100% { transform: scale(1) translate(0vw, 0vh); opacity: 0.15; }
-          50% { transform: scale(1.5) translate(100vw, 80vh); opacity: 0.4; }
+          0%, 100% { transform: scale(1) translate(0%, 0%); opacity: 0.15; }
+          50% { transform: scale(1.5) translate(100%, 80%); opacity: 0.4; }
         }
         @keyframes float-orb2 {
-          0%, 100% { transform: scale(1) translate(100vw, 100vh); opacity: 0.1; }
-          50% { transform: scale(1.8) translate(-20vw, -20vh); opacity: 0.3; }
+          0%, 100% { transform: scale(1) translate(100%, 100%); opacity: 0.1; }
+          50% { transform: scale(1.8) translate(-20%, -20%); opacity: 0.3; }
         }
         .bg-anim-core { animation: float-core 15s ease-in-out infinite; }
         .bg-anim-orb1 { animation: float-orb1 18s linear infinite; }

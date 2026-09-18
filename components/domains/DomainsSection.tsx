@@ -14,7 +14,7 @@ export function DomainsSection() {
     >
       {/* Cavern ambient background subtle lighting */}
       <div
-        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[350px] rounded-full blur-[140px] opacity-20"
+        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[350px] rounded-full blur-[140px] opacity-20"
         style={{
           background:
             "radial-gradient(ellipse at center, rgba(255, 90, 0, 0.4) 0%, transparent 70%)",

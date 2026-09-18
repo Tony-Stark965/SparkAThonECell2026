@@ -186,7 +186,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[600px] sm:h-[600px] opacity-20 pointer-events-none mix-blend-screen"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[400px] h-[90vw] max-h-[400px] sm:w-[600px] sm:h-[600px] opacity-20 pointer-events-none mix-blend-screen"
           >
             <svg viewBox="0 0 100 100" className="w-full h-full">
               <circle cx="50" cy="50" r="48" fill="none" stroke="#f59e0b" strokeWidth="0.5" strokeDasharray="2 4" />
@@ -199,7 +199,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] opacity-30 pointer-events-none mix-blend-screen"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[300px] h-[80vw] max-h-[300px] sm:w-[450px] sm:h-[450px] opacity-30 pointer-events-none mix-blend-screen"
           >
             <svg viewBox="0 0 100 100" className="w-full h-full">
               <circle cx="50" cy="50" r="46" fill="none" stroke="#ef4444" strokeWidth="1" strokeDasharray="1 10 5 10" />

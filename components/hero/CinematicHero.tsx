@@ -229,7 +229,7 @@ export function CinematicHero({
       </div>
 
       {/* 7. Bottom Expedition Telemetry & Status Bar */}
-      <footer className="relative z-30 w-full max-w-7xl px-5 pb-5 sm:px-10 sm:pb-7 flex items-end justify-between font-mono text-xs sm:text-sm tracking-widest uppercase text-neutral-300">
+      <footer className="relative z-30 w-full max-w-7xl px-4 pb-4 sm:px-10 sm:pb-7 flex flex-wrap items-end justify-between gap-4 font-mono text-[10px] sm:text-xs md:text-sm tracking-widest uppercase text-neutral-300">
         {/* Left Status */}
         <motion.div
           initial={{ opacity: 0 }}

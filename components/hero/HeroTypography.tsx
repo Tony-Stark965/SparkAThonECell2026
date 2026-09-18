@@ -42,7 +42,7 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
             y: phase >= 4 ? 0 : 14,
           }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="relative whitespace-nowrap select-none font-black leading-none text-[clamp(2.2rem,8.8vw,7.4rem)] uppercase tracking-[0.035em] sm:tracking-[0.05em]"
+          className="relative whitespace-nowrap select-none font-black leading-none text-[clamp(1.5rem,10vw,7.4rem)] uppercase tracking-[0.02em] sm:tracking-[0.05em]"
         >
           {/* Layer 1: Ambient Occlusion & Deep Grounding Silhouette */}
           <span
@@ -92,7 +92,7 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
       >
         {/* Deep Silhouette backing for crystal clarity over 3D background */}
         <span
-          className="absolute inset-0 font-black tracking-[0.40em] sm:tracking-[0.52em] text-xl sm:text-3xl md:text-5xl text-black/95 select-none pointer-events-none"
+          className="absolute inset-0 font-black tracking-[0.30em] sm:tracking-[0.52em] text-[clamp(1.25rem,6vw,3rem)] text-black/95 select-none pointer-events-none"
           style={{
             transform: "translateY(3px)",
             filter: "blur(3px)",
@@ -104,7 +104,7 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
 
         {/* Chiseled Metallic Display Year */}
         <span
-          className="relative block font-black tracking-[0.40em] sm:tracking-[0.52em] text-xl sm:text-3xl md:text-5xl bg-gradient-to-b from-[#ffffff] via-[#f5cf7b] via-45% to-[#964005] bg-clip-text text-transparent uppercase"
+          className="relative block font-black tracking-[0.30em] sm:tracking-[0.52em] text-[clamp(1.25rem,6vw,3rem)] bg-gradient-to-b from-[#ffffff] via-[#f5cf7b] via-45% to-[#964005] bg-clip-text text-transparent uppercase"
           style={{
             WebkitTextStroke: "1px rgba(255, 235, 180, 0.55)",
             filter:

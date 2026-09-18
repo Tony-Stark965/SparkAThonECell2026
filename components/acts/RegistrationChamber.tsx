@@ -345,12 +345,12 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                   <div className="space-y-4">
                     <div>
                       <label className="block font-mono text-xs text-neutral-300 uppercase tracking-wider mb-1.5">TEAM NAME <span className="text-amber-400">*</span></label>
-                      <input type="text" value={teamName} onChange={(e) => { setTeamName(e.target.value); if(errors.teamName) setErrors({...errors, teamName: ""})}} className={`w-full px-4 py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 text-white placeholder-neutral-600 focus:outline-none transition-colors ${errors.teamName ? "border-red-500" : "border-neutral-800 focus:border-amber-400"}`} placeholder="e.g. Cyber Sentinels" />
+                      <input type="text" value={teamName} onChange={(e) => { setTeamName(e.target.value); if(errors.teamName) setErrors({...errors, teamName: ""})}} className={`w-full px-4 py-3.5 sm:py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 text-white placeholder-neutral-600 focus:outline-none transition-colors ${errors.teamName ? "border-red-500" : "border-neutral-800 focus:border-amber-400"}`} placeholder="e.g. Cyber Sentinels" />
                       {errors.teamName && <p className="mt-1.5 font-mono text-xs text-red-400">{errors.teamName}</p>}
                     </div>
                     <div>
                       <label className="block font-mono text-xs text-neutral-300 uppercase tracking-wider mb-1.5">COLLEGE / INSTITUTION <span className="text-amber-400">*</span></label>
-                      <input type="text" value={college} onChange={(e) => { setCollege(e.target.value); if(errors.college) setErrors({...errors, college: ""})}} className={`w-full px-4 py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 text-white placeholder-neutral-600 focus:outline-none transition-colors ${errors.college ? "border-red-500" : "border-neutral-800 focus:border-amber-400"}`} placeholder="e.g. FCRIT Vashi" />
+                      <input type="text" value={college} onChange={(e) => { setCollege(e.target.value); if(errors.college) setErrors({...errors, college: ""})}} className={`w-full px-4 py-3.5 sm:py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 text-white placeholder-neutral-600 focus:outline-none transition-colors ${errors.college ? "border-red-500" : "border-neutral-800 focus:border-amber-400"}`} placeholder="e.g. FCRIT Vashi" />
                       {errors.college && <p className="mt-1.5 font-mono text-xs text-red-400">{errors.college}</p>}
                     </div>
                     <div>
@@ -358,7 +358,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                         DOMAIN / SECTOR <span className="text-amber-400">*</span>
                         {isFetchingCapacities && <span className="ml-2 text-amber-500/70 lowercase tracking-normal">(updating live capacity...)</span>}
                       </label>
-                      <select value={domain} onChange={(e) => { setDomain(e.target.value); if(errors.domain) setErrors({...errors, domain: ""})}} className={`w-full px-4 py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 focus:outline-none transition-colors ${errors.domain ? "border-red-500" : "border-neutral-800 focus:border-amber-400"} ${!domain ? "text-neutral-300" : "text-white"}`}>
+                      <select value={domain} onChange={(e) => { setDomain(e.target.value); if(errors.domain) setErrors({...errors, domain: ""})}} className={`w-full px-4 py-3.5 sm:py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 focus:outline-none transition-colors text-ellipsis overflow-hidden ${errors.domain ? "border-red-500" : "border-neutral-800 focus:border-amber-400"} ${!domain ? "text-neutral-300" : "text-white"}`}>
                         <option value="" disabled>-- SELECT OFFICIAL SECTOR DOMAIN --</option>
                         {SPARKATHON_CONFIG.sectors.domains.map((dom) => {
                           const count = domainCapacities[dom] || 0;
@@ -373,9 +373,9 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                       {errors.domain && <p className="mt-1.5 font-mono text-xs text-red-400">{errors.domain}</p>}
                     </div>
                   </div>
-                  <div className="flex justify-between pt-4">
-                    <button type="button" onClick={handleBack} className="font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">← BACK</button>
-                    <button type="button" onClick={handleNext} className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase">
+                  <div className="flex flex-wrap flex-col-reverse sm:flex-row justify-between gap-3 pt-4">
+                    <button type="button" onClick={handleBack} className="w-full sm:w-auto font-mono text-xs text-neutral-300 hover:text-white uppercase py-3.5 sm:py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">← BACK</button>
+                    <button type="button" onClick={handleNext} className="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-8 py-3.5 sm:py-3 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase">
                       <span>NEXT STEP</span><span>→</span>
                     </button>
                   </div>
@@ -411,9 +411,9 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                       {errors.leaderEmail && <p className="mt-1 font-mono text-xs text-red-400">{errors.leaderEmail}</p>}
                     </div>
                   </div>
-                  <div className="flex justify-between pt-4">
-                    <button type="button" onClick={handleBack} className="font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">← BACK</button>
-                    <button type="button" onClick={handleNext} className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase">
+                  <div className="flex flex-wrap flex-col-reverse sm:flex-row justify-between gap-3 pt-4">
+                    <button type="button" onClick={handleBack} className="w-full sm:w-auto font-mono text-xs text-neutral-300 hover:text-white uppercase py-3.5 sm:py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">← BACK</button>
+                    <button type="button" onClick={handleNext} className="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-8 py-3.5 sm:py-3 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase">
                       <span>NEXT STEP</span><span>→</span>
                     </button>
                   </div>
@@ -456,9 +456,9 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-between pt-4">
-                    <button type="button" onClick={handleBack} className="font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">← BACK</button>
-                    <button type="button" onClick={handleNext} className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase">
+                  <div className="flex flex-wrap flex-col-reverse sm:flex-row justify-between gap-3 pt-4">
+                    <button type="button" onClick={handleBack} className="w-full sm:w-auto font-mono text-xs text-neutral-300 hover:text-white uppercase py-3.5 sm:py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">← BACK</button>
+                    <button type="button" onClick={handleNext} className="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-8 py-3.5 sm:py-3 rounded-full font-mono text-xs sm:text-sm font-bold text-neutral-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] transition-all uppercase">
                       <span>NEXT STEP</span><span>→</span>
                     </button>
                   </div>
