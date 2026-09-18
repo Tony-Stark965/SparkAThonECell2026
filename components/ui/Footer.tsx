@@ -75,7 +75,7 @@ export function Footer() {
 
             <div className="flex items-center justify-center md:justify-end gap-5 w-full">
               {/* Instagram */}
-              <a href="#" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]" aria-label="Instagram">
+              <a href="#" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center h-[46px] w-[46px]" aria-label="Instagram">
                 <svg className="w-5 h-5 text-neutral-400 group-hover:text-amber-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -84,25 +84,22 @@ export function Footer() {
               </a>
 
               {/* LinkedIn */}
-              <a href="#" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]" aria-label="LinkedIn">
+              <a href="#" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center h-[46px] w-[46px]" aria-label="LinkedIn">
                 <svg className="w-5 h-5 text-neutral-400 group-hover:text-amber-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                   <rect x="2" y="9" width="4" height="12"></rect>
                   <circle cx="4" cy="4" r="2"></circle>
                 </svg>
               </a>
-            </div>
 
-            {/* Club Logo */}
-            <div className="mt-4 pt-5 border-t border-neutral-800/80 w-full max-w-[200px] flex flex-col items-center md:items-end">
-              <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-3">Official Club Website</span>
-              <a href="#" className="block transition-transform duration-300 hover:scale-105 hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.25)]" aria-label="Visit official E-Cell website">
+              {/* Club Logo (E-Cell) */}
+              <a href="#" className="group relative px-4 py-2 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center h-[46px]" aria-label="Visit official E-Cell website">
                 <Image
                   src="/images/ecell-logo-new.png"
                   alt="E-Cell FCRIT Logo"
-                  width={140}
-                  height={60}
-                  className="object-contain opacity-90 hover:opacity-100 transition-opacity"
+                  width={56}
+                  height={24}
+                  className="object-contain opacity-70 group-hover:opacity-100 transition-opacity drop-shadow-md grayscale group-hover:grayscale-0"
                 />
               </a>
             </div>
