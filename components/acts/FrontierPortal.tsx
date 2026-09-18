@@ -178,22 +178,6 @@ export function FrontierPortal({
                 </button>
               </div>
 
-              {/* Explicit Verification & Payment Policy Guarantee */}
-              <p className="mt-4 font-mono text-xs sm:text-sm text-neutral-300 uppercase tracking-wider max-w-md">
-                {regConfig.note}
-              </p>
-            </div>
-          </div>
-
-          {/* Bottom Chassis Telemetry Strip */}
-          <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/90 font-mono text-xs sm:text-sm text-neutral-300 tracking-wider">
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-300">DISPATCH PROTOCOL:</span>
-              <span className="text-amber-400/90">TERMINAL REGISTRATION ACTIVE</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-300">SECURITY:</span>
-              <span className="text-neutral-300">SINGLE-PAGE DISPATCH</span>
             </div>
           </div>
         </div>
