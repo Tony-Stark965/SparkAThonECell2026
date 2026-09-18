@@ -36,7 +36,7 @@ export function DomainsSection() {
             OFFICIAL DOMAINS
           </h2>
 
-          <p className="mt-4 max-w-xl text-xs sm:text-sm md:text-base font-mono text-neutral-400 uppercase tracking-wider leading-relaxed">
+          <p className="mt-4 max-w-xl text-xs sm:text-sm md:text-base font-mono text-neutral-300 uppercase tracking-wider leading-relaxed">
             Five validated frontier domains. Choose your ground. Build what does not yet exist.
           </p>
         </div>
@@ -70,7 +70,7 @@ export function DomainsSection() {
                     <span className="font-mono text-sm tracking-widest text-amber-400/90 font-semibold">
                       /{domain.number}
                     </span>
-                    <span className="font-mono text-[10px] tracking-wider text-neutral-500 uppercase px-2 py-0.5 rounded border border-neutral-800 bg-neutral-950">
+                    <span className="font-mono text-xs tracking-wider text-neutral-300 uppercase px-2 py-0.5 rounded border border-neutral-800 bg-neutral-950">
                       FRONTIER TRACK
                     </span>
                   </div>
@@ -96,7 +96,7 @@ export function DomainsSection() {
                     {domain.tags.map((tag: string) => (
                       <span
                         key={tag}
-                        className="font-mono text-[10px] tracking-wider text-neutral-400 bg-neutral-900/90 border border-neutral-800 px-2 py-1 rounded"
+                        className="font-mono text-xs tracking-wider text-neutral-300 bg-neutral-900/90 border border-neutral-800 px-2 py-1 rounded"
                       >
                         {tag}
                       </span>
@@ -121,7 +121,7 @@ export function DomainsSection() {
           />
 
           <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
-            <span className="font-mono text-[11px] tracking-[0.25em] text-amber-400 uppercase font-semibold">
+            <span className="font-mono text-xs tracking-[0.25em] text-amber-400 uppercase font-semibold">
               PRE-EVENT REGISTRATION OF INTEREST
             </span>
 
@@ -129,7 +129,7 @@ export function DomainsSection() {
               Ready to build on the frontier?
             </h3>
 
-            <p className="mt-3 font-mono text-xs sm:text-sm text-neutral-400 uppercase tracking-wide leading-relaxed">
+            <p className="mt-3 font-mono text-xs sm:text-sm text-neutral-300 uppercase tracking-wide leading-relaxed">
               {SPARKATHON_CONFIG.dates.note}.
               <br />
               Register early interest to receive direct notification once dates are locked.

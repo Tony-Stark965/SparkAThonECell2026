@@ -24,11 +24,11 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
         className="mb-3 sm:mb-4 inline-flex items-center gap-3"
       >
         <span className="h-[1px] w-8 sm:w-16 bg-gradient-to-r from-transparent via-amber-500/60 to-amber-400" />
-        <span className="text-amber-400 text-[9px] sm:text-[10px]">◆</span>
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-amber-300/90 font-semibold uppercase">
+        <span className="text-amber-400 text-xs sm:text-sm">◆</span>
+        <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-amber-300/90 font-semibold uppercase">
           NATIONAL INNOVATION HACKATHON
         </span>
-        <span className="text-amber-400 text-[9px] sm:text-[10px]">◆</span>
+        <span className="text-amber-400 text-xs sm:text-sm">◆</span>
         <span className="h-[1px] w-8 sm:w-16 bg-gradient-to-l from-transparent via-amber-500/60 to-amber-400" />
       </motion.div>
 
@@ -171,7 +171,7 @@ export function HeroTypography({ phase, onEnter }: HeroTypographyProps) {
         </button>
 
         {/* Tactile hint */}
-        <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.3em] text-neutral-400 uppercase">
+        <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-neutral-300 uppercase">
           SCROLL OR TAP TO DESCEND ↓
         </span>
       </motion.div>

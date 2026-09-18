@@ -69,7 +69,7 @@ export function AdminStats({ stats }: AdminStatsProps) {
             }`}
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="font-mono text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">
+              <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold">
                 {card.title}
               </span>
               <div className={`p-1.5 rounded-md ${card.badgeColor}`}>
@@ -81,7 +81,7 @@ export function AdminStats({ stats }: AdminStatsProps) {
               <div className={`text-xl sm:text-2xl font-bold font-mono tracking-tight ${card.valueColor}`}>
                 {card.value}
               </div>
-              <p className="font-mono text-[10px] text-neutral-500 mt-1 truncate">
+              <p className="font-mono text-xs text-neutral-300 mt-1 truncate">
                 {card.subtext}
               </p>
             </div>

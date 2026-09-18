@@ -188,7 +188,7 @@ export class WorldChambers {
     doorR.position.set(0, 0, 0.95);
     this.bountyGroup.add(doorR);
 
-    // Inner Glowing Core (₹15,000 Relic)
+    // Inner Glowing Core (₹20,000 Relic)
     const coreGeo = new THREE.OctahedronGeometry(0.55);
     const core = new THREE.Mesh(coreGeo, this.glowAmberMat);
     core.position.set(0, 0, 0.2);

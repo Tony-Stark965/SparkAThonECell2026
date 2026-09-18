@@ -52,14 +52,14 @@ export function AdminDashboardClient({
       {/* Header HUD / Organizer Command Bar */}
       <div className="bg-[#12100d] border border-amber-500/25 rounded-2xl p-5 sm:p-6 lg:p-7 shadow-[0_0_40px_rgba(245,158,11,0.06)] flex flex-col md:flex-row md:items-center md:justify-between gap-5">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-950/30 text-amber-400 font-mono text-[11px] uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-950/30 text-amber-400 font-mono text-xs uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             ORGANIZER COMMAND CENTER // AUTHENTICATED
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white uppercase font-sans">
             SPARK-A-THON 2026
           </h1>
-          <p className="font-mono text-xs tracking-widest text-neutral-400 uppercase">
+          <p className="font-mono text-xs tracking-widest text-neutral-300 uppercase">
             OPERATIONAL REGISTRATION &amp; PAYMENT LEDGER
           </p>
         </div>
@@ -69,7 +69,7 @@ export function AdminDashboardClient({
           <div className="space-y-0.5 pr-2">
             <div className="flex items-center gap-1.5">
               <Shield className="w-3 h-3 text-amber-500" />
-              <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">
+              <span className="font-mono text-xs uppercase tracking-wider text-neutral-300">
                 ACTIVE OPERATOR
               </span>
             </div>

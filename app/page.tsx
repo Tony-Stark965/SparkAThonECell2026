@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { WorldController } from "@/components/journey/WorldController";
+import dynamic from "next/dynamic";
 import { SplashScreen } from "@/components/ui/SplashScreen";
+
+const WorldController = dynamic(() => import("@/components/journey/WorldController").then(mod => mod.WorldController), {
+  ssr: true,
+});
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);

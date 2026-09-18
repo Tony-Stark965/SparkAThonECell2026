@@ -235,8 +235,8 @@ export async function POST(request: Request) {
       });
     }
 
-    // 5. Calculate and validate registration fee (2-4 => ₹400, 5 => ₹450)
-    const expectedFee = count === 5 ? 450 : 400;
+    // 5. Calculate and validate registration fee (2-4 => ₹350, 5 => ₹400)
+    const expectedFee = count === 5 ? 400 : 350;
     const fee = SPARKATHON_CONFIG.pricing.calculateFee(count);
     if (fee !== expectedFee) {
       return NextResponse.json(
@@ -279,6 +279,28 @@ export async function POST(request: Request) {
     if (isSupabaseConfigured) {
       try {
         const cleanBaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+        
+        // 6.5 Domain Capacity Check (Race Condition Prevention)
+        const countResponse = await fetch(`${cleanBaseUrl}/rest/v1/registrations?select=id&domain=eq.${encodeURIComponent(domain)}&payment_status=eq.completed`, {
+          method: "GET",
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+          },
+          cache: 'no-store',
+        });
+        
+        if (countResponse.ok) {
+          const countData = await countResponse.json();
+          if (Array.isArray(countData) && countData.length >= 10) {
+            return NextResponse.json(
+              { error: `${domain} has reached its maximum capacity of 10 teams. Please select another available domain.` },
+              { status: 400 }
+            );
+          }
+        }
+
         const response = await fetch(`${cleanBaseUrl}/rest/v1/registrations`, {
           method: "POST",
           headers: {

@@ -25,7 +25,7 @@ function DataStream({ isMobile }: { isMobile: boolean }) {
   }, [isMobile]);
 
   return (
-    <div className="font-mono text-[8px] md:text-[10px] text-amber-500/30 whitespace-pre-wrap break-all leading-tight">
+    <div className="font-mono text-xs md:text-xs text-amber-500/50 whitespace-pre-wrap break-all leading-tight">
       {stream}
     </div>
   );
@@ -36,12 +36,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [glitchText, setGlitchText] = useState("INITIALIZING_CORE");
   const [isGlitching, setIsGlitching] = useState(false);
-  const [isMobile] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth < 768;
-    }
-    return false;
-  });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
 
   const handleQuickEnter = () => {
     setIsVisible(false);
@@ -134,28 +133,27 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         >
           {/* Background Layer: Desktop Video vs Mobile Lightweight CSS Glow */}
           <div className="absolute inset-0 w-full h-full pointer-events-none">
-            {!isMobile ? (
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                className={`w-full h-full object-cover opacity-60 mix-blend-screen transition-transform duration-75 ${
-                  isGlitching ? "scale-105 filter hue-rotate-[180deg] invert" : ""
-                }`}
-              >
-                <source src="/splash.mp4" type="video/mp4" />
-              </video>
-            ) : (
-              /* High-Performance Mobile CSS Volcanic Core — Saves 2.2 MB network payload & 0 decode latency */
-              <div
-                className="w-full h-full opacity-65"
-                style={{
-                  background:
-                    "radial-gradient(ellipse 90% 70% at 50% 50%, rgba(245, 158, 11, 0.22) 0%, rgba(180, 83, 9, 0.08) 55%, transparent 85%)",
-                }}
-              />
-            )}
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className={`hidden md:block w-full h-full object-cover opacity-60 mix-blend-screen transition-transform duration-75 ${
+                isGlitching ? "scale-105 filter hue-rotate-[180deg] invert" : ""
+              }`}
+            >
+              <source src="/splash.mp4" type="video/mp4" />
+            </video>
+            
+            {/* High-Performance Mobile CSS Volcanic Core — Saves 2.2 MB network payload & 0 decode latency */}
+            <div
+              className="md:hidden w-full h-full opacity-65"
+              style={{
+                background:
+                  "radial-gradient(ellipse 90% 70% at 50% 50%, rgba(245, 158, 11, 0.22) 0%, rgba(180, 83, 9, 0.08) 55%, transparent 85%)",
+              }}
+            />
             {/* Vignette */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.9)_100%)]" />
 
@@ -273,7 +271,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             <div className="mt-6 flex flex-col items-center">
               <div className="flex items-center gap-2 mb-2">
                 <span className="h-2 w-2 bg-red-500 rounded-full animate-ping" />
-                <span className="font-mono text-[10px] sm:text-xs text-red-400 tracking-[0.3em]">
+                <span className="font-mono text-xs sm:text-sm text-red-400 tracking-[0.3em]">
                   OVERRIDE PROTOCOL
                 </span>
               </div>
@@ -290,7 +288,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
               {/* Mobile Quick Enter Prompt */}
               {isMobile && (
-                <p className="mt-4 font-mono text-[9px] text-amber-400/60 uppercase tracking-[0.25em] animate-pulse">
+                <p className="mt-4 font-mono text-xs text-amber-400/80 uppercase tracking-[0.25em] animate-pulse">
                   [ TAP ANYWHERE TO ENTER IMMEDIATELY ]
                 </p>
               )}

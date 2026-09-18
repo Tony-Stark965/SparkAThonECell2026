@@ -166,7 +166,7 @@ export function CinematicHero({
               className="h-6 sm:h-8 w-auto"
             />
           </div>
-          <span className="text-amber-500 font-black text-[10px] sm:text-xs tracking-widest font-mono">
+          <span className="text-amber-500 font-black text-xs sm:text-sm tracking-widest font-mono">
             ECELL FCRIT
           </span>
         </motion.div>
@@ -179,13 +179,13 @@ export function CinematicHero({
           className="flex items-center gap-3 sm:gap-4"
         >
           <div className="hidden xs:inline-flex items-center rounded-full border border-neutral-800/80 bg-neutral-950/70 px-3 py-1 backdrop-blur-md">
-            <span className="font-mono text-[10px] sm:text-[11px] tracking-wider text-amber-300/85 uppercase">
+            <span className="font-mono text-xs sm:text-sm tracking-wider text-amber-300/85 uppercase">
               {SPARKATHON_CONFIG.dates.display}
             </span>
           </div>
 
           {/* Minimalist Expedition Menu Lines */}
-          <div className="flex flex-col justify-center gap-1.5 p-1 text-neutral-400" aria-hidden="true">
+          <div className="flex flex-col justify-center gap-1.5 p-1 text-neutral-300" aria-hidden="true">
             <span className="h-[1.5px] w-6 bg-neutral-300 rounded-full" />
             <span className="h-[1.5px] w-4 bg-neutral-400 rounded-full ml-auto" />
           </div>
@@ -199,7 +199,7 @@ export function CinematicHero({
           initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: phase >= 5 ? 0.7 : 0, x: phase >= 5 ? 0 : -16 }}
           transition={{ duration: 0.9, delay: 0.2 }}
-          className="flex flex-col gap-2 font-mono text-[9px] tracking-[0.28em] text-neutral-400 uppercase text-left"
+          className="flex flex-col gap-2 font-mono text-xs tracking-[0.28em] text-neutral-300 uppercase text-left"
         >
           <span>IDEAS</span>
           <span>TECHNOLOGY</span>
@@ -213,7 +213,7 @@ export function CinematicHero({
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: phase >= 5 ? 0.7 : 0, x: phase >= 5 ? 0 : 16 }}
           transition={{ duration: 0.9, delay: 0.2 }}
-          className="flex flex-col gap-2 font-mono text-[9px] tracking-[0.28em] text-neutral-400 uppercase text-right"
+          className="flex flex-col gap-2 font-mono text-xs tracking-[0.28em] text-neutral-300 uppercase text-right"
         >
           <span>STUDENTS</span>
           <span>INNOVATE</span>
@@ -229,7 +229,7 @@ export function CinematicHero({
       </div>
 
       {/* 7. Bottom Expedition Telemetry & Status Bar */}
-      <footer className="relative z-30 w-full max-w-7xl px-5 pb-5 sm:px-10 sm:pb-7 flex items-end justify-between font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-neutral-500">
+      <footer className="relative z-30 w-full max-w-7xl px-5 pb-5 sm:px-10 sm:pb-7 flex items-end justify-between font-mono text-xs sm:text-sm tracking-widest uppercase text-neutral-300">
         {/* Left Status */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -238,7 +238,7 @@ export function CinematicHero({
           className="flex flex-col gap-0.5 text-left"
         >
           <span>SECTOR: 01 // DARK CAVERN</span>
-          <span className="text-neutral-400">STATUS: AWAITS EXPLORERS</span>
+          <span className="text-neutral-300">STATUS: AWAITS EXPLORERS</span>
         </motion.div>
 
         {/* Center Prompt */}
@@ -257,7 +257,7 @@ export function CinematicHero({
           initial={{ opacity: 0 }}
           animate={{ opacity: phase >= 5 ? 1 : 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
-          className="flex flex-col gap-0.5 text-right text-neutral-400"
+          className="flex flex-col gap-0.5 text-right text-neutral-300"
         >
           <span>MORE THAN A HACKATHON.</span>
           <span className="text-amber-500/80">A NEW FRONTIER.</span>

@@ -190,8 +190,10 @@ export function CaveScene({
     const mobileFrameInterval = 1 / 30; // 30 FPS cap on mobile displays (cuts GPU draw load in half, prevents thermal throttling and frame drops)
 
     const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      if (!isVisible) return;
+      if (!isVisible) {
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
 
       const act = actRef.current;
 
@@ -199,14 +201,19 @@ export function CaveScene({
       // When the user is in the Registration Chamber, FAQ, or below Arena on mobile,
       // the entire screen is covered by 100% opaque industrial basalt panels.
       // Skipping 3D WebGL computation and render() drops GPU/CPU consumption to 0%
-      // during form typing and reading!
       const isOccluded =
         act === "REGISTER" ||
-        (isMobile && (act === "FLOW" || act === "BOUNTY"));
+        (isMobile && (act === "FLOW" || act === "BOUNTY" || act === "ARENA" || act === "PORTAL"));
 
       if (isOccluded) {
+        // Run a slower loop to check when we come out of occlusion (approx 4fps check)
+        setTimeout(() => {
+          animationFrameId = requestAnimationFrame(animate);
+        }, 250);
         return;
       }
+
+      animationFrameId = requestAnimationFrame(animate);
 
       const elapsedTime = clock.getElapsedTime();
 

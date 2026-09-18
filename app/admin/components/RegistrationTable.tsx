@@ -101,10 +101,10 @@ export function RegistrationTable({
               <button
                 key={tab}
                 onClick={() => setStatusFilter(tab)}
-                className={`px-2.5 py-1 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer ${
                   statusFilter === tab
                     ? "bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/40"
-                    : "text-neutral-400 hover:text-neutral-200"
+                    : "text-neutral-300 hover:text-neutral-200"
                 }`}
               >
                 {tab}
@@ -115,7 +115,7 @@ export function RegistrationTable({
 
         {/* Search Input */}
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
           <input
             type="text"
             value={searchQuery}
@@ -129,13 +129,13 @@ export function RegistrationTable({
       {/* Empty State */}
       {filteredRegistrations.length === 0 && (
         <div className="bg-[#12100d]/70 border border-neutral-800 rounded-xl p-12 text-center space-y-3">
-          <Users className="w-8 h-8 text-neutral-600 mx-auto" />
-          <p className="font-mono text-sm text-neutral-400 font-medium uppercase tracking-wider">
+          <Users className="w-8 h-8 text-neutral-300 mx-auto" />
+          <p className="font-mono text-sm text-neutral-300 font-medium uppercase tracking-wider">
             {searchQuery || statusFilter !== "ALL"
               ? "No matching registrations found"
               : "No registrations recorded yet"}
           </p>
-          <p className="font-mono text-xs text-neutral-500 max-w-sm mx-auto">
+          <p className="font-mono text-xs text-neutral-300 max-w-sm mx-auto">
             {searchQuery || statusFilter !== "ALL"
               ? "Try adjusting your search query or switching the status filter tab."
               : "Submissions from the registration chamber will appear here automatically."}
@@ -148,7 +148,7 @@ export function RegistrationTable({
         <div className="hidden lg:block bg-[#12100d] border border-neutral-800/90 rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left font-mono text-xs">
-              <thead className="bg-[#0a0907] text-neutral-400 uppercase tracking-wider border-b border-neutral-800/80">
+              <thead className="bg-[#0a0907] text-neutral-300 uppercase tracking-wider border-b border-neutral-800/80">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Team</th>
                   <th className="py-3 px-4 font-semibold">Sector Domain</th>
@@ -176,13 +176,13 @@ export function RegistrationTable({
                       <td className="py-3.5 px-4">
                         {reg.domain ? (
                           <span
-                            className="inline-block px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-semibold uppercase tracking-wider max-w-[150px] truncate"
+                            className="inline-block px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-semibold uppercase tracking-wider max-w-[150px] truncate"
                             title={reg.domain}
                           >
                             {reg.domain}
                           </span>
                         ) : (
-                          <span className="text-neutral-600 font-mono text-xs">—</span>
+                          <span className="text-neutral-300 font-mono text-xs">—</span>
                         )}
                       </td>
                       <td
@@ -193,7 +193,7 @@ export function RegistrationTable({
                       </td>
                       <td className="py-3.5 px-4 text-neutral-200">
                         <div>{reg.team_leader_name}</div>
-                        <div className="text-[10px] text-neutral-500 truncate">
+                        <div className="text-xs text-neutral-300 truncate">
                           {reg.team_leader_roll_no || reg.team_leader_mobile}
                         </div>
                       </td>
@@ -207,12 +207,12 @@ export function RegistrationTable({
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${badge.classes}`}
+                          className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider border ${badge.classes}`}
                         >
                           {badge.label}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-neutral-400 text-[11px]">
+                      <td className="py-3.5 px-4 text-neutral-300 text-xs">
                         {formatDate(reg.created_at)}
                       </td>
                       <td
@@ -221,7 +221,7 @@ export function RegistrationTable({
                       >
                         <button
                           onClick={() => setSelectedRegistration(reg)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#161310] hover:bg-neutral-800 border border-neutral-700 hover:border-amber-500/40 text-neutral-300 hover:text-amber-400 transition-colors text-[11px] cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#161310] hover:bg-neutral-800 border border-neutral-700 hover:border-amber-500/40 text-neutral-300 hover:text-amber-400 transition-colors text-xs cursor-pointer"
                         >
                           <Eye className="w-3 h-3" />
                           <span>DOSSIER</span>
@@ -253,7 +253,7 @@ export function RegistrationTable({
                     <h3 className="font-sans font-bold text-base text-white">
                       {reg.team_name}
                     </h3>
-                    <p className="font-mono text-xs text-neutral-400 truncate max-w-[220px]">
+                    <p className="font-mono text-xs text-neutral-300 truncate max-w-[220px]">
                       {reg.college}
                     </p>
                     {reg.domain && (
@@ -265,7 +265,7 @@ export function RegistrationTable({
                     )}
                   </div>
                   <span
-                    className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border shrink-0 ${badge.classes}`}
+                    className={`inline-block px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider border shrink-0 ${badge.classes}`}
                   >
                     {badge.label}
                   </span>
@@ -274,13 +274,13 @@ export function RegistrationTable({
                 {/* Card Body: Leader Info */}
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-neutral-900 font-mono text-xs">
                   <div>
-                    <span className="text-neutral-500 text-[10px] block uppercase">Squad Leader</span>
+                    <span className="text-neutral-300 text-xs block uppercase">Squad Leader</span>
                     <span className="text-neutral-200 font-medium truncate block">
                       {reg.team_leader_name}
                     </span>
                   </div>
                   <div>
-                    <span className="text-neutral-500 text-[10px] block uppercase">Roll / Mobile</span>
+                    <span className="text-neutral-300 text-xs block uppercase">Roll / Mobile</span>
                     <span className="text-neutral-300 block truncate">
                       {reg.team_leader_roll_no || reg.team_leader_mobile}
                     </span>
@@ -290,7 +290,7 @@ export function RegistrationTable({
                 {/* Card Footer: Members, Fee & Details Button */}
                 <div className="flex items-center justify-between pt-2 border-t border-neutral-900 font-mono text-xs">
                   <div className="flex items-center gap-3">
-                    <span className="px-2 py-0.5 rounded bg-[#0a0907] border border-neutral-800 text-neutral-300 text-[11px]">
+                    <span className="px-2 py-0.5 rounded bg-[#0a0907] border border-neutral-800 text-neutral-300 text-xs">
                       {reg.participant_count} Members
                     </span>
                     <span className="text-amber-400 font-bold">
@@ -303,7 +303,7 @@ export function RegistrationTable({
                       e.stopPropagation();
                       setSelectedRegistration(reg);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#161310] border border-neutral-700 text-neutral-200 hover:text-amber-400 font-mono text-[11px] uppercase tracking-wider"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#161310] border border-neutral-700 text-neutral-200 hover:text-amber-400 font-mono text-xs uppercase tracking-wider"
                   >
                     <Eye className="w-3 h-3" />
                     <span>DOSSIER</span>

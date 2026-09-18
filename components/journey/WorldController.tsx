@@ -5,13 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { WorldAct } from "@/components/scene/CameraJourneyRig";
 import { CaveScene } from "@/components/scene/CaveScene";
 import { CinematicHero } from "@/components/hero/CinematicHero";
+import dynamic from "next/dynamic";
 import { TerritoryOrchestrator } from "@/components/acts/TerritoryOrchestrator";
-import { TheArena } from "@/components/acts/TheArena";
-import { TheBounty } from "@/components/acts/TheBounty";
-import { EventFlow } from "@/components/acts/EventFlow";
-import { FrontierPortal } from "@/components/acts/FrontierPortal";
-import { RegistrationChamber } from "@/components/acts/RegistrationChamber";
-import { EventFAQ } from "@/components/acts/EventFAQ";
+
+const TheArena = dynamic(() => import("@/components/acts/TheArena").then(mod => mod.TheArena), { ssr: true });
+const TheBounty = dynamic(() => import("@/components/acts/TheBounty").then(mod => mod.TheBounty), { ssr: true });
+const EventFlow = dynamic(() => import("@/components/acts/EventFlow").then(mod => mod.EventFlow), { ssr: true });
+const FrontierPortal = dynamic(() => import("@/components/acts/FrontierPortal").then(mod => mod.FrontierPortal), { ssr: true });
+const RegistrationChamber = dynamic(() => import("@/components/acts/RegistrationChamber").then(mod => mod.RegistrationChamber), { ssr: true });
+const EventFAQ = dynamic(() => import("@/components/acts/EventFAQ").then(mod => mod.EventFAQ), { ssr: true });
 import { Footer } from "@/components/ui/Footer";
 import Image from "next/image";
 
@@ -141,11 +143,16 @@ export function WorldController() {
 
         {/* ACT IV: SECTORS */}
         <section id="sectors" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
-          <TerritoryOrchestrator
-            activeIndex={activeTerritory}
-            onSelectIndex={setActiveTerritory}
-            onNextAct={() => scrollToSection("arena")}
-          />
+          {/* Subtle background treatment for readability on scroll */}
+          <div className="pointer-events-none absolute inset-0 z-0 bg-black/35 backdrop-blur-[4px] [mask-image:linear-gradient(to_bottom,transparent_0%,black_15%,black_85%,transparent_100%)]" />
+          
+          <div className="relative z-10 w-full">
+            <TerritoryOrchestrator
+              activeIndex={activeTerritory}
+              onSelectIndex={setActiveTerritory}
+              onNextAct={() => scrollToSection("arena")}
+            />
+          </div>
         </section>
 
         {/* ACT V: THE ARENA */}
@@ -205,9 +212,9 @@ export function WorldController() {
                 key={item.act}
                 type="button"
                 onClick={() => scrollToSection(item.sectionId)}
-                className={`font-mono text-[10px] lg:text-xs px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-full uppercase tracking-widest lg:tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap ${isActive
+                className={`font-mono text-xs lg:text-sm px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-full uppercase tracking-widest lg:tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap ${isActive
                   ? "bg-amber-500/10 text-amber-500 border border-amber-500/60 shadow-[0_0_15px_rgba(255,140,0,0.15)] font-bold"
-                  : "text-neutral-400 hover:text-white border border-transparent"
+                  : "text-neutral-300 hover:text-white border border-transparent"
                   }`}
               >
                 {item.label}
@@ -225,7 +232,7 @@ export function WorldController() {
               <div className="w-[1px] h-3.5 bg-neutral-300 mx-0.5" />
               <Image src="/images/ecell-logo-new.png" alt="E-Cell Official Logo" width={20} height={20} className="h-4 sm:h-5 w-auto" />
             </div>
-            <span className="text-amber-500 font-black text-[10px] sm:text-xs tracking-[0.25em] font-mono">
+            <span className="text-amber-500 font-black text-xs sm:text-sm tracking-[0.25em] font-mono">
               ECELL FCRIT
             </span>
           </div>
@@ -271,11 +278,11 @@ export function WorldController() {
                     }}
                     className={`text-left font-mono text-sm px-5 py-4 rounded-xl uppercase tracking-widest transition-all duration-300 flex items-center justify-between group ${isActive
                       ? "bg-amber-500/15 text-amber-400 border border-amber-500/50 shadow-[inset_0_0_15px_rgba(251,191,36,0.1)]"
-                      : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                      : "text-neutral-300 hover:bg-white/5 hover:text-white"
                       }`}
                   >
                     <span>{item.label}</span>
-                    {isActive && <span className="text-amber-400 text-[10px]">◆</span>}
+                    {isActive && <span className="text-amber-400 text-xs">◆</span>}
                   </motion.button>
                 );
               })}

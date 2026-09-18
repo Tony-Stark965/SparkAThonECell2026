@@ -100,7 +100,7 @@ export function HeroCTA({ isVisible, onEnter }: HeroCTAProps) {
       </motion.button>
 
       {/* Tactile hint for mobile */}
-      <span className="font-mono text-[10px] tracking-[0.2em] text-neutral-500 uppercase">
+      <span className="font-mono text-xs tracking-[0.2em] text-neutral-300 uppercase">
         Touch or tap to descend
       </span>
     </motion.div>

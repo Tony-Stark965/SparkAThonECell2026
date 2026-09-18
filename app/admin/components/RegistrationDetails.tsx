@@ -109,7 +109,7 @@ export function RegistrationDetails({
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span className="font-mono text-[11px] tracking-widest text-amber-400 uppercase font-semibold">
+              <span className="font-mono text-xs tracking-widest text-amber-400 uppercase font-semibold">
                 COMMAND DOSSIER // REGISTRATION
               </span>
             </div>
@@ -119,13 +119,13 @@ export function RegistrationDetails({
             >
               {currentReg.team_name}
             </h2>
-            <p className="font-mono text-xs text-neutral-400 flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+            <p className="font-mono text-xs text-neutral-300 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-neutral-300 shrink-0" />
               <span>{currentReg.college}</span>
             </p>
             {currentReg.domain && (
               <div className="pt-0.5">
-                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border border-amber-500/40 bg-amber-500/10 text-amber-300">
+                <span className="inline-block px-2 py-0.5 rounded text-xs font-mono font-semibold uppercase tracking-wider border border-amber-500/40 bg-amber-500/10 text-amber-300">
                   {currentReg.domain}
                 </span>
               </div>
@@ -134,7 +134,7 @@ export function RegistrationDetails({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg border border-neutral-800 bg-[#161310] text-neutral-400 hover:text-white hover:border-amber-500/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg border border-neutral-800 bg-[#161310] text-neutral-300 hover:text-white hover:border-amber-500/40 transition-colors cursor-pointer"
             aria-label="Close details modal"
           >
             <X className="w-5 h-5" />
@@ -158,14 +158,14 @@ export function RegistrationDetails({
 
         {/* Section 1: Team & Registration Metadata */}
         <div className="space-y-2.5">
-          <span className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase font-semibold block">
+          <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold block">
             01 // SQUAD SPECIFICATION
           </span>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 font-mono text-xs">
             <div className="col-span-2 sm:col-span-3 bg-gradient-to-r from-amber-500/15 via-[#16120d] to-[#120f0c] border border-amber-500/40 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <span className="text-amber-400 font-mono block text-[10px] uppercase font-bold tracking-widest">
+                <span className="text-amber-400 font-mono block text-xs uppercase font-bold tracking-widest">
                   OFFICIAL SECTOR DOMAIN
                 </span>
                 <span className="text-white font-mono font-bold text-sm sm:text-base mt-0.5 block">
@@ -178,7 +178,7 @@ export function RegistrationDetails({
             </div>
 
             <div className="bg-[#14110e] border border-neutral-800/90 rounded-xl p-3">
-              <span className="text-neutral-500 block text-[10px] uppercase">Strength</span>
+              <span className="text-neutral-300 block text-xs uppercase">Strength</span>
               <span className="text-neutral-100 font-semibold text-sm mt-0.5 flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-amber-500" />
                 {currentReg.participant_count} Members
@@ -186,23 +186,23 @@ export function RegistrationDetails({
             </div>
 
             <div className="bg-[#14110e] border border-neutral-800/90 rounded-xl p-3">
-              <span className="text-neutral-500 block text-[10px] uppercase">Protocol Fee</span>
+              <span className="text-neutral-300 block text-xs uppercase">Protocol Fee</span>
               <span className="text-amber-400 font-bold text-sm mt-0.5 block">
                 ₹{currentReg.registration_fee}
               </span>
             </div>
 
             <div className="col-span-2 sm:col-span-1 bg-[#14110e] border border-neutral-800/90 rounded-xl p-3">
-              <span className="text-neutral-500 block text-[10px] uppercase">Submission Date</span>
+              <span className="text-neutral-300 block text-xs uppercase">Submission Date</span>
               <span className="text-neutral-300 text-xs mt-0.5 flex items-center gap-1.5 truncate">
-                <Calendar className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                <Calendar className="w-3.5 h-3.5 text-neutral-300 shrink-0" />
                 {formattedDate}
               </span>
             </div>
 
             <div className="col-span-2 sm:col-span-3 bg-[#14110e]/70 border border-neutral-800/80 rounded-xl p-3">
-              <span className="text-neutral-500 block text-[10px] uppercase">Database Registration ID</span>
-              <span className="text-amber-300/90 text-[11px] font-mono select-all break-all block mt-0.5">
+              <span className="text-neutral-300 block text-xs uppercase">Database Registration ID</span>
+              <span className="text-amber-300/90 text-xs font-mono select-all break-all block mt-0.5">
                 {currentReg.id}
               </span>
             </div>
@@ -211,7 +211,7 @@ export function RegistrationDetails({
 
         {/* Section 2: Team Leader Contact Dossier */}
         <div className="space-y-2.5">
-          <span className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase font-semibold block">
+          <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold block">
             02 // SQUAD LEADER COMMAND
           </span>
 
@@ -224,7 +224,7 @@ export function RegistrationDetails({
                 <span className="font-sans font-bold text-white text-base block">
                   {currentReg.team_leader_name}
                 </span>
-                <span className="font-mono text-[10px] text-amber-400 uppercase tracking-wider">
+                <span className="font-mono text-xs text-amber-400 uppercase tracking-wider">
                   DESIGNATED TEAM LEADER
                 </span>
               </div>
@@ -232,16 +232,16 @@ export function RegistrationDetails({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2.5 border-t border-amber-950/40 font-mono text-xs">
               <div className="flex items-center gap-2 text-neutral-300">
-                <Hash className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
-                <span className="text-neutral-500 text-[10px]">ROLL:</span>
+                <Hash className="w-3.5 h-3.5 text-neutral-300 shrink-0" />
+                <span className="text-neutral-300 text-xs">ROLL:</span>
                 <span className="text-white font-medium truncate">
                   {currentReg.team_leader_roll_no || "—"}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 text-neutral-300">
-                <Phone className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
-                <span className="text-neutral-500 text-[10px]">PHONE:</span>
+                <Phone className="w-3.5 h-3.5 text-neutral-300 shrink-0" />
+                <span className="text-neutral-300 text-xs">PHONE:</span>
                 <a
                   href={`tel:${currentReg.team_leader_mobile}`}
                   className="text-amber-400 hover:underline font-medium truncate"
@@ -251,8 +251,8 @@ export function RegistrationDetails({
               </div>
 
               <div className="flex items-center gap-2 text-neutral-300">
-                <Mail className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
-                <span className="text-neutral-500 text-[10px]">EMAIL:</span>
+                <Mail className="w-3.5 h-3.5 text-neutral-300 shrink-0" />
+                <span className="text-neutral-300 text-xs">EMAIL:</span>
                 <span className="text-neutral-200 truncate" title={currentReg.team_leader_email || "Not recorded"}>
                   {currentReg.team_leader_email || "—"}
                 </span>
@@ -264,10 +264,10 @@ export function RegistrationDetails({
         {/* Section 3: Full Participants Roster */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase font-semibold">
+            <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold">
               03 // PARTICIPANT ROSTER
             </span>
-            <span className="font-mono text-[10px] text-neutral-400">
+            <span className="font-mono text-xs text-neutral-300">
               {currentReg.participants?.length || currentReg.participant_count} MEMBERS REGISTERED
             </span>
           </div>
@@ -281,22 +281,22 @@ export function RegistrationDetails({
                   className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg bg-[#14110e] border border-neutral-800/90 gap-2 font-mono text-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-neutral-500 font-bold text-xs">
+                    <span className="text-neutral-300 font-bold text-xs">
                       #{String(index + 1).padStart(2, "0")}
                     </span>
                     <span className="font-sans font-medium text-white text-sm">
                       {member.name}
                     </span>
                     {isLeader && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase border border-amber-500/40 bg-amber-500/10 text-amber-400">
+                      <span className="px-1.5 py-0.5 rounded text-xs font-mono tracking-wider uppercase border border-amber-500/40 bg-amber-500/10 text-amber-400">
                         LEADER
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-neutral-300 text-[11px] pl-7 sm:pl-0">
+                  <div className="flex items-center gap-4 text-neutral-300 text-xs pl-7 sm:pl-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-neutral-500 text-[10px]">ROLL:</span>
+                      <span className="text-neutral-300 text-xs">ROLL:</span>
                       <span className="text-neutral-200">{member.roll_no || "—"}</span>
                     </div>
 
@@ -304,7 +304,7 @@ export function RegistrationDetails({
                       href={`tel:${member.mobile}`}
                       className="hover:text-amber-400 transition-colors flex items-center gap-1"
                     >
-                      <Phone className="w-3 h-3 text-neutral-500" />
+                      <Phone className="w-3 h-3 text-neutral-300" />
                       <span>{member.mobile}</span>
                     </a>
                   </div>
@@ -316,7 +316,7 @@ export function RegistrationDetails({
 
         {/* Section 4: Payment Status & Organizer Controls */}
         <div className="space-y-2.5">
-          <span className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase font-semibold block">
+          <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold block">
             04 // PAYMENT CONTROLS
           </span>
 
@@ -324,7 +324,7 @@ export function RegistrationDetails({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-neutral-400 font-mono text-xs uppercase">Current Status:</span>
+                  <span className="text-neutral-300 font-mono text-xs uppercase">Current Status:</span>
                   <span
                     className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider border ${
                       isPaid
@@ -335,13 +335,13 @@ export function RegistrationDetails({
                     {displayStatus}
                   </span>
                 </div>
-                <p className="font-mono text-[11px] text-neutral-500">
+                <p className="font-mono text-xs text-neutral-300">
                   {isPaid
                     ? "Payment verified. Dues counted in total collected revenue."
                     : "Payment verification pending. Dues contribute ₹0 to collected revenue."}
                 </p>
                 {currentReg.payment_reference && (
-                  <p className="font-mono text-[10px] text-neutral-400 pt-1">
+                  <p className="font-mono text-xs text-neutral-300 pt-1">
                     Reference ID: <span className="text-neutral-200 font-semibold">{currentReg.payment_reference}</span>
                   </p>
                 )}

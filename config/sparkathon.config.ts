@@ -54,11 +54,11 @@ export const SPARKATHON_CONFIG = {
     allowedSizes: [2, 3, 4, 5] as const,
     calculateFee: (participantCount: number): number => {
       const count = Math.max(2, Math.min(5, Math.floor(participantCount)));
-      return count === 5 ? 450 : 400;
+      return count === 5 ? 400 : 350;
     },
     formatFee: (participantCount: number): string => {
       const count = Math.max(2, Math.min(5, Math.floor(participantCount)));
-      const fee = count === 5 ? 450 : 400;
+      const fee = count === 5 ? 400 : 350;
       return `₹${fee}`;
     },
   },
@@ -96,14 +96,14 @@ export const SPARKATHON_CONFIG = {
     minMembers: 2,
     maxMembers: 5,
     teamSize: "2–5 members",
-    entryFee: "₹400 for 2-4 members, ₹450 for 5 members",
-    totalPool: "₹15,000",
+    entryFee: "₹350 for 2-4 members, ₹400 for 5 members",
+    totalPool: "₹20,000",
     note: "Official registration dispatch portal. No payment is processed on this website.",
   },
 
   // ACT VI — THE BOUNTY
   bounty: {
-    totalPool: "₹15,000",
+    totalPool: "₹20,000",
     label: "CASH PRIZE POOL",
     note: "Official verified prize pool awarded across frontier domains",
   },
@@ -192,41 +192,49 @@ export const SPARKATHON_CONFIG = {
       id: "registration",
       number: "01",
       step: "STAGE 01",
-      title: "PLAYER ENTRY / REGISTRATION",
-      name: "PLAYER ENTRY / REGISTRATION",
-      time: "9:00 AM — 9:45 AM",
+      title: "Registration",
+      name: "Registration",
+      time: "08:45 AM — 09:30 AM",
     },
     {
       id: "inauguration",
       number: "02",
       step: "STAGE 02",
-      title: "INAUGURATION",
-      name: "INAUGURATION",
-      time: "10:00 AM — 10:30 AM",
+      title: "Inauguration",
+      name: "Inauguration",
+      time: "09:45 AM — 10:30 AM",
     },
     {
-      id: "exhibition",
+      id: "judging-1",
       number: "03",
       step: "STAGE 03",
-      title: "EXHIBITION",
-      name: "EXHIBITION",
-      time: "10:30 AM — 12:30 PM",
+      title: "Judging Round (First)",
+      name: "Judging Round (First)",
+      time: "11:00 AM — 12:30 PM",
     },
     {
       id: "lunch",
       number: "04",
       step: "STAGE 04",
-      title: "LUNCH",
-      name: "LUNCH",
-      time: "12:30 PM — 1:00 PM",
+      title: "Lunch Break",
+      name: "Lunch Break",
+      time: "12:30 PM — 01:00 PM",
+    },
+    {
+      id: "judging-2",
+      number: "05",
+      step: "STAGE 05",
+      title: "Judging Round (Resume)",
+      name: "Judging Round (Resume)",
+      time: "01:15 PM — 03:00 PM",
     },
     {
       id: "valedictory",
-      number: "05",
-      step: "STAGE 05",
-      title: "VALEDICTORY",
-      name: "VALEDICTORY",
-      time: "3:30 PM — 4:00 PM",
+      number: "06",
+      step: "STAGE 06",
+      title: "Valedictory",
+      name: "Valedictory",
+      time: "03:30 PM — 04:00 PM",
     },
   ] as EventFlowItem[],
 
@@ -242,13 +250,13 @@ export const SPARKATHON_CONFIG = {
       id: "registration-fee",
       number: "02",
       question: "What is the registration fee?",
-      answer: "₹400 for teams of 2–4 members and ₹450 for teams of 5 members.",
+      answer: "₹350 for teams of 2–4 members and ₹400 for teams of 5 members.",
     },
     {
       id: "prize-pool",
       number: "03",
       question: "What is the prize pool?",
-      answer: "The official cash prize pool is ₹15,000.",
+      answer: "The official cash prize pool is ₹20,000.",
     },
     {
       id: "judging-criteria",

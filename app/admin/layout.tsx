@@ -25,7 +25,7 @@ export default function AdminLayout({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 text-[10px] font-mono tracking-wider uppercase rounded border border-amber-950/50 bg-[#14110e] text-neutral-400">
+          <span className="px-2.5 py-0.5 text-xs font-mono tracking-wider uppercase rounded border border-amber-950/50 bg-[#14110e] text-neutral-300">
             ORGANIZER NETWORK
           </span>
         </div>
@@ -36,7 +36,7 @@ export default function AdminLayout({
 
       {/* Admin Footer */}
       <footer className="border-t border-neutral-900/90 bg-[#080705] px-4 sm:px-8 py-3 text-center">
-        <p className="font-mono text-[10px] tracking-wider text-neutral-500 uppercase">
+        <p className="font-mono text-xs tracking-wider text-neutral-300 uppercase">
           SPARK-A-THON 2026 • E-CELL FCRIT • INTERNAL ORGANIZER COMMAND CENTER • CONFIDENTIAL
         </p>
       </footer>

@@ -39,14 +39,14 @@ export function TerritoryOrchestrator({
       <div className="flex flex-col items-center text-center">
         <div className="inline-flex items-center gap-2 mb-2">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
-          <span className="font-mono text-[10px] sm:text-xs tracking-[0.3em] text-amber-400 uppercase font-semibold">
+          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-amber-400 uppercase font-semibold">
             ACT IV // THE FRONTIER WORLDS
           </span>
         </div>
         <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white uppercase">
           FIVE UNCHARTED SECTORS
         </h2>
-        <p className="mt-2 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-300 font-medium uppercase max-w-md">
+        <p className="mt-2 font-mono text-xs sm:text-sm tracking-wider text-neutral-300 font-medium uppercase max-w-md">
           Swipe or tap to explore verified engineering domains.
         </p>
       </div>
@@ -59,10 +59,10 @@ export function TerritoryOrchestrator({
             <button
               key={d.id}
               onClick={() => setActiveIndex(idx)}
-              className={`font-mono text-[10px] sm:text-xs px-3 py-1.5 rounded-full border transition-all duration-300 uppercase tracking-wider ${
+              className={`font-mono text-xs sm:text-sm px-3 py-1.5 rounded-full border transition-all duration-300 uppercase tracking-wider ${
                 isActive
                   ? "border-amber-500 bg-amber-500/20 text-amber-300 shadow-[0_0_14px_rgba(255,140,0,0.3)]"
-                  : "border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-neutral-300 hover:border-neutral-700"
+                  : "border-neutral-800 bg-neutral-950/80 text-neutral-300 hover:text-neutral-300 hover:border-neutral-700"
               }`}
             >
               /{d.number}
@@ -88,12 +88,12 @@ export function TerritoryOrchestrator({
                 <span className="font-mono text-sm tracking-widest text-amber-400 font-bold">
                   SECTOR {currentDomain.number}
                 </span>
-                <span className="text-neutral-600 font-mono text-xs">{"//"}</span>
-                <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-widest">
+                <span className="text-neutral-300 font-mono text-xs">{"//"}</span>
+                <span className="font-mono text-xs text-neutral-300 uppercase tracking-widest">
                   VERIFIED TRACK
                 </span>
               </div>
-              <span className="font-mono text-[10px] tracking-widest text-neutral-500">
+              <span className="font-mono text-xs tracking-widest text-neutral-300">
                 0{activeIndex + 1} / 0{domains.length}
               </span>
             </div>
@@ -118,7 +118,7 @@ export function TerritoryOrchestrator({
                 {currentDomain.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="font-mono text-[10px] tracking-wider text-neutral-300 bg-neutral-900 border border-neutral-700/80 px-2.5 py-1 rounded"
+                    className="font-mono text-xs tracking-wider text-neutral-300 bg-neutral-900 border border-neutral-700/80 px-2.5 py-1 rounded"
                   >
                     {tag}
                   </span>
@@ -132,7 +132,7 @@ export function TerritoryOrchestrator({
         <div className="flex items-center justify-between mt-5 px-2">
           <button
             onClick={handlePrev}
-            className="flex items-center gap-2 font-mono text-xs text-neutral-400 hover:text-white uppercase tracking-wider py-2 px-3 rounded-lg border border-neutral-800 bg-neutral-950/80 active:scale-95 transition-all"
+            className="flex items-center gap-2 font-mono text-xs text-neutral-300 hover:text-white uppercase tracking-wider py-2 px-3 rounded-lg border border-neutral-800 bg-neutral-950/80 active:scale-95 transition-all"
           >
             ← PREV SECTOR
           </button>
@@ -150,7 +150,7 @@ export function TerritoryOrchestrator({
         <div className="mt-4 sm:mt-5 flex justify-center">
           <button
             onClick={onNextAct}
-            className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-400 hover:text-amber-300 uppercase transition-colors py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 cursor-pointer"
+            className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase transition-colors py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 cursor-pointer"
           >
             <span>CONTINUE TO ARENA</span>
             <span className="text-amber-400">↓</span>

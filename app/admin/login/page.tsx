@@ -84,12 +84,12 @@ function AdminLoginForm() {
           <div>
             <label
               htmlFor="admin-email"
-              className="block font-mono text-xs uppercase tracking-wider text-neutral-400 mb-2"
+              className="block font-mono text-xs uppercase tracking-wider text-neutral-300 mb-2"
             >
               Organizer Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
               <input
                 id="admin-email"
                 type="email"
@@ -107,12 +107,12 @@ function AdminLoginForm() {
           <div>
             <label
               htmlFor="admin-password"
-              className="block font-mono text-xs uppercase tracking-wider text-neutral-400 mb-2"
+              className="block font-mono text-xs uppercase tracking-wider text-neutral-300 mb-2"
             >
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
               <input
                 id="admin-password"
                 type="password"
@@ -144,7 +144,7 @@ function AdminLoginForm() {
         </form>
 
         <div className="mt-8 pt-5 border-t border-neutral-900 text-center">
-          <p className="font-mono text-[11px] text-neutral-600 uppercase tracking-wider">
+          <p className="font-mono text-xs text-neutral-300 uppercase tracking-wider">
             SECURITY PROTOCOL ACTIVE // ENCRYPTED SESSION
           </p>
         </div>

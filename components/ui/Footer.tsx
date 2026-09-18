@@ -1,61 +1,118 @@
 import React from "react";
+import Image from "next/image";
 import { SPARKATHON_CONFIG } from "@/config/sparkathon.config";
 
 export function Footer() {
   return (
-    <footer className="w-full bg-black border-t border-neutral-900 py-12 px-6 text-neutral-500 font-mono text-xs">
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
-        <div className="flex flex-col items-center md:items-start gap-1">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            <span className="font-bold tracking-widest text-neutral-300 uppercase">
-              {SPARKATHON_CONFIG.name} {SPARKATHON_CONFIG.year}
-            </span>
+    <footer className="relative w-full border-t border-neutral-900 bg-black overflow-hidden font-mono text-xs text-neutral-300">
+      {/* Background elements */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-2xl h-[1px] bg-gradient-to-r from-transparent via-amber-500/60 to-transparent"></div>
+      
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-8 items-start">
+          
+          {/* Column 1: Branding */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,1)]" />
+              <span className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+                {SPARKATHON_CONFIG.name} <span className="text-amber-500">{SPARKATHON_CONFIG.year}</span>
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm tracking-[0.2em] text-neutral-400 uppercase leading-relaxed max-w-xs">
+              {SPARKATHON_CONFIG.tagline}
+            </p>
+            <div className="pt-2">
+              <p className="text-[10px] tracking-widest text-neutral-500 uppercase leading-loose">
+                Organized by E-Cell FCRIT
+                <br />
+                In collaboration with IIC
+              </p>
+            </div>
           </div>
-          <p className="text-[11px] tracking-wider text-neutral-500 uppercase">
-            {SPARKATHON_CONFIG.tagline}
-          </p>
+
+          {/* Column 2: Contact */}
+          <div className="flex flex-col items-center text-center space-y-5">
+            <div className="inline-flex items-center gap-2 mb-1">
+              <span className="h-1 w-1 rounded-full bg-amber-400" />
+              <span className="text-sm font-bold tracking-[0.3em] text-amber-400 uppercase">
+                CONTACT
+              </span>
+              <span className="h-1 w-1 rounded-full bg-amber-400" />
+            </div>
+
+            <div className="space-y-4 w-full max-w-[260px]">
+              {/* Event Info */}
+              <div className="group rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-3.5 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
+                <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">For Event Information</p>
+                <p className="text-sm font-bold text-white uppercase tracking-wider">Abhinaya Gowda</p>
+                <a href="tel:+918454010645" className="mt-1 inline-block font-mono text-sm tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
+                  +91 84540 10645
+                </a>
+              </div>
+              
+              {/* Registration Issues */}
+              <div className="group rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-3.5 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
+                <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">For Registration Issues</p>
+                <p className="text-sm font-bold text-white uppercase tracking-wider">Abhishek Kulbainur</p>
+                <a href="tel:+919867522536" className="mt-1 inline-block font-mono text-sm tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
+                  +91 98675 22536
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 3: Connect & Socials */}
+          <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-5">
+            <div className="inline-flex items-center gap-2 mb-1">
+              <span className="h-1 w-1 rounded-full bg-amber-400" />
+              <span className="text-sm font-bold tracking-[0.3em] text-amber-400 uppercase">
+                CONNECT
+              </span>
+              <span className="h-1 w-1 rounded-full bg-amber-400" />
+            </div>
+
+            <div className="flex items-center justify-center md:justify-end gap-5 w-full">
+              {/* Instagram */}
+              <a href="#" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]" aria-label="Instagram">
+                <svg className="w-5 h-5 text-neutral-400 group-hover:text-amber-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+              </a>
+
+              {/* LinkedIn */}
+              <a href="#" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]" aria-label="LinkedIn">
+                <svg className="w-5 h-5 text-neutral-400 group-hover:text-amber-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                  <rect x="2" y="9" width="4" height="12"></rect>
+                  <circle cx="4" cy="4" r="2"></circle>
+                </svg>
+              </a>
+            </div>
+
+            {/* Club Logo */}
+            <div className="mt-4 pt-5 border-t border-neutral-800/80 w-full max-w-[200px] flex flex-col items-center md:items-end">
+              <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-3">Official Club Website</span>
+              <a href="#" className="block transition-transform duration-300 hover:scale-105 hover:drop-shadow-[0_0_20px_rgba(245,158,11,0.25)]" aria-label="Visit official E-Cell website">
+                <Image
+                  src="/images/ecell-logo-new.png"
+                  alt="E-Cell FCRIT Logo"
+                  width={140}
+                  height={60}
+                  className="object-contain opacity-90 hover:opacity-100 transition-opacity"
+                />
+              </a>
+            </div>
+          </div>
         </div>
 
-        {/* Contact Us Section */}
-        <div className="flex flex-col items-center text-center gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className="h-1 w-1 rounded-full bg-amber-400" />
-            <span className="text-[10px] font-bold tracking-widest text-amber-400 uppercase">
-              CONTACT US
-            </span>
-            <span className="h-1 w-1 rounded-full bg-amber-400" />
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[11px] tracking-wider">
-            <a
-              href="tel:+916282908679"
-              className="text-neutral-400 hover:text-amber-300 transition-colors"
-            >
-              <span>Joviee — </span>
-              <span className="text-neutral-300 font-medium">+91 62829 08679</span>
-            </a>
-            <span className="hidden sm:inline text-neutral-700">•</span>
-            <a
-              href="tel:+918454010645"
-              className="text-neutral-400 hover:text-amber-300 transition-colors"
-            >
-              <span>Abhinaya Gowda — </span>
-              <span className="text-neutral-300 font-medium">+91 84540 10645</span>
-            </a>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center md:items-end gap-1 text-center md:text-right text-[11px] tracking-wider uppercase">
-          <p className="text-neutral-500">
-            <span>ORGANIZED BY E-CELL FCRIT</span>
-            <span className="mx-2">•</span>
-            <span>IN COLLABORATION WITH IIC</span>
-          </p>
-          <p className="text-neutral-600">
-            <span>OFFICIAL EVENT PLATFORM</span>
-            <span className="mx-2">•</span>
-            <span>FRONTIER ENGINE</span>
-          </p>
+        {/* Bottom Copyright */}
+        <div className="mt-14 pt-6 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] tracking-widest text-neutral-600 uppercase">
+          <p>© {new Date().getFullYear()} {SPARKATHON_CONFIG.name}. All rights reserved.</p>
+          <p>Frontier Engine • V2.0</p>
         </div>
       </div>
     </footer>

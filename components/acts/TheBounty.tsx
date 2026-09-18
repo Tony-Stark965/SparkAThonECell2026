@@ -262,7 +262,7 @@ function TreasuryChamberBackdrop() {
       <div className="absolute left-0 sm:left-4 md:left-8 lg:left-12 top-0 bottom-0 w-24 sm:w-36 md:w-44 flex flex-col justify-between py-8 opacity-70 sm:opacity-85 pointer-events-none">
         {/* Top Pylon Capital */}
         <div className="w-full border-r-2 border-amber-500/30 bg-gradient-to-r from-black via-[#120d09] to-[#1c140e] p-3 rounded-r-lg shadow-[4px_0_20px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center gap-1.5 text-amber-500/70 font-mono text-[8px] uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 text-amber-500/70 font-mono text-xs uppercase tracking-widest">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
             <span className="hidden sm:inline">COLONNADE // L-01</span>
           </div>
@@ -285,7 +285,7 @@ function TreasuryChamberBackdrop() {
 
         {/* Bottom Pylon Foundation */}
         <div className="w-full border-r-2 border-amber-500/30 bg-gradient-to-r from-black via-[#140f0a] to-[#1a130d] p-3 rounded-r-lg">
-          <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">
+          <span className="font-mono text-xs text-neutral-300 uppercase tracking-widest">
             SUB-BEDROCK
           </span>
         </div>
@@ -295,7 +295,7 @@ function TreasuryChamberBackdrop() {
       <div className="absolute right-0 sm:right-4 md:right-8 lg:right-12 top-0 bottom-0 w-24 sm:w-36 md:w-44 flex flex-col justify-between py-8 opacity-70 sm:opacity-85 pointer-events-none">
         {/* Top Pylon Capital */}
         <div className="w-full border-l-2 border-amber-500/30 bg-gradient-to-l from-black via-[#120d09] to-[#1c140e] p-3 rounded-l-lg shadow-[-4px_0_20px_rgba(0,0,0,0.8)] flex flex-col items-end">
-          <div className="flex items-center gap-1.5 text-amber-500/70 font-mono text-[8px] uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 text-amber-500/70 font-mono text-xs uppercase tracking-widest">
             <span className="hidden sm:inline">COLONNADE // R-02</span>
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
           </div>
@@ -318,7 +318,7 @@ function TreasuryChamberBackdrop() {
 
         {/* Bottom Pylon Foundation */}
         <div className="w-full border-l-2 border-amber-500/30 bg-gradient-to-l from-black via-[#140f0a] to-[#1a130d] p-3 rounded-l-lg flex justify-end">
-          <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">
+          <span className="font-mono text-xs text-neutral-300 uppercase tracking-widest">
             PRESSURE: OK
           </span>
         </div>
@@ -734,7 +734,7 @@ function FloatingBasaltFragments() {
 }
 
 export function TheBounty({ onNextAct }: TheBountyProps) {
-  // Vault door state: unsealed by default to prominently display the ₹15,000 cash prize pool focal point
+  // Vault door state: unsealed by default to prominently display the ₹20,000 cash prize pool focal point
   const [isUnsealed, setIsUnsealed] = useState(true);
   const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [lightPos, setLightPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
@@ -776,7 +776,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
       <div className="relative z-30 flex flex-col items-center px-6 py-3 rounded-2xl bg-black/45 backdrop-blur-[3px] border border-amber-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.85)]">
         <div className="inline-flex items-center gap-2.5 mb-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
-          <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-amber-400 uppercase font-bold">
+          <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-amber-400 uppercase font-bold">
             ACT VI // THE BOUNTY
           </span>
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
@@ -786,7 +786,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
           OFFICIAL PRIZE VAULT
         </h2>
 
-        <p className="mt-1.5 font-mono text-[11px] sm:text-xs tracking-wider text-neutral-300 uppercase max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+        <p className="mt-1.5 font-mono text-xs sm:text-sm tracking-wider text-neutral-300 uppercase max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
           Subterranean treasury unsealed for the builders of the next frontier.
         </p>
       </div>
@@ -892,7 +892,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
           />
 
           {/* Top Chassis Telemetry Bar */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-800/80 bg-neutral-950/90 font-mono text-[9px] sm:text-[10px] text-neutral-400 tracking-wider">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-800/80 bg-neutral-950/90 font-mono text-xs sm:text-sm text-neutral-300 tracking-wider">
             <div className="flex items-center gap-2">
               <span
                 className={`h-2 w-2 rounded-full transition-colors duration-500 ${
@@ -905,10 +905,10 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
             </div>
 
             <div className="hidden sm:flex items-center gap-3">
-              <span className="text-neutral-500">LOCK: TUNGSTEN HYDRAULIC</span>
+              <span className="text-neutral-300">LOCK: TUNGSTEN HYDRAULIC</span>
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-neutral-800/80 bg-black/60">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-[9px] text-amber-300 font-bold tracking-wider uppercase">
+                <span className="text-xs text-amber-300 font-bold tracking-wider uppercase">
                   ENERGY SEALED
                 </span>
               </div>
@@ -919,7 +919,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
 
             <button
               onClick={() => setIsUnsealed(!isUnsealed)}
-              className="px-2 py-0.5 rounded border border-neutral-800 hover:border-amber-500/60 bg-neutral-900/90 hover:bg-amber-500/10 text-neutral-300 hover:text-amber-300 transition-colors uppercase text-[9px] tracking-widest font-mono cursor-pointer"
+              className="px-2 py-0.5 rounded border border-neutral-800 hover:border-amber-500/60 bg-neutral-900/90 hover:bg-amber-500/10 text-neutral-300 hover:text-amber-300 transition-colors uppercase text-xs tracking-widest font-mono cursor-pointer"
             >
               {isUnsealed ? "SEAL VAULT" : "UNSEAL"}
             </button>
@@ -1024,13 +1024,13 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
             {/* Vault Content: The Bounty Treasure */}
             <div className="relative z-10 flex flex-col items-center max-w-lg">
               {/* Top Category Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase font-semibold shadow-[0_0_15px_rgba(255,160,0,0.15)]">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono text-xs sm:text-sm tracking-[0.25em] uppercase font-semibold shadow-[0_0_15px_rgba(255,160,0,0.15)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                 <span>{SPARKATHON_CONFIG.bounty.label}</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
               </div>
 
-              {/* Dominant ₹15,000 Currency Display */}
+              {/* Dominant ₹20,000 Currency Display */}
               <div className="my-3 sm:my-5 relative select-none">
                 <span
                   className="font-mono font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-200 to-amber-500 leading-none inline-block drop-shadow-[0_4px_35px_rgba(255,160,0,0.45)]"
@@ -1058,12 +1058,12 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
 
               {/* Decorative Sci-Fi Telemetry Badges */}
               <div className="mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-neutral-950/80 text-neutral-200 font-mono text-[10px] sm:text-[11px] tracking-wider uppercase">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-neutral-950/80 text-neutral-200 font-mono text-xs sm:text-sm tracking-wider uppercase">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
                   <span>CONFIRMED POOL ALLOCATION</span>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-950/60 text-neutral-400 font-mono text-[10px] sm:text-[11px] tracking-wider uppercase">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-950/60 text-neutral-300 font-mono text-xs sm:text-sm tracking-wider uppercase">
                   <span>TREASURY PROTOCOL // UNIFIED POOL</span>
                 </div>
               </div>
@@ -1085,7 +1085,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
                 className="pointer-events-none absolute top-0 bottom-0 left-0 w-1/2 bg-gradient-to-r from-neutral-900 via-neutral-950 to-[#120d08] border-r-2 border-amber-500/80 shadow-[10px_0_30px_rgba(0,0,0,0.9)] z-20 flex flex-col justify-between p-4"
               >
                 {/* Door Industrial Detailing */}
-                <div className="flex items-center justify-between text-neutral-600 font-mono text-[8px] uppercase tracking-widest">
+                <div className="flex items-center justify-between text-neutral-300 font-mono text-xs uppercase tracking-widest">
                   <span>BLAST-PLATE // L-01</span>
                   <span>HEAVY OBSIDIAN</span>
                 </div>
@@ -1097,7 +1097,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
                   <div className="h-[1px] w-1/2 bg-amber-500" />
                 </div>
 
-                <div className="flex items-center gap-1.5 text-amber-500/70 font-mono text-[9px] uppercase tracking-wider">
+                <div className="flex items-center gap-1.5 text-amber-500/70 font-mono text-xs uppercase tracking-wider">
                   <span className="h-1 w-1 rounded-full bg-amber-400" />
                   <span>SEAL INTERLOCK</span>
                 </div>
@@ -1117,7 +1117,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
                 className="pointer-events-none absolute top-0 bottom-0 right-0 w-1/2 bg-gradient-to-l from-neutral-900 via-neutral-950 to-[#120d08] border-l-2 border-amber-500/80 shadow-[-10px_0_30px_rgba(0,0,0,0.9)] z-20 flex flex-col justify-between p-4"
               >
                 {/* Door Industrial Detailing */}
-                <div className="flex items-center justify-between text-neutral-600 font-mono text-[8px] uppercase tracking-widest">
+                <div className="flex items-center justify-between text-neutral-300 font-mono text-xs uppercase tracking-widest">
                   <span>TUNGSTEN CORE</span>
                   <span>BLAST-PLATE // R-02</span>
                 </div>
@@ -1129,7 +1129,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
                   <div className="h-[1px] w-1/2 bg-amber-500" />
                 </div>
 
-                <div className="flex items-center justify-end gap-1.5 text-amber-500/70 font-mono text-[9px] uppercase tracking-wider">
+                <div className="flex items-center justify-end gap-1.5 text-amber-500/70 font-mono text-xs uppercase tracking-wider">
                   <span>HYDRAULIC RELEASE</span>
                   <span className="h-1 w-1 rounded-full bg-amber-400" />
                 </div>
@@ -1138,13 +1138,13 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
           </div>
 
           {/* Bottom Chassis Telemetry Strip */}
-          <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/90 font-mono text-[9px] sm:text-[10px] text-neutral-500 tracking-wider">
+          <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/90 font-mono text-xs sm:text-sm text-neutral-300 tracking-wider">
             <div className="flex items-center gap-2">
-              <span className="text-neutral-400">CHAMBER ATMOSPHERE:</span>
+              <span className="text-neutral-300">CHAMBER ATMOSPHERE:</span>
               <span className="text-amber-400/90">INERT // PRESSURIZED</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-neutral-400">DISBURSEMENT:</span>
+              <span className="text-neutral-300">DISBURSEMENT:</span>
               <span className="text-neutral-200">VALEDICTORY CEREMONY</span>
             </div>
           </div>
@@ -1163,7 +1163,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
               ↓
             </span>
           </button>
-          <span className="font-mono text-[10px] tracking-wider text-neutral-500 uppercase">
+          <span className="font-mono text-xs tracking-wider text-neutral-300 uppercase">
             STAGE 01 // REGISTRATION → STAGE 05 // VALEDICTORY
           </span>
         </div>
