@@ -147,25 +147,29 @@ export function CinematicHero({
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: phase >= 5 ? 1 : 0, y: phase >= 5 ? 0 : -6 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-3 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-4 py-2 md:backdrop-blur-lg shadow-lg pointer-events-auto"
+          className="flex items-center gap-3 md:rounded-full md:border md:border-neutral-800/90 md:bg-neutral-950/85 md:px-4 md:py-2 md:backdrop-blur-lg md:shadow-lg pointer-events-auto"
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2.5 md:gap-2">
             <Image 
               src="/images/iic-logo.png" 
               alt="IIC Logo" 
-              width={44} 
-              height={44} 
-              className="h-8 sm:h-9 w-auto"
+              width={48} 
+              height={48} 
+              unoptimized
+              className="h-14 md:h-9 w-auto object-contain"
+              style={{ background: 'transparent' }}
             />
             <Image 
               src="/images/ecell-logo-v2.png" 
               alt="E-Cell Official Logo" 
-              width={44} 
-              height={44} 
-              className="h-8 sm:h-9 w-auto"
+              width={48} 
+              height={48} 
+              unoptimized
+              className="h-14 md:h-9 w-auto object-contain"
+              style={{ background: 'transparent' }}
             />
           </div>
-          <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[11px] sm:text-[13px] tracking-[0.2em] font-mono leading-[1.15]">
+          <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[14px] sm:text-[13px] tracking-[0.2em] font-mono leading-[1.15]">
             <span>ECELL</span>
             <span>FCRIT</span>
           </div>
@@ -184,11 +188,6 @@ export function CinematicHero({
             </span>
           </div>
 
-          {/* Minimalist Expedition Menu Lines */}
-          <div className="flex flex-col justify-center gap-1.5 p-1 text-neutral-300" aria-hidden="true">
-            <span className="h-[1.5px] w-6 bg-neutral-300 rounded-full" />
-            <span className="h-[1.5px] w-4 bg-neutral-400 rounded-full ml-auto" />
-          </div>
         </motion.div>
       </header>
 
