@@ -218,15 +218,15 @@ export function WorldController() {
         {/* Mobile Nav Toggle */}
         <div className="md:hidden flex items-center justify-between w-full relative z-50 pointer-events-none">
           {/* E-CELL Left Pill */}
-          <div className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-4 py-2 md:backdrop-blur-lg shadow-lg pointer-events-auto">
-            <div className="bg-white/90 rounded p-0.5 flex items-center justify-center gap-1.5">
-              <Image src="/images/iic-logo.png" alt="IIC Logo" width={20} height={20} className="h-4 sm:h-5 w-auto" />
-              <div className="w-[1px] h-3.5 bg-neutral-300 mx-0.5" />
-              <Image src="/images/ecell-logo-new.png" alt="E-Cell Official Logo" width={20} height={20} className="h-4 sm:h-5 w-auto" />
+          <div className="flex items-center gap-3.5 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-5 py-3 md:backdrop-blur-lg shadow-lg pointer-events-auto">
+            <div className="flex items-center justify-center gap-2.5">
+              <Image src="/images/iic-logo.png" alt="IIC Logo" width={50} height={50} className="h-10 sm:h-11 w-auto" />
+              <Image src="/images/ecell-logo-v2.png" alt="E-Cell Official Logo" width={50} height={50} className="h-10 sm:h-11 w-auto" />
             </div>
-            <span className="text-amber-500 font-black text-xs sm:text-sm tracking-[0.25em] font-mono">
-              ECELL FCRIT
-            </span>
+            <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[13px] sm:text-[14px] tracking-[0.2em] font-mono leading-[1.15]">
+              <span>ECELL</span>
+              <span>FCRIT</span>
+            </div>
           </div>
 
           {/* Hamburger Right Pill */}

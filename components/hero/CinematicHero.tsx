@@ -147,28 +147,28 @@ export function CinematicHero({
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: phase >= 5 ? 1 : 0, y: phase >= 5 ? 0 : -6 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-2.5 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-4 py-2 md:backdrop-blur-lg shadow-lg pointer-events-auto"
+          className="flex items-center gap-4 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-5 py-3 md:backdrop-blur-lg shadow-lg pointer-events-auto"
         >
-          <div className="bg-white/90 rounded-md p-0.5 flex items-center justify-center gap-1.5">
+          <div className="flex items-center justify-center gap-3">
             <Image 
               src="/images/iic-logo.png" 
               alt="IIC Logo" 
-              width={28} 
-              height={28} 
-              className="h-6 sm:h-8 w-auto"
+              width={64} 
+              height={64} 
+              className="h-12 sm:h-14 w-auto"
             />
-            <div className="w-[1px] h-5 bg-neutral-300 mx-0.5" />
             <Image 
-              src="/images/ecell-logo-new.png" 
+              src="/images/ecell-logo-v2.png" 
               alt="E-Cell Official Logo" 
-              width={28} 
-              height={28} 
-              className="h-6 sm:h-8 w-auto"
+              width={64} 
+              height={64} 
+              className="h-12 sm:h-14 w-auto"
             />
           </div>
-          <span className="text-amber-500 font-black text-xs sm:text-sm tracking-widest font-mono">
-            ECELL FCRIT
-          </span>
+          <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[15px] sm:text-[17px] tracking-[0.2em] font-mono leading-[1.15]">
+            <span>ECELL</span>
+            <span>FCRIT</span>
+          </div>
         </motion.div>
 
         {/* Right: Date Pill & Minimalist Menu Icon */}
