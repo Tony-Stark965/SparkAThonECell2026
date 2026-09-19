@@ -69,3 +69,78 @@ export function calculateRegistrationStats(
     totalCollected,
   };
 }
+
+export type AttendanceStatus = "present" | "absent" | "not_marked";
+
+export interface AttendanceRecord {
+  id?: string;
+  registration_id: string;
+  participant_index: number;
+  participant_name: string;
+  participant_roll_no?: string | null;
+  status: AttendanceStatus;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AttendanceSummary {
+  totalParticipants: number;
+  presentCount: number;
+  absentCount: number;
+  unmarkedCount: number;
+  completedTeamsCount: number;
+}
+
+export const PROTECTED_QA_IDS = [
+  "24e6de4e-04de-4168-98a8-34876b310d00", // QA-SPARK-02
+  "044eb1bf-7212-40f2-9fd2-164cbe06fde8", // TEST-SPARK
+  "c8bfe256-d359-4d21-b8ea-9a40f3f02a93", // JJ
+];
+
+/**
+ * Computes attendance summary metrics from registrations and attendance records map.
+ * attendanceMap key: `${registration_id}_${participant_index}`
+ */
+export function calculateAttendanceSummary(
+  registrations: RegistrationRecord[],
+  attendanceMap: Record<string, AttendanceStatus>
+): AttendanceSummary {
+  let totalParticipants = 0;
+  let presentCount = 0;
+  let absentCount = 0;
+  let unmarkedCount = 0;
+  let completedTeamsCount = 0;
+
+  for (const reg of registrations) {
+    const pCount = Number(reg.participant_count) || (reg.participants?.length || 0);
+    totalParticipants += pCount;
+
+    let teamAllMarked = pCount > 0;
+
+    for (let i = 0; i < pCount; i++) {
+      const key = `${reg.id}_${i}`;
+      const status = attendanceMap[key] || "not_marked";
+
+      if (status === "present") {
+        presentCount++;
+      } else if (status === "absent") {
+        absentCount++;
+      } else {
+        unmarkedCount++;
+        teamAllMarked = false;
+      }
+    }
+
+    if (teamAllMarked && pCount > 0) {
+      completedTeamsCount++;
+    }
+  }
+
+  return {
+    totalParticipants,
+    presentCount,
+    absentCount,
+    unmarkedCount,
+    completedTeamsCount,
+  };
+}

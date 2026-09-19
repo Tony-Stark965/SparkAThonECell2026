@@ -1,30 +1,47 @@
 "use client";
 
 import { useState } from "react";
-import type { RegistrationRecord } from "@/lib/supabase/types";
+import type { RegistrationRecord, AttendanceStatus } from "@/lib/supabase/types";
 import { RegistrationDetails } from "./RegistrationDetails";
-import { Search, Eye, Users } from "lucide-react";
+import { DeleteRegistrationModal } from "./DeleteRegistrationModal";
+import { Search, Eye, Users, Trash2 } from "lucide-react";
 
 interface RegistrationTableProps {
   registrations: RegistrationRecord[];
+  attendanceMap?: Record<string, AttendanceStatus>;
   onRegistrationUpdated?: (updated: RegistrationRecord) => void;
+  onRegistrationDeleted?: (deletedId: string) => void;
 }
 
 type PaymentFilter = "ALL" | "PENDING" | "COMPLETED";
 
 export function RegistrationTable({
   registrations,
+  attendanceMap,
   onRegistrationUpdated,
+  onRegistrationDeleted,
 }: RegistrationTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PaymentFilter>("ALL");
   const [selectedRegistration, setSelectedRegistration] =
+    useState<RegistrationRecord | null>(null);
+  const [registrationToDelete, setRegistrationToDelete] =
     useState<RegistrationRecord | null>(null);
 
   const handleUpdate = (updated: RegistrationRecord) => {
     setSelectedRegistration(updated);
     if (onRegistrationUpdated) {
       onRegistrationUpdated(updated);
+    }
+  };
+
+  const handleDeleted = (deletedId: string) => {
+    if (selectedRegistration?.id === deletedId) {
+      setSelectedRegistration(null);
+    }
+    setRegistrationToDelete(null);
+    if (onRegistrationDeleted) {
+      onRegistrationDeleted(deletedId);
     }
   };
 
@@ -219,13 +236,24 @@ export function RegistrationTable({
                         className="py-3.5 px-4 text-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <button
-                          onClick={() => setSelectedRegistration(reg)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#161310] hover:bg-neutral-800 border border-neutral-700 hover:border-amber-500/40 text-neutral-300 hover:text-amber-400 transition-colors text-xs cursor-pointer"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>DOSSIER</span>
-                        </button>
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            onClick={() => setSelectedRegistration(reg)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#161310] hover:bg-neutral-800 border border-neutral-700 hover:border-amber-500/40 text-neutral-300 hover:text-amber-400 transition-colors text-xs cursor-pointer"
+                            title="Open Squad Dossier"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>DOSSIER</span>
+                          </button>
+                          <button
+                            onClick={() => setRegistrationToDelete(reg)}
+                            className="p-1 rounded bg-[#161310] hover:bg-red-950/40 border border-neutral-700 hover:border-red-500/40 text-neutral-400 hover:text-red-400 transition-colors text-xs cursor-pointer"
+                            title="Delete Registration"
+                            aria-label={`Delete registration for ${reg.team_name}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -298,16 +326,29 @@ export function RegistrationTable({
                     </span>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedRegistration(reg);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#161310] border border-neutral-700 text-neutral-200 hover:text-amber-400 font-mono text-xs uppercase tracking-wider"
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>DOSSIER</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedRegistration(reg);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#161310] border border-neutral-700 text-neutral-200 hover:text-amber-400 font-mono text-xs uppercase tracking-wider"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>DOSSIER</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRegistrationToDelete(reg);
+                      }}
+                      className="p-1.5 rounded bg-[#161310] border border-neutral-700 hover:border-red-500/40 text-neutral-400 hover:text-red-400 font-mono text-xs transition-colors"
+                      title="Delete Registration"
+                      aria-label={`Delete registration for ${reg.team_name}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -320,8 +361,19 @@ export function RegistrationTable({
         <RegistrationDetails
           key={selectedRegistration.id}
           registration={selectedRegistration}
+          attendanceMap={attendanceMap}
           onClose={() => setSelectedRegistration(null)}
           onPaymentStatusUpdated={handleUpdate}
+          onDeleteRequested={(reg) => setRegistrationToDelete(reg)}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {registrationToDelete && (
+        <DeleteRegistrationModal
+          registration={registrationToDelete}
+          onClose={() => setRegistrationToDelete(null)}
+          onDeleted={handleDeleted}
         />
       )}
     </div>

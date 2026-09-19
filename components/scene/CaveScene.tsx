@@ -80,7 +80,7 @@ export function CaveScene({
       return;
     }
 
-    let isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth < 768;
     const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(window.innerWidth, window.innerHeight);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { RegistrationRecord } from "@/lib/supabase/types";
+import type { RegistrationRecord, AttendanceStatus } from "@/lib/supabase/types";
 import {
   X,
   User,
@@ -14,19 +14,24 @@ import {
   AlertCircle,
   Loader2,
   Building2,
-  Users
+  Users,
+  Trash2,
 } from "lucide-react";
 
 interface RegistrationDetailsProps {
   registration: RegistrationRecord;
+  attendanceMap?: Record<string, AttendanceStatus>;
   onClose: () => void;
   onPaymentStatusUpdated?: (updated: RegistrationRecord) => void;
+  onDeleteRequested?: (registration: RegistrationRecord) => void;
 }
 
 export function RegistrationDetails({
   registration,
+  attendanceMap,
   onClose,
   onPaymentStatusUpdated,
+  onDeleteRequested,
 }: RegistrationDetailsProps) {
   const [currentReg, setCurrentReg] = useState<RegistrationRecord>(registration);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -275,6 +280,9 @@ export function RegistrationDetails({
           <div className="space-y-2">
             {(currentReg.participants || []).map((member, index) => {
               const isLeader = member.isLeader || index === 0;
+              const attKey = `${currentReg.id}_${index}`;
+              const attStatus = attendanceMap ? attendanceMap[attKey] || "not_marked" : null;
+
               return (
                 <div
                   key={index}
@@ -294,9 +302,9 @@ export function RegistrationDetails({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-neutral-300 text-xs pl-7 sm:pl-0">
+                  <div className="flex items-center gap-3 text-neutral-300 text-xs pl-7 sm:pl-0 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-neutral-300 text-xs">ROLL:</span>
+                      <span className="text-neutral-400 text-xs">ROLL:</span>
                       <span className="text-neutral-200">{member.roll_no || "—"}</span>
                     </div>
 
@@ -304,9 +312,27 @@ export function RegistrationDetails({
                       href={`tel:${member.mobile}`}
                       className="hover:text-amber-400 transition-colors flex items-center gap-1"
                     >
-                      <Phone className="w-3 h-3 text-neutral-300" />
+                      <Phone className="w-3 h-3 text-neutral-400" />
                       <span>{member.mobile}</span>
                     </a>
+
+                    {attStatus && (
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border ${
+                          attStatus === "present"
+                            ? "bg-emerald-950/60 text-emerald-400 border-emerald-500/40"
+                            : attStatus === "absent"
+                            ? "bg-red-950/60 text-red-400 border-red-500/40"
+                            : "bg-neutral-900 text-neutral-400 border-neutral-800"
+                        }`}
+                      >
+                        {attStatus === "present"
+                          ? "PRESENT"
+                          : attStatus === "absent"
+                          ? "ABSENT"
+                          : "NOT MARKED"}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -379,10 +405,19 @@ export function RegistrationDetails({
         </div>
 
         {/* Modal Footer */}
-        <div className="pt-3 border-t border-neutral-800/80 flex justify-end">
+        <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between">
+          {onDeleteRequested && (
+            <button
+              onClick={() => onDeleteRequested(currentReg)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 text-red-300 hover:text-red-200 font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>DELETE REGISTRATION</span>
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-[#161310] hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            className="px-5 py-2 rounded-lg bg-[#161310] hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer ml-auto"
           >
             CLOSE
           </button>

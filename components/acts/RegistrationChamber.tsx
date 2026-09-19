@@ -86,12 +86,23 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
 
   React.useEffect(() => {
     if (step === 2) {
-      setIsFetchingCapacities(true);
-      fetch("/api/domains")
-        .then((res) => res.json())
-        .then((data) => setDomainCapacities(data))
-        .catch((err) => console.error("Failed to fetch domain capacities", err))
-        .finally(() => setIsFetchingCapacities(false));
+      let isMounted = true;
+      const loadCapacities = async () => {
+        setIsFetchingCapacities(true);
+        try {
+          const res = await fetch("/api/domains");
+          const data = await res.json();
+          if (isMounted) setDomainCapacities(data);
+        } catch (err) {
+          console.error("Failed to fetch domain capacities", err);
+        } finally {
+          if (isMounted) setIsFetchingCapacities(false);
+        }
+      };
+      loadCapacities();
+      return () => {
+        isMounted = false;
+      };
     }
   }, [step]);
 
@@ -313,7 +324,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                       <div key={st.num} className="flex items-center flex-shrink-0">
                         <button
                           type="button"
-                          onClick={() => { if (isDone) setStep(st.num as any); }}
+                          onClick={() => { if (isDone) setStep(st.num as 1 | 2 | 3 | 4 | 5 | 6 | 7); }}
                           disabled={!isDone}
                           className={`px-2 sm:px-3 py-1 rounded text-[9px] sm:text-xs font-bold uppercase transition-all whitespace-nowrap ${
                             isActive ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_8px_rgba(255,140,0,0.3)]" : 
