@@ -141,31 +141,31 @@ export function CinematicHero({
       </AnimatePresence>
 
       {/* 4. Top Header & Institutional Council Branding */}
-      <header className="relative z-30 w-full px-3 sm:px-6 pt-4 sm:pt-6 hidden md:flex items-center justify-between">
+      <header className="relative z-30 w-full px-3 sm:px-6 pt-4 sm:pt-6 flex items-center justify-between">
         {/* Left: E-CELL Logo & Monogram */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: phase >= 5 ? 1 : 0, y: phase >= 5 ? 0 : -6 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex items-center gap-4 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-5 py-3 md:backdrop-blur-lg shadow-lg pointer-events-auto"
+          className="flex items-center gap-3 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-4 py-2 md:backdrop-blur-lg shadow-lg pointer-events-auto"
         >
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-2">
             <Image 
               src="/images/iic-logo.png" 
               alt="IIC Logo" 
-              width={64} 
-              height={64} 
-              className="h-12 sm:h-14 w-auto"
+              width={44} 
+              height={44} 
+              className="h-8 sm:h-9 w-auto"
             />
             <Image 
               src="/images/ecell-logo-v2.png" 
               alt="E-Cell Official Logo" 
-              width={64} 
-              height={64} 
-              className="h-12 sm:h-14 w-auto"
+              width={44} 
+              height={44} 
+              className="h-8 sm:h-9 w-auto"
             />
           </div>
-          <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[15px] sm:text-[17px] tracking-[0.2em] font-mono leading-[1.15]">
+          <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[11px] sm:text-[13px] tracking-[0.2em] font-mono leading-[1.15]">
             <span>ECELL</span>
             <span>FCRIT</span>
           </div>

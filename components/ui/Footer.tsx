@@ -42,7 +42,7 @@ export function Footer() {
             <div className="flex flex-col gap-3 w-full">
               {/* Event Info */}
               <div className="group flex flex-col p-4 rounded-xl border border-neutral-800/80 bg-neutral-900/30 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
-                <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Event Info</p>
+                <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Event Information</p>
                 <p className="text-sm font-bold text-white uppercase tracking-wider">Abhinaya Gowda</p>
                 <a href="tel:+918454010645" className="mt-1 font-mono text-xs tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
                   +91 84540 10645
@@ -51,7 +51,7 @@ export function Footer() {
               
               {/* Registration Issues */}
               <div className="group flex flex-col p-4 rounded-xl border border-neutral-800/80 bg-neutral-900/30 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
-                <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Reg Issues</p>
+                <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Registration Issue</p>
                 <p className="text-sm font-bold text-white uppercase tracking-wider">Abhishek Kulbainur</p>
                 <a href="tel:+919867522536" className="mt-1 font-mono text-xs tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
                   +91 98675 22536
@@ -124,7 +124,7 @@ export function Footer() {
             <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[500px]">
               {/* Event Info */}
               <div className="group rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-3 sm:p-4 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)] break-words flex flex-col items-center justify-center">
-                <p className="text-[9px] sm:text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Event Info</p>
+                <p className="text-[9px] sm:text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Event Information</p>
                 <p className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">Abhinaya Gowda</p>
                 <a href="tel:+918454010645" className="mt-1 block py-2 -mb-2 font-mono text-[10px] sm:text-xs tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
                   +91 84540 10645
@@ -133,7 +133,7 @@ export function Footer() {
               
               {/* Registration Issues */}
               <div className="group rounded-xl border border-neutral-800/80 bg-neutral-900/30 p-3 sm:p-4 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)] break-words flex flex-col items-center justify-center">
-                <p className="text-[9px] sm:text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Reg Issues</p>
+                <p className="text-[9px] sm:text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-1.5 group-hover:text-amber-500/70 transition-colors">Registration Issue</p>
                 <p className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">Abhishek Kulbainur</p>
                 <a href="tel:+919867522536" className="mt-1 block py-2 -mb-2 font-mono text-[10px] sm:text-xs tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
                   +91 98675 22536

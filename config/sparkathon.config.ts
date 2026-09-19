@@ -277,7 +277,7 @@ export const SPARKATHON_CONFIG = {
       id: "registration-payment",
       number: "06",
       question: "How do we register and pay?",
-      answer: "Teams submit their registration details through the website. Payment gateway integration is not active yet, so online payment is not currently processed on this website.",
+      answer: "Teams submit their registration details through the website. Once registered, you will be redirected to the payment gateway to complete your registration fee. Online payment is fully active and secure on this website.",
     },
   ] as FAQItem[],
 

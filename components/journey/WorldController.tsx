@@ -216,18 +216,7 @@ export function WorldController() {
         </nav>
 
         {/* Mobile Nav Toggle */}
-        <div className="md:hidden flex items-center justify-between w-full relative z-50 pointer-events-none">
-          {/* E-CELL Left Pill */}
-          <div className="flex items-center gap-3.5 rounded-full border border-neutral-800/90 bg-neutral-950/95 md:bg-neutral-950/85 px-5 py-3 md:backdrop-blur-lg shadow-lg pointer-events-auto">
-            <div className="flex items-center justify-center gap-2.5">
-              <Image src="/images/iic-logo.png" alt="IIC Logo" width={50} height={50} className="h-10 sm:h-11 w-auto" />
-              <Image src="/images/ecell-logo-v2.png" alt="E-Cell Official Logo" width={50} height={50} className="h-10 sm:h-11 w-auto" />
-            </div>
-            <div className="flex flex-col items-start justify-center text-amber-500 font-black text-[13px] sm:text-[14px] tracking-[0.2em] font-mono leading-[1.15]">
-              <span>ECELL</span>
-              <span>FCRIT</span>
-            </div>
-          </div>
+        <div className="md:hidden flex items-center justify-end w-full relative z-50 pointer-events-none">
 
           {/* Hamburger Right Pill */}
           <button

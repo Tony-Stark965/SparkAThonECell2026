@@ -617,7 +617,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
 
       {onReturnToHero && (
         <button onClick={onReturnToHero} className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors">
-          <span>↑ RETURN TO THE HEARTH</span>
+          <span>↓ PROCEED FOR REGISTRATION</span>
         </button>
       )}
     </section>
