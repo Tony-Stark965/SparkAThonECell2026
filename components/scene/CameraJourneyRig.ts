@@ -8,7 +8,7 @@ export type WorldAct =
   | "ARENA"
   | "BOUNTY"
   | "FLOW"
-  | "PORTAL"
+
   | "REGISTER";
 
 export class CameraJourneyRig {
@@ -101,7 +101,7 @@ export class CameraJourneyRig {
       baseLookAtY = THREE.MathUtils.lerp(-0.2, -0.38, t);
       baseLookAtZ = THREE.MathUtils.lerp(-4.2, -4.5, t);
     } else if (s <= 0.88) {
-      // ACT VIII: THE PORTAL — Ascending vantage point framing the colossal energy beam
+      // Transition zone (Flow → Register)
       const t = (s - 0.74) / 0.14;
       basePathY = THREE.MathUtils.lerp(0.24, 0.34, t);
       basePathZ = THREE.MathUtils.lerp(-1.0, -0.7, t);

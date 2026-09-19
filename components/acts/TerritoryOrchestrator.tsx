@@ -108,7 +108,7 @@ export function TerritoryOrchestrator({
             </p>
 
             {/* Description */}
-            <p className="mt-4 text-xs sm:text-sm text-neutral-200 leading-relaxed">
+            <p className="mt-4 text-xs sm:text-sm text-neutral-200 leading-relaxed whitespace-pre-line">
               {currentDomain.description}
             </p>
 

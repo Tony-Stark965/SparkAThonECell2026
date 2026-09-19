@@ -118,7 +118,7 @@ export const SPARKATHON_CONFIG = {
       number: "01",
       title: "AI & Cybersec",
       subtitle: "Autonomous Defense & Intelligence",
-      description: "Forging resilient neural systems, cryptographic architectures, and defensive autonomous agents to safeguard digital frontiers.",
+      description: "• Create AI-driven solutions for real-world problems.\n• Turn innovative ideas into scalable, market-ready ventures.",
       tags: ["Agentic AI", "Zero-Trust", "Applied Cryptography", "Threat Detection"],
     },
     {
@@ -126,7 +126,7 @@ export const SPARKATHON_CONFIG = {
       number: "02",
       title: "Smart Energy Systems",
       subtitle: "Decentralized Power & Grid Resiliency",
-      description: "Harnessing algorithmic load balancing, next-gen storage integration, and micro-generation infrastructure for a self-sustaining world.",
+      description: "• Develop sustainable energy solutions for generation, distribution, and storage.\n• Innovate with solar & wind energy solutions.",
       tags: ["Microgrids", "Battery Intelligence", "Clean Tech", "Grid Optimization"],
     },
     {
@@ -134,7 +134,7 @@ export const SPARKATHON_CONFIG = {
       number: "03",
       title: "Robotics or Drone and Fixed Wing",
       subtitle: "Autonomous Kinetics & Aerial Frontiers",
-      description: "Pioneering terrestrial kinetics, aerial aerodynamics, autonomous flight control, and field-deployable robotic platforms.",
+      description: "• Build smart automation solutions with drones & robots.\n• Explore AI-powered detection, navigation & assistance.",
       tags: ["Aerial Autonomy", "Fixed-Wing Systems", "SLAM", "Field Kinetics"],
     },
     {
@@ -142,7 +142,7 @@ export const SPARKATHON_CONFIG = {
       number: "04",
       title: "IoT or Embedded Systems",
       subtitle: "Low-Power Sensing & Edge Silicon",
-      description: "Engineering rugged, hyper-efficient embedded compute architectures and edge-sensory mesh networks operating in harsh frontiers.",
+      description: "• Build smart, connected devices combining hardware & software.\n• Explore smart homes, health monitors & automation.",
       tags: ["Edge Computing", "Mesh Networks", "Low-Power Hardware", "RTOS"],
     },
     {
@@ -150,7 +150,7 @@ export const SPARKATHON_CONFIG = {
       number: "05",
       title: "Open Innovation",
       subtitle: "Radical Explorations & Unbounded Tech",
-      description: "Unconstrained frontier engineering tackling breakthrough cross-disciplinary challenges that redefine existing paradigms.",
+      description: "• Explore unique, unconventional ideas.\n• Solve problems beyond traditional categories.\n• Encourage interdisciplinary innovation and breakthrough technologies.\n• Turn bold ideas into scalable, market-ready solutions.",
       tags: ["Cross-Disciplinary", "Wildcard Prototypes", "Novel Interfaces", "Breakthroughs"],
     },
   ] as DomainItem[],

@@ -250,7 +250,7 @@ export class WorldChambers {
     this.arenaGroup.visible = act === "ARENA";
     this.bountyGroup.visible = act === "BOUNTY";
     this.flowGroup.visible = act === "FLOW";
-    this.portalGroup.visible = act === "PORTAL";
+    this.portalGroup.visible = false;
 
     if (act === "TERRITORIES") {
       this.territoryMeshes.forEach((mesh, idx) => {
@@ -298,12 +298,6 @@ export class WorldChambers {
       });
     }
 
-    // 5. Animate Portal Horizon Vortex
-    if (act === "PORTAL") {
-      (this.portalVortex.material as THREE.MeshBasicMaterial).opacity =
-        0.35 + Math.sin(time * 3.5) * 0.12;
-      this.portalVortex.rotation.z = Math.sin(time * 0.5) * 0.05;
-    }
   }
 
   public dispose() {

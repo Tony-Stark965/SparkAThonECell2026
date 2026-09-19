@@ -142,11 +142,11 @@ export function FrontierPortal({
                     ENTRY PROTOCOL
                   </span>
                   <span className="font-mono text-base sm:text-lg font-black text-amber-200 mt-0.5 sm:mt-1">
-                    ₹400
+                    ₹350
                     <span className="text-xs font-normal text-amber-300/80"> / 2-4 members</span>
                   </span>
                   <span className="font-mono text-xs text-neutral-300 uppercase mt-0.5">
-                    ₹450 / 5 MEMBERS
+                    ₹400 / 5 MEMBERS
                   </span>
                 </div>
 

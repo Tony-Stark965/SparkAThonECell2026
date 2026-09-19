@@ -209,7 +209,7 @@ export function CaveScene({
       // Skipping 3D WebGL computation and render() drops GPU/CPU consumption to 0%
       const isOccluded =
         act === "REGISTER" ||
-        (isMobile && (act === "FLOW" || act === "BOUNTY" || act === "ARENA" || act === "PORTAL"));
+        (isMobile && (act === "FLOW" || act === "BOUNTY" || act === "ARENA"));
 
       if (isOccluded) {
         // Run a slower loop to check when we come out of occlusion (approx 4fps check)

@@ -11,7 +11,7 @@ import { TerritoryOrchestrator } from "@/components/acts/TerritoryOrchestrator";
 const TheArena = dynamic(() => import("@/components/acts/TheArena").then(mod => mod.TheArena), { ssr: true });
 const TheBounty = dynamic(() => import("@/components/acts/TheBounty").then(mod => mod.TheBounty), { ssr: true });
 const EventFlow = dynamic(() => import("@/components/acts/EventFlow").then(mod => mod.EventFlow), { ssr: true });
-const FrontierPortal = dynamic(() => import("@/components/acts/FrontierPortal").then(mod => mod.FrontierPortal), { ssr: true });
+
 const RegistrationChamber = dynamic(() => import("@/components/acts/RegistrationChamber").then(mod => mod.RegistrationChamber), { ssr: true });
 const EventFAQ = dynamic(() => import("@/components/acts/EventFAQ").then(mod => mod.EventFAQ), { ssr: true });
 import { Footer } from "@/components/ui/Footer";
@@ -23,7 +23,7 @@ const NAV_ITEMS: { act: WorldAct; label: string; hash: string; sectionId: string
   { act: "ARENA", label: "ARENA", hash: "#arena", sectionId: "arena" },
   { act: "BOUNTY", label: "BOUNTY", hash: "#bounty", sectionId: "bounty" },
   { act: "FLOW", label: "FLOW", hash: "#flow", sectionId: "flow" },
-  { act: "PORTAL", label: "PORTAL", hash: "#portal", sectionId: "portal" },
+
   { act: "REGISTER", label: "REGISTER", hash: "#register", sectionId: "register" },
 ];
 
@@ -55,7 +55,7 @@ export function WorldController() {
       arena: "ARENA",
       bounty: "BOUNTY",
       flow: "FLOW",
-      portal: "PORTAL",
+
       register: "REGISTER",
       faq: "REGISTER",
     };
@@ -163,16 +163,9 @@ export function WorldController() {
 
         {/* ACT VII: THE FLOW */}
         <section id="flow" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
-          <EventFlow onNextAct={() => scrollToSection("portal")} />
+          <EventFlow onNextAct={() => scrollToSection("register")} />
         </section>
 
-        {/* ACT VIII: THE PORTAL */}
-        <section id="portal" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
-          <FrontierPortal
-            onProceedToRegister={() => scrollToSection("register")}
-            onReturnToHero={() => scrollToSection("hearth")}
-          />
-        </section>
 
         {/* ACT IX: REGISTRATION CHAMBER */}
         <section id="register" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
