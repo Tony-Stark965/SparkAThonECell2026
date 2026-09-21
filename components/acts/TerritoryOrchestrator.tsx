@@ -142,10 +142,10 @@ export function TerritoryOrchestrator({
 
           {/* Centered Primary CTA: REGISTER */}
           {onNextAct && (
-            <div className="flex justify-center col-span-2 sm:col-span-1 order-3 sm:order-2">
+            <div className="flex justify-center w-full col-span-2 sm:col-span-1 order-3 sm:order-2">
               <button
                 onClick={onNextAct}
-                className="w-full sm:w-auto inline-flex items-center justify-center font-mono text-xs font-bold tracking-[0.2em] uppercase py-2 px-6 rounded-lg border border-amber-400/80 bg-gradient-to-r from-amber-500/20 via-amber-400/25 to-amber-500/20 hover:from-amber-500/30 hover:via-amber-400/35 hover:to-amber-500/30 text-amber-300 hover:text-amber-100 shadow-[0_0_15px_rgba(251,191,36,0.18)] hover:shadow-[0_0_22px_rgba(251,191,36,0.35)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                className="w-full max-w-[320px] sm:max-w-[220px] inline-flex items-center justify-center font-mono text-xs sm:text-sm font-black tracking-[0.25em] uppercase py-2.5 px-6 sm:px-8 rounded-lg border border-amber-400/90 bg-gradient-to-r from-amber-500/20 via-amber-400/25 to-amber-500/20 hover:from-amber-500/30 hover:via-amber-400/35 hover:to-amber-500/30 text-amber-300 hover:text-amber-100 shadow-[0_0_16px_rgba(251,191,36,0.22)] hover:shadow-[0_0_25px_rgba(251,191,36,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
               >
                 REGISTER
               </button>
