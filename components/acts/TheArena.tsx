@@ -93,7 +93,7 @@ export function TheArena({
                 <span className="font-mono text-xs tracking-[0.25em] text-amber-400 uppercase font-bold">
                   PILLAR //{activeCriterion.number} • OFFICIAL CRITERION
                 </span>
-                <div className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)] animate-pulse" />
+                <div className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
               </div>
 
               {/* Title */}
@@ -178,7 +178,7 @@ export function TheArena({
                   <div
                     className={`h-2 w-2 rounded-full transition-all duration-300 ${
                       isSelected
-                        ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)] animate-pulse"
+                        ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]"
                         : "bg-neutral-800"
                     }`}
                   />

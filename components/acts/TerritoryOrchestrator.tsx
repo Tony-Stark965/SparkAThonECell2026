@@ -38,16 +38,16 @@ export function TerritoryOrchestrator({
       {/* 1. Act Header */}
       <div className="flex flex-col items-center text-center">
         <div className="inline-flex items-center gap-2 mb-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(255,140,0,0.9)]" />
           <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-amber-400 uppercase font-semibold">
-            ACT IV // THE FRONTIER WORLDS
+            ACT IV // TECHNICAL DOMAINS
           </span>
         </div>
         <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white uppercase">
-          FIVE UNCHARTED SECTORS
+          FIVE TECHNICAL DOMAINS
         </h2>
         <p className="mt-2 font-mono text-xs sm:text-sm tracking-wider text-neutral-300 font-medium uppercase max-w-md">
-          Swipe or tap to explore verified engineering domains.
+          Choose the domain that best matches your project idea.
         </p>
       </div>
 
@@ -86,11 +86,11 @@ export function TerritoryOrchestrator({
             <div className="flex items-center justify-between border-b border-neutral-800/80 pb-4 mb-5">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm tracking-widest text-amber-400 font-bold">
-                  SECTOR {currentDomain.number}
+                  DOMAIN {currentDomain.number}
                 </span>
                 <span className="text-neutral-300 font-mono text-xs">{"//"}</span>
                 <span className="font-mono text-xs text-neutral-300 uppercase tracking-widest">
-                  VERIFIED TRACK
+                  TECHNICAL DOMAIN
                 </span>
               </div>
               <span className="font-mono text-xs tracking-widest text-neutral-300">
@@ -128,35 +128,41 @@ export function TerritoryOrchestrator({
           </motion.div>
         </AnimatePresence>
 
-        {/* Previous / Next Tactical Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-2 mt-5 px-2">
-          <button
-            onClick={handlePrev}
-            className="flex items-center gap-2 font-mono text-xs text-neutral-300 hover:text-white uppercase tracking-wider py-2 px-3 rounded-lg border border-neutral-800 bg-neutral-950/80 active:scale-95 transition-all"
-          >
-            ← PREV SECTOR
-          </button>
-          <button
-            onClick={handleNext}
-            className="flex items-center gap-2 font-mono text-xs text-amber-400 hover:text-amber-300 uppercase tracking-wider py-2 px-3 rounded-lg border border-amber-500/40 bg-neutral-950/80 active:scale-95 transition-all"
-          >
-            NEXT SECTOR →
-          </button>
+        {/* Navigation Row: PREV DOMAIN | REGISTER | NEXT DOMAIN */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 items-center mt-5 px-2">
+          {/* Previous Domain */}
+          <div className="flex justify-start order-1 sm:order-1">
+            <button
+              onClick={handlePrev}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 font-mono text-xs text-neutral-300 hover:text-white uppercase tracking-wider py-2 px-3.5 rounded-lg border border-neutral-800 bg-neutral-950/80 hover:border-neutral-700 active:scale-95 transition-all cursor-pointer"
+            >
+              ← PREV DOMAIN
+            </button>
+          </div>
+
+          {/* Centered Primary CTA: REGISTER */}
+          {onNextAct && (
+            <div className="flex justify-center col-span-2 sm:col-span-1 order-3 sm:order-2">
+              <button
+                onClick={onNextAct}
+                className="w-full sm:w-auto inline-flex items-center justify-center font-mono text-xs font-bold tracking-[0.2em] uppercase py-2 px-6 rounded-lg border border-amber-400/80 bg-gradient-to-r from-amber-500/20 via-amber-400/25 to-amber-500/20 hover:from-amber-500/30 hover:via-amber-400/35 hover:to-amber-500/30 text-amber-300 hover:text-amber-100 shadow-[0_0_15px_rgba(251,191,36,0.18)] hover:shadow-[0_0_22px_rgba(251,191,36,0.35)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+              >
+                REGISTER
+              </button>
+            </div>
+          )}
+
+          {/* Next Domain */}
+          <div className="flex justify-end order-2 sm:order-3">
+            <button
+              onClick={handleNext}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 font-mono text-xs text-amber-400 hover:text-amber-300 uppercase tracking-wider py-2 px-3.5 rounded-lg border border-amber-500/40 bg-neutral-950/80 hover:border-amber-500/60 active:scale-95 transition-all cursor-pointer"
+            >
+              NEXT DOMAIN →
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* 4. Advance to Next Act Button */}
-      {onNextAct && (
-        <div className="mt-4 sm:mt-5 flex justify-center">
-          <button
-            onClick={onNextAct}
-            className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase transition-colors py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 cursor-pointer"
-          >
-            <span>CONTINUE TO ARENA</span>
-            <span className="text-amber-400">↓</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

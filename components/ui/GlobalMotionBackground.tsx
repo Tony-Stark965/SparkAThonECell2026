@@ -19,6 +19,16 @@ export function GlobalMotionBackground() {
         .bg-anim-core { animation: float-core 45s ease-in-out infinite; }
         .bg-anim-orb1 { animation: float-orb1 55s linear infinite; }
         .bg-anim-orb2 { animation: float-orb2 65s ease-in-out infinite; }
+
+        /* Performance: Static gradients on mobile — removes 3 continuous composite layers */
+        @media (max-width: 767px) {
+          .bg-anim-core,
+          .bg-anim-orb1,
+          .bg-anim-orb2 {
+            animation: none !important;
+            opacity: 0.2;
+          }
+        }
       `}</style>
       
       {/* Lightweight, CSS-only ambient background layers. Active globally without blur filters. */}

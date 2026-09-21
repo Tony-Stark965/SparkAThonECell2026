@@ -85,21 +85,12 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
         <div className="relative rounded-2xl sm:rounded-3xl border border-neutral-800 bg-[#070709] p-2 sm:p-3 shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden transition-transform duration-300 ease-out">
 
 
-          {/* Slow Ambient Diagonal Light Sweep across Obsidian Frame */}
-          <motion.div
-            animate={{
-              x: ["-120%", "220%"],
-            }}
-            transition={{
-              duration: 8.5,
-              repeat: Infinity,
-              repeatDelay: 4.5,
-              ease: "easeInOut",
-            }}
-            className="hidden md:block pointer-events-none absolute inset-0 z-10 opacity-20 motion-reduce:hidden"
+          {/* Static Ambient Light Accent (replaces infinite motion sweep for performance) */}
+          <div
+            className="hidden md:block pointer-events-none absolute inset-0 z-10 opacity-[0.06]"
             style={{
               background:
-                "linear-gradient(115deg, transparent 35%, rgba(255, 180, 50, 0.08) 50%, transparent 65%)",
+                "linear-gradient(115deg, transparent 30%, rgba(255, 180, 50, 0.15) 50%, transparent 70%)",
             }}
             aria-hidden="true"
           />
@@ -109,7 +100,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
             <div className="flex items-center gap-2">
               <span
                 className={`h-2 w-2 rounded-full transition-colors duration-500 ${
-                  isUnsealed ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-pulse" : "bg-neutral-600"
+                  isUnsealed ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]" : "bg-neutral-600"
                 }`}
               />
               <span className="text-neutral-300 font-semibold uppercase whitespace-nowrap">
@@ -120,7 +111,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
             <div className="hidden sm:flex items-center gap-3">
               <span className="text-neutral-300">LOCK: TUNGSTEN HYDRAULIC</span>
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-neutral-800/80 bg-black/60">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                 <span className="text-xs text-amber-300 font-bold tracking-wider uppercase">
                   ENERGY SEALED
                 </span>
@@ -156,19 +147,19 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
 
             {/* Glowing Amber Hydraulic Energy Seams with breathing pulse */}
             <div
-              className={`hidden md:block pointer-events-none absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)] transition-opacity duration-1000 animate-pulse ${isUnsealed ? 'opacity-90' : 'opacity-40'}`}
+              className={`hidden md:block pointer-events-none absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)] transition-opacity duration-1000 ${isUnsealed ? 'opacity-90' : 'opacity-40'}`}
             />
             <div
-              className={`hidden md:block pointer-events-none absolute inset-x-8 bottom-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)] transition-opacity duration-1000 animate-pulse delay-500 ${isUnsealed ? 'opacity-90' : 'opacity-40'}`}
+              className={`hidden md:block pointer-events-none absolute inset-x-8 bottom-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(255,160,0,0.8)] transition-opacity duration-1000 ${isUnsealed ? 'opacity-90' : 'opacity-40'}`}
             />
 
             {/* Micro Hydraulic Seam Sparks */}
             <span
-              className="hidden md:block pointer-events-none absolute left-1/4 top-0 h-1 w-1 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] motion-reduce:hidden animate-pulse"
+              className="hidden md:block pointer-events-none absolute left-1/4 top-0 h-1 w-1 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)]"
               aria-hidden="true"
             />
             <span
-              className="hidden md:block pointer-events-none absolute right-1/3 bottom-0 h-1 w-1 translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] motion-reduce:hidden animate-pulse delay-1000"
+              className="hidden md:block pointer-events-none absolute right-1/3 bottom-0 h-1 w-1 translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)]"
               aria-hidden="true"
             />
 
@@ -234,7 +225,7 @@ export function TheBounty({ onNextAct }: TheBountyProps) {
               {/* Decorative Sci-Fi Telemetry Badges */}
               <div className="mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-neutral-950/80 text-neutral-200 font-mono text-xs sm:text-sm tracking-wider uppercase">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
                   <span>CONFIRMED POOL ALLOCATION</span>
                 </div>
 

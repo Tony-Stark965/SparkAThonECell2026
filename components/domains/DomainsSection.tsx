@@ -71,7 +71,7 @@ export function DomainsSection() {
                       /{domain.number}
                     </span>
                     <span className="font-mono text-xs tracking-wider text-neutral-300 uppercase px-2 py-0.5 rounded border border-neutral-800 bg-neutral-950">
-                      FRONTIER TRACK
+                      TECHNICAL DOMAIN
                     </span>
                   </div>
 

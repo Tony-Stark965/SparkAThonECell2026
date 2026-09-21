@@ -171,7 +171,7 @@ export function RegistrationDetails({
             <div className="col-span-2 sm:col-span-3 bg-gradient-to-r from-amber-500/15 via-[#16120d] to-[#120f0c] border border-amber-500/40 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-amber-400 font-mono block text-xs uppercase font-bold tracking-widest">
-                  OFFICIAL SECTOR DOMAIN
+                  OFFICIAL TECHNICAL DOMAIN
                 </span>
                 <span className="text-white font-mono font-bold text-sm sm:text-base mt-0.5 block">
                   {currentReg.domain || "Not specified / Legacy"}

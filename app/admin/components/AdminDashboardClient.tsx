@@ -251,7 +251,7 @@ export function AdminDashboardClient({
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4 text-amber-400" />
                 <h3 className="font-mono text-xs font-bold text-white uppercase tracking-widest">
-                  OFFICIAL SECTOR DOMAIN DISTRIBUTION
+                  OFFICIAL TECHNICAL DOMAIN DISTRIBUTION
                 </h3>
               </div>
               <span className="font-mono text-xs text-neutral-400">

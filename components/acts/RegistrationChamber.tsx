@@ -127,7 +127,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
     if (!college.trim()) errs.college = "College is required.";
     else if (college.trim().length < 2) errs.college = "College must be at least 2 characters.";
     
-    if (!domain) errs.domain = "Official sector domain selection is required.";
+    if (!domain) errs.domain = "Technical domain selection is required.";
     
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -231,6 +231,11 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
       }
       setSuccessData(data);
       setStep(6); // Go to Payment Screen
+
+      const paymentTargetUrl = data.paymentUrl || SPARKATHON_CONFIG.payment?.external?.url || "https://pages.razorpay.com/SPARKATHON2026";
+      if (typeof window !== "undefined" && paymentTargetUrl) {
+        window.open(paymentTargetUrl, "_blank", "noopener,noreferrer");
+      }
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : "An unexpected network error occurred.");
     } finally {
@@ -401,11 +406,11 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                     </div>
                     <div>
                       <label className="block font-mono text-xs text-neutral-300 uppercase tracking-wider mb-1.5">
-                        DOMAIN / SECTOR <span className="text-amber-400">*</span>
+                        TECHNICAL DOMAIN <span className="text-amber-400">*</span>
                         {isFetchingCapacities && <span className="ml-2 text-amber-500/70 lowercase tracking-normal">(updating live capacity...)</span>}
                       </label>
                       <select value={domain} onChange={(e) => { setDomain(e.target.value); if(errors.domain) setErrors({...errors, domain: ""})}} className={`w-full px-4 py-3.5 sm:py-3 rounded-lg border font-mono text-sm sm:text-base bg-neutral-950 focus:outline-none transition-colors text-ellipsis overflow-hidden ${errors.domain ? "border-red-500" : "border-neutral-800 focus:border-amber-400"} ${!domain ? "text-neutral-300" : "text-white"}`}>
-                        <option value="" disabled>-- SELECT OFFICIAL SECTOR DOMAIN --</option>
+                        <option value="" disabled>-- SELECT YOUR DOMAIN --</option>
                         {SPARKATHON_CONFIG.sectors.domains.map((dom) => {
                           const count = domainCapacities[dom] || 0;
                           const isFull = count >= 10;
@@ -416,6 +421,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                           );
                         })}
                       </select>
+                      <p className="mt-1.5 font-mono text-[11px] text-neutral-400">Choose the technical domain that best matches your team&apos;s project.</p>
                       {errors.domain && <p className="mt-1.5 font-mono text-xs text-red-400">{errors.domain}</p>}
                     </div>
                   </div>
@@ -531,7 +537,7 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                     <button type="button" onClick={handleBack} disabled={isSubmitting} className="w-full sm:w-auto font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 hover:border-neutral-700 transition-colors cursor-pointer">← EDIT DETAILS</button>
                     <button type="button" onClick={handleCompleteRegistration} disabled={isSubmitting} className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full font-mono text-xs sm:text-sm font-black tracking-widest uppercase transition-all cursor-pointer ${isSubmitting ? "bg-neutral-800 text-neutral-300 border border-neutral-700 cursor-not-allowed" : "border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.01] active:scale-[0.99]"}`}>
-                      {isSubmitting ? <span>SAVING...</span> : <span>SAVE REGISTRATION →</span>}
+                      {isSubmitting ? <span>SAVING & REDIRECTING...</span> : <span>SAVE REGISTRATION →</span>}
                     </button>
                   </div>
                 </motion.div>
@@ -577,17 +583,21 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
                     <div className="bg-neutral-900/50 rounded-xl border border-neutral-800 p-5 space-y-4 text-center">
                       <p className="font-mono text-xs text-neutral-300">{SPARKATHON_CONFIG.payment?.external?.note}</p>
                       {SPARKATHON_CONFIG.payment?.external?.url ? (
-                        <a href={SPARKATHON_CONFIG.payment.external.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full py-4 px-6 rounded-full font-mono text-sm font-black tracking-widest uppercase border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 transition-all hover:shadow-[0_0_25px_rgba(251,191,36,0.5)]">
-                          <span>PAY NOW VIA RAZORPAY (₹{successData.fee})</span><span>→</span>
-                        </a>
+                        <div className="space-y-3">
+                          <a href={SPARKATHON_CONFIG.payment.external.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full py-4 px-6 rounded-full font-mono text-sm font-black tracking-widest uppercase border border-amber-400 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 transition-all hover:shadow-[0_0_25px_rgba(251,191,36,0.5)] cursor-pointer">
+                            <span>PAY NOW VIA RAZORPAY (₹{successData.fee})</span><span>→</span>
+                          </a>
+                          <p className="font-mono text-[11px] text-neutral-400">
+                            The Razorpay payment portal opened in a new tab. If it did not open automatically, click the button above.
+                          </p>
+                        </div>
                       ) : (
                         <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center mt-3">
                            <span className="font-mono text-xs text-amber-400 font-bold tracking-wider uppercase block">PAYMENT LINK AWAITED</span>
                            <p className="font-mono text-[10px] text-neutral-300 mt-2">The official college payment portal is currently being provisioned. Your registration is saved under ID <strong className="text-amber-300">{successData.displayId || successData.id}</strong>.</p>
                         </div>
                       )}
-                      {/* Allow advancing to step 7 even in external mode to clear the screen, or they just close the site */}
-                      <button type="button" onClick={() => setStep(7)} className="mt-4 font-mono text-[10px] text-neutral-500 hover:text-neutral-300 uppercase underline underline-offset-4">I HAVE COMPLETED PAYMENT</button>
+                      <button type="button" onClick={() => setStep(7)} className="mt-4 font-mono text-xs text-amber-400 hover:text-amber-300 uppercase underline underline-offset-4 cursor-pointer transition-colors">I HAVE COMPLETED PAYMENT →</button>
                     </div>
                   )}
                 </motion.div>

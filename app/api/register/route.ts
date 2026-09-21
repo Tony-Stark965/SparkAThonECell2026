@@ -111,13 +111,13 @@ export async function POST(request: Request) {
     }
     if (!domain) {
       return NextResponse.json(
-        { error: "Domain / sector selection is required. Please select one official domain." },
+        { error: "Technical domain selection is required. Please select one official domain." },
         { status: 400 }
       );
     }
     if (!OFFICIAL_DOMAINS.includes(domain as (typeof OFFICIAL_DOMAINS)[number])) {
       return NextResponse.json(
-        { error: "Invalid domain selected. Please select an official Spark-A-Thon domain sector." },
+        { error: "Invalid domain selected. Please select an official Spark-A-Thon technical domain." },
         { status: 400 }
       );
     }

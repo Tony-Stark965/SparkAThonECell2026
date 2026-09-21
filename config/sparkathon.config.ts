@@ -76,7 +76,7 @@ export const SPARKATHON_CONFIG = {
 
   // Payment Configuration (Dual Mode)
   payment: {
-    mode: "GPay" as "GPay" | "External",
+    mode: "External" as "GPay" | "External",
     gpay: {
       qr350: "/images/qr_350.png", // Path to ₹350 QR code (2-4 members)
       qr400: "/images/qr_400.png", // Path to ₹400 QR code (5 members)
@@ -84,8 +84,8 @@ export const SPARKATHON_CONFIG = {
     },
     external: {
       provider: "College Razorpay",
-      url: "", // Update this later when college provides Razorpay link
-      note: "You will be redirected to the official college payment gateway.",
+      url: "https://pages.razorpay.com/SPARKATHON2026",
+      note: "Complete your squad registration fee via the official college Razorpay portal.",
     }
   },
 

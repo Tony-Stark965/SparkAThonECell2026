@@ -19,12 +19,11 @@ import Image from "next/image";
 
 const NAV_ITEMS: { act: WorldAct; label: string; hash: string; sectionId: string }[] = [
   { act: "HERO", label: "HEARTH", hash: "#hearth", sectionId: "hearth" },
-  { act: "TERRITORIES", label: "SECTORS", hash: "#sectors", sectionId: "sectors" },
+  { act: "TERRITORIES", label: "DOMAINS", hash: "#domains", sectionId: "domains" },
+  { act: "REGISTER", label: "REGISTER", hash: "#register", sectionId: "register" },
   { act: "ARENA", label: "ARENA", hash: "#arena", sectionId: "arena" },
   { act: "BOUNTY", label: "BOUNTY", hash: "#bounty", sectionId: "bounty" },
   { act: "FLOW", label: "FLOW", hash: "#flow", sectionId: "flow" },
-
-  { act: "REGISTER", label: "REGISTER", hash: "#register", sectionId: "register" },
 ];
 
 export function WorldController() {
@@ -38,11 +37,11 @@ export function WorldController() {
 
   const scrollToSection = useCallback((sectionId: string, updateHash = true) => {
     const target = sectionId.replace("#", "");
-    const el = document.getElementById(target);
+    const el = document.getElementById(target) || (target === "sectors" ? document.getElementById("domains") : null) || (target === "domains" ? document.getElementById("sectors") : null);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
       if (updateHash && typeof window !== "undefined") {
-        window.history.replaceState(null, "", `#${target}`);
+        window.history.replaceState(null, "", `#${el.id}`);
       }
     }
   }, []);
@@ -51,13 +50,13 @@ export function WorldController() {
   useEffect(() => {
     const sectionToAct: Record<string, WorldAct> = {
       hearth: "HERO",
+      domains: "TERRITORIES",
       sectors: "TERRITORIES",
+      register: "REGISTER",
       arena: "ARENA",
       bounty: "BOUNTY",
       flow: "FLOW",
-
-      register: "REGISTER",
-      faq: "REGISTER",
+      faq: "FLOW",
     };
 
     const sectionIds = Object.keys(sectionToAct);
@@ -125,7 +124,7 @@ export function WorldController() {
         {/* ACT I / II / III: HEARTH / HERO */}
         <section id="hearth" className="relative w-full min-h-[100svh] flex flex-col justify-between">
           <CinematicHero
-            onEnter={() => scrollToSection("sectors")}
+            onEnter={() => scrollToSection("domains")}
             hasOwnScene={false}
             onProgressChange={(p) => {
               heroProgressRef.current = p;
@@ -133,8 +132,8 @@ export function WorldController() {
           />
         </section>
 
-        {/* ACT IV: SECTORS */}
-        <section id="sectors" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
+        {/* ACT IV: TECHNICAL DOMAINS */}
+        <section id="domains" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
           {/* Subtle background treatment for readability on scroll */}
           <div className="pointer-events-none absolute inset-0 z-0 bg-black/95 md:bg-black/35 md:backdrop-blur-[4px] [mask-image:linear-gradient(to_bottom,transparent_0%,black_15%,black_85%,transparent_100%)]" />
           
@@ -142,9 +141,14 @@ export function WorldController() {
             <TerritoryOrchestrator
               activeIndex={activeTerritory}
               onSelectIndex={setActiveTerritory}
-              onNextAct={() => scrollToSection("arena")}
+              onNextAct={() => scrollToSection("register")}
             />
           </div>
+        </section>
+
+        {/* REGISTRATION CHAMBER */}
+        <section id="register" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
+          <RegistrationChamber onReturnToHero={() => scrollToSection("hearth")} />
         </section>
 
         {/* ACT V: THE ARENA */}
@@ -163,13 +167,7 @@ export function WorldController() {
 
         {/* ACT VII: THE FLOW */}
         <section id="flow" className="relative w-full min-h-[90vh] py-4 sm:py-6 flex flex-col justify-center">
-          <EventFlow onNextAct={() => scrollToSection("register")} />
-        </section>
-
-
-        {/* ACT IX: REGISTRATION CHAMBER */}
-        <section id="register" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
-          <RegistrationChamber onReturnToHero={() => scrollToSection("hearth")} />
+          <EventFlow onNextAct={() => scrollToSection("faq")} />
         </section>
 
         {/* FAQ SECTION */}

@@ -55,12 +55,12 @@ export function FrontierPortal({
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="relative my-auto w-full max-w-2xl mt-3 sm:mt-4"
       >
-        {/* Exterior Atmospheric Core Radiance */}
+        {/* Exterior Atmospheric Core Radiance (static gradient, no expensive blur filter) */}
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[85%] rounded-full blur-[35px] md:blur-[100px] opacity-35"
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[100%] rounded-full opacity-30"
           style={{
             background:
-              "radial-gradient(circle, rgba(255, 140, 0, 0.6) 0%, rgba(255, 60, 0, 0.2) 50%, transparent 75%)",
+              "radial-gradient(circle, rgba(255, 140, 0, 0.35) 0%, rgba(255, 60, 0, 0.12) 40%, transparent 65%)",
           }}
           aria-hidden="true"
         />
@@ -70,14 +70,14 @@ export function FrontierPortal({
           {/* Top Arch Telemetry Bar */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-800/80 bg-neutral-950/90 font-mono text-xs sm:text-sm text-neutral-300 tracking-wider">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
               <span className="text-neutral-300 font-semibold uppercase">
                 GATEWAY // HORIZON-PORTAL-08
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-neutral-300">SECTOR:</span>
+              <span className="text-neutral-300">ZONE:</span>
               <span className="text-amber-400/90 font-semibold">TERMINAL APERTURE</span>
             </div>
           </div>

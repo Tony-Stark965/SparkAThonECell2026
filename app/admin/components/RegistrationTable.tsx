@@ -168,7 +168,7 @@ export function RegistrationTable({
               <thead className="bg-[#0a0907] text-neutral-300 uppercase tracking-wider border-b border-neutral-800/80">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Team</th>
-                  <th className="py-3 px-4 font-semibold">Sector Domain</th>
+                  <th className="py-3 px-4 font-semibold">Technical Domain</th>
                   <th className="py-3 px-4 font-semibold">College</th>
                   <th className="py-3 px-4 font-semibold">Leader</th>
                   <th className="py-3 px-3 font-semibold text-center">Members</th>

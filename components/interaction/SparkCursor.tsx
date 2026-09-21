@@ -21,7 +21,15 @@ interface SparkParticle {
 export function SparkCursor() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Performance: Completely disable on mobile — this full-screen canvas rAF loop
+  // with 280 particles, shadowBlur, and touch listeners is the single most expensive
+  // continuously-running animation. Mobile scrolling becomes dramatically smoother without it.
+  const [isMobile] = React.useState(() =>
+    typeof window !== "undefined" && window.innerWidth < 768
+  );
+
   useEffect(() => {
+    if (isMobile) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -321,7 +329,10 @@ export function SparkCursor() {
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, []);
+  }, [isMobile]);
+
+  // Mobile: render nothing — no canvas, no rAF, no GPU work
+  if (isMobile) return null;
 
   return (
     <canvas

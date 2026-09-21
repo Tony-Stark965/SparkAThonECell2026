@@ -236,7 +236,7 @@ export function CinematicHero({
           transition={{ duration: 0.8 }}
           className="flex flex-col gap-0.5 text-left"
         >
-          <span>SECTOR: 01 // DARK CAVERN</span>
+          <span>CHAMBER: 01 // DARK CAVERN</span>
           <span className="text-neutral-300">STATUS: AWAITS EXPLORERS</span>
         </motion.div>
 
