@@ -31,6 +31,7 @@ interface RegistrationSuccessData {
 
 interface RegistrationChamberProps {
   onReturnToHero?: () => void;
+  onNextAct?: () => void;
 }
 
 function normalizeIndianMobile(raw: string): string {
@@ -49,7 +50,11 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps) {
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function RegistrationChamber({ onReturnToHero, onNextAct }: RegistrationChamberProps) {
   // New 7-Step Workflow
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1); // 7 is HANDOFF (Success)
 
@@ -636,9 +641,20 @@ export function RegistrationChamber({ onReturnToHero }: RegistrationChamberProps
         </div>
       </div>
 
-      <a href="#faq" onClick={(e) => { e.preventDefault(); document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors cursor-pointer">
-          <span>↓ HAVE QUESTIONS? VIEW FAQ</span>
-        </a>
+      <button
+        type="button"
+        onClick={() => {
+          if (onNextAct) {
+            onNextAct();
+          } else {
+            document.getElementById('arena')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }}
+        className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors cursor-pointer"
+      >
+        <span>CONTINUE TO ARENA</span>
+        <span className="text-amber-400">↓</span>
+      </button>
     </section>
   );
 }

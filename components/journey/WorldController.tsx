@@ -148,7 +148,7 @@ export function WorldController() {
 
         {/* REGISTRATION CHAMBER */}
         <section id="register" className="relative w-full min-h-[90vh] py-14 sm:py-24 flex flex-col justify-center">
-          <RegistrationChamber onReturnToHero={() => scrollToSection("hearth")} />
+          <RegistrationChamber onReturnToHero={() => scrollToSection("hearth")} onNextAct={() => scrollToSection("arena")} />
         </section>
 
         {/* ACT V: THE ARENA */}

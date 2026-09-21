@@ -237,17 +237,14 @@ export function EventFlow({ onNextAct }: EventFlowProps) {
         </div>
       </div>
 
-      {/* 3. Advance to Official Portal CTA */}
+      {/* 3. Advance to FAQ CTA */}
       {onNextAct && (
         <div className="mt-8 flex flex-col items-center gap-2">
           <button
             onClick={onNextAct}
-            className="group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-neutral-800 hover:border-amber-400 bg-neutral-950/80 hover:bg-amber-500/10 font-mono text-xs tracking-[0.25em] text-neutral-300 hover:text-amber-300 uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)] cursor-pointer"
+            className="group relative inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase py-2.5 px-6 rounded-full border border-neutral-800 hover:border-amber-500/50 bg-neutral-950/80 hover:bg-amber-500/10 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)] cursor-pointer"
           >
-            <span>ENTER THE PORTAL</span>
-            <span className="transition-transform duration-300 group-hover:translate-y-0.5 text-amber-400">
-              ↓
-            </span>
+            <span>↓ HAVE QUESTIONS? VIEW FAQ</span>
           </button>
         </div>
       )}
