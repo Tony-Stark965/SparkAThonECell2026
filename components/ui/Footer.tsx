@@ -88,6 +88,42 @@ export function Footer() {
               </a>
             </div>
           </div>
+
+          {/* Column 4: Sponsor */}
+          <div className="flex flex-col items-center space-y-5 flex-[1.4]">
+            <div className="inline-flex items-center gap-2">
+              <span className="text-xs font-bold tracking-[0.3em] text-amber-400 uppercase">
+                SPONSOR
+              </span>
+              <span className="h-1 w-1 rounded-full bg-amber-400" />
+            </div>
+            <div className="flex items-start justify-center gap-3">
+              <a
+                href="https://voice.iob.bank.in/smdauth?branch=0596"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="IOB sponsor"
+                className="group flex flex-col items-center gap-1"
+              >
+                <span className="flex h-[62px] w-[76px] items-center justify-center rounded-xl border border-neutral-800 bg-white p-2 transition-all duration-300 group-hover:border-amber-500 group-hover:bg-amber-500/10 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                  <Image src="/images/iob_logo.png" alt="IOB" width={60} height={50} className="h-full w-full object-contain" />
+                </span>
+                <span className="text-xs font-bold tracking-[0.25em] text-neutral-400 transition-colors group-hover:text-amber-400">IOB</span>
+              </a>
+              <div className="flex flex-col items-center gap-1">
+                <span className="flex h-[62px] w-[76px] items-center justify-center rounded-xl border border-neutral-800 bg-white p-2">
+                  <Image src="/images/ims-logo.png" alt="IMS" width={60} height={50} className="h-full w-full object-contain" />
+                </span>
+                <span className="text-xs font-bold tracking-[0.25em] text-neutral-400">IMS</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <span className="flex h-[62px] w-[76px] items-center justify-center rounded-xl border border-neutral-800 bg-white p-2">
+                  <Image src="/images/global-reach.png" alt="Global Reach" width={60} height={50} className="h-full w-full object-contain" />
+                </span>
+                <span className="text-center text-[10px] font-bold leading-tight tracking-[0.12em] text-neutral-400">GLOBAL REACH</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* --- ORIGINAL MOBILE FOOTER (Hidden on Desktop) --- */}
@@ -142,17 +178,17 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Column 3: Connect & Socials */}
-          <div className="flex flex-col items-center text-center space-y-4">
+          {/* Column 3: Connect & Sponsor */}
+          <div className="grid grid-cols-1 gap-8 items-start w-full">
+            <div className="flex flex-col items-start text-left space-y-4">
             <div className="inline-flex items-center gap-2 mb-1">
               <span className="h-1 w-1 rounded-full bg-amber-400" />
               <span className="text-sm font-bold tracking-[0.3em] text-amber-400 uppercase">
                 CONNECT
               </span>
-              <span className="h-1 w-1 rounded-full bg-amber-400" />
             </div>
 
-            <div className="flex items-center justify-center gap-5 w-full">
+            <div className="flex items-center gap-3 sm:gap-5">
               {/* Instagram */}
               <a href="https://www.instagram.com/ecellfcrit?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="group relative p-3 rounded-full border border-neutral-800 bg-neutral-900/80 hover:border-amber-500 hover:bg-amber-500/10 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center h-[46px] w-[46px]" aria-label="Instagram">
                 <svg className="w-5 h-5 text-neutral-400 group-hover:text-amber-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -171,6 +207,36 @@ export function Footer() {
                 </svg>
               </a>
 
+            </div>
+            </div>
+
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="inline-flex items-center gap-2 mb-1">
+                <span className="text-sm font-bold tracking-[0.3em] text-amber-400 uppercase">
+                  SPONSOR
+                </span>
+                <span className="h-1 w-1 rounded-full bg-amber-400" />
+              </div>
+              <div className="grid grid-cols-3 items-start gap-2 sm:gap-4">
+                <a href="https://voice.iob.bank.in/smdauth?branch=0596" target="_blank" rel="noopener noreferrer" aria-label="IOB sponsor" className="group flex flex-col items-center gap-1">
+                  <span className="flex h-[62px] w-[76px] items-center justify-center rounded-xl border border-neutral-800 bg-white p-2 transition-all duration-300 group-hover:border-amber-500 group-hover:bg-amber-500/10 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                    <Image src="/images/iob_logo.png" alt="IOB" width={60} height={50} className="h-full w-full object-contain" />
+                  </span>
+                  <span className="text-xs font-bold tracking-[0.25em] text-neutral-400 transition-colors group-hover:text-amber-400">IOB</span>
+                </a>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="flex h-[62px] w-[76px] items-center justify-center rounded-xl border border-neutral-800 bg-white p-2">
+                    <Image src="/images/ims-logo.png" alt="IMS" width={60} height={50} className="h-full w-full object-contain" />
+                  </span>
+                  <span className="text-xs font-bold tracking-[0.25em] text-neutral-400">IMS</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="flex h-[62px] w-[76px] items-center justify-center rounded-xl border border-neutral-800 bg-white p-2">
+                    <Image src="/images/global-reach.png" alt="Global Reach" width={60} height={50} className="h-full w-full object-contain" />
+                  </span>
+                  <span className="text-center text-[10px] font-bold leading-tight tracking-[0.12em] text-neutral-400">GLOBAL REACH</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
