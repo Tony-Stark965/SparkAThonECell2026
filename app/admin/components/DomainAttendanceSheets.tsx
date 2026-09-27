@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import type { RegistrationRecord } from "@/lib/supabase/types";
 import {
   ATTENDANCE_DOMAINS,
@@ -42,13 +42,10 @@ export function DomainAttendanceSheets({
     text: string;
   } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeRecords, setActiveRecords] =
-    useState<RegistrationRecord[]>(registrations);
+  const [fetchedRecords, setFetchedRecords] =
+    useState<RegistrationRecord[] | null>(null);
 
-  // Sync internal records with parent prop updates
-  useMemo(() => {
-    setActiveRecords(registrations);
-  }, [registrations]);
+  const activeRecords = fetchedRecords ?? registrations;
 
   // Fetch freshest registrations before generating export
   const fetchFreshestRegistrations = async (): Promise<RegistrationRecord[]> => {
@@ -57,7 +54,7 @@ export function DomainAttendanceSheets({
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.registrations)) {
-          setActiveRecords(data.registrations);
+          setFetchedRecords(data.registrations);
           return data.registrations;
         }
       }

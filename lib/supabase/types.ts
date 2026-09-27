@@ -33,6 +33,15 @@ export interface RegistrationStats {
 }
 
 /**
+ * Canonical authoritative pricing calculation for Spark-A-Thon 2026:
+ * - 2 to 4 members = ₹350
+ * - 5 members = ₹400
+ */
+export function calculateRegistrationFee(participantCount: number): number {
+  return participantCount === 5 ? 400 : 350;
+}
+
+/**
  * Computes dashboard telemetry and metrics from registrations array.
  * - pendingPayments MUST count ONLY payment_status === "pending"
  * - paidCount MUST count ONLY payment_status === "completed" (or legacy "paid")
@@ -144,3 +153,13 @@ export function calculateAttendanceSummary(
     completedTeamsCount,
   };
 }
+
+export const OFFICIAL_DOMAINS = [
+  "AI and Cybersec",
+  "Smart Energy Systems",
+  "Robotics or Drone and Fixed Wing",
+  "IoT or Embedded Systems",
+  "Open Innovation",
+] as const;
+
+export type OfficialDomain = (typeof OFFICIAL_DOMAINS)[number];

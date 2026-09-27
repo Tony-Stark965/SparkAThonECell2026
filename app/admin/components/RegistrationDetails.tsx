@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { RegistrationRecord, AttendanceStatus } from "@/lib/supabase/types";
+import type { RegistrationRecord, AttendanceStatus, AttendanceRecord } from "@/lib/supabase/types";
 import {
   X,
   User,
@@ -16,13 +16,20 @@ import {
   Building2,
   Users,
   Trash2,
+  Pencil,
+  UserPlus,
 } from "lucide-react";
+import { EditTeamModal } from "./EditTeamModal";
+import { EditMemberModal } from "./EditMemberModal";
+import { AddMemberModal } from "./AddMemberModal";
+import { RemoveMemberModal } from "./RemoveMemberModal";
 
 interface RegistrationDetailsProps {
   registration: RegistrationRecord;
   attendanceMap?: Record<string, AttendanceStatus>;
   onClose: () => void;
   onPaymentStatusUpdated?: (updated: RegistrationRecord) => void;
+  onRegistrationUpdated?: (updated: RegistrationRecord, updatedAttendance?: AttendanceRecord[]) => void;
   onDeleteRequested?: (registration: RegistrationRecord) => void;
 }
 
@@ -31,12 +38,33 @@ export function RegistrationDetails({
   attendanceMap,
   onClose,
   onPaymentStatusUpdated,
+  onRegistrationUpdated,
   onDeleteRequested,
 }: RegistrationDetailsProps) {
   const [currentReg, setCurrentReg] = useState<RegistrationRecord>(registration);
   const [isUpdating, setIsUpdating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  // Sub-modal states for team & participant management
+  const [isEditingTeam, setIsEditingTeam] = useState(false);
+  const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
+  const [isAddingMember, setIsAddingMember] = useState(false);
+  const [removingMemberIndex, setRemovingMemberIndex] = useState<number | null>(null);
+
+  const handleDataUpdated = (
+    updated: RegistrationRecord,
+    updatedAttendance?: AttendanceRecord[]
+  ) => {
+    setCurrentReg(updated);
+    setActionSuccess("Squad specifications & participant records synchronized.");
+    if (onRegistrationUpdated) {
+      onRegistrationUpdated(updated, updatedAttendance);
+    }
+    if (onPaymentStatusUpdated) {
+      onPaymentStatusUpdated(updated);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -163,9 +191,18 @@ export function RegistrationDetails({
 
         {/* Section 1: Team & Registration Metadata */}
         <div className="space-y-2.5">
-          <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold block">
-            01 // SQUAD SPECIFICATION
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-xs tracking-widest text-neutral-300 uppercase font-semibold block">
+              01 // SQUAD SPECIFICATION
+            </span>
+            <button
+              onClick={() => setIsEditingTeam(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-amber-200 font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3 h-3" />
+              <span>EDIT TEAM</span>
+            </button>
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 font-mono text-xs">
             <div className="col-span-2 sm:col-span-3 bg-gradient-to-r from-amber-500/15 via-[#16120d] to-[#120f0c] border border-amber-500/40 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -282,6 +319,8 @@ export function RegistrationDetails({
               const isLeader = member.isLeader || index === 0;
               const attKey = `${currentReg.id}_${index}`;
               const attStatus = attendanceMap ? attendanceMap[attKey] || "not_marked" : null;
+              const totalMembers = currentReg.participants?.length || currentReg.participant_count;
+              const canRemove = !isLeader && totalMembers > 2;
 
               return (
                 <div
@@ -333,10 +372,48 @@ export function RegistrationDetails({
                           : "NOT MARKED"}
                       </span>
                     )}
+
+                    {/* Member Edit & Remove Actions */}
+                    <div className="flex items-center gap-1.5 ml-auto sm:ml-2">
+                      <button
+                        onClick={() => setEditingMemberIndex(index)}
+                        className="p-1.5 rounded bg-[#1c1712] hover:bg-amber-500/20 text-neutral-300 hover:text-amber-300 border border-neutral-700/60 hover:border-amber-500/40 transition-colors cursor-pointer"
+                        title="Edit participant details"
+                        aria-label={`Edit ${member.name}`}
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      {!isLeader && (
+                        <button
+                          onClick={() => setRemovingMemberIndex(index)}
+                          disabled={!canRemove}
+                          className="p-1.5 rounded bg-[#1c1712] hover:bg-red-500/20 text-neutral-300 hover:text-red-400 border border-neutral-700/60 hover:border-red-500/40 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#1c1712] disabled:hover:text-neutral-400"
+                          title={canRemove ? "Remove participant from squad" : "Squad must have at least 2 members"}
+                          aria-label={`Remove ${member.name}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
+
+            {/* Add Member Button / Capacity Indicator */}
+            {(currentReg.participants?.length || currentReg.participant_count) < 5 ? (
+              <button
+                onClick={() => setIsAddingMember(true)}
+                className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border border-dashed border-neutral-700 hover:border-amber-500/50 bg-[#120f0c] hover:bg-amber-500/10 text-neutral-300 hover:text-amber-300 font-mono text-xs uppercase tracking-wider transition-all cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ ADD MEMBER TO SQUAD ({(currentReg.participants?.length || currentReg.participant_count)}/5)</span>
+              </button>
+            ) : (
+              <div className="p-2.5 rounded-lg border border-neutral-800 bg-[#120f0c] text-center font-mono text-xs text-neutral-400">
+                Squad at maximum allowed capacity (5/5 members).
+              </div>
+            )}
           </div>
         </div>
 
@@ -423,6 +500,55 @@ export function RegistrationDetails({
           </button>
         </div>
       </div>
+
+      {/* Modals for Squad & Member Management */}
+      {isEditingTeam && (
+        <EditTeamModal
+          registration={currentReg}
+          onClose={() => setIsEditingTeam(false)}
+          onSuccess={(updated, updatedAttendance) => {
+            setIsEditingTeam(false);
+            handleDataUpdated(updated, updatedAttendance);
+          }}
+        />
+      )}
+
+      {editingMemberIndex !== null && currentReg.participants?.[editingMemberIndex] && (
+        <EditMemberModal
+          registration={currentReg}
+          memberIndex={editingMemberIndex}
+          participant={currentReg.participants[editingMemberIndex]}
+          onClose={() => setEditingMemberIndex(null)}
+          onSuccess={(updated, updatedAttendance) => {
+            setEditingMemberIndex(null);
+            handleDataUpdated(updated, updatedAttendance);
+          }}
+        />
+      )}
+
+      {isAddingMember && (
+        <AddMemberModal
+          registration={currentReg}
+          onClose={() => setIsAddingMember(false)}
+          onSuccess={(updated, updatedAttendance) => {
+            setIsAddingMember(false);
+            handleDataUpdated(updated, updatedAttendance);
+          }}
+        />
+      )}
+
+      {removingMemberIndex !== null && currentReg.participants?.[removingMemberIndex] && (
+        <RemoveMemberModal
+          registration={currentReg}
+          memberIndex={removingMemberIndex}
+          participant={currentReg.participants[removingMemberIndex]}
+          onClose={() => setRemovingMemberIndex(null)}
+          onSuccess={(updated, updatedAttendance) => {
+            setRemovingMemberIndex(null);
+            handleDataUpdated(updated, updatedAttendance);
+          }}
+        />
+      )}
     </div>
   );
 }

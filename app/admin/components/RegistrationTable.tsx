@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { RegistrationRecord, AttendanceStatus } from "@/lib/supabase/types";
+import type { RegistrationRecord, AttendanceStatus, AttendanceRecord } from "@/lib/supabase/types";
 import { RegistrationDetails } from "./RegistrationDetails";
 import { DeleteRegistrationModal } from "./DeleteRegistrationModal";
 import { Search, Eye, Users, Trash2 } from "lucide-react";
@@ -9,7 +9,7 @@ import { Search, Eye, Users, Trash2 } from "lucide-react";
 interface RegistrationTableProps {
   registrations: RegistrationRecord[];
   attendanceMap?: Record<string, AttendanceStatus>;
-  onRegistrationUpdated?: (updated: RegistrationRecord) => void;
+  onRegistrationUpdated?: (updated: RegistrationRecord, updatedAttendance?: AttendanceRecord[]) => void;
   onRegistrationDeleted?: (deletedId: string) => void;
 }
 
@@ -28,10 +28,13 @@ export function RegistrationTable({
   const [registrationToDelete, setRegistrationToDelete] =
     useState<RegistrationRecord | null>(null);
 
-  const handleUpdate = (updated: RegistrationRecord) => {
+  const handleUpdate = (
+    updated: RegistrationRecord,
+    updatedAttendance?: AttendanceRecord[]
+  ) => {
     setSelectedRegistration(updated);
     if (onRegistrationUpdated) {
-      onRegistrationUpdated(updated);
+      onRegistrationUpdated(updated, updatedAttendance);
     }
   };
 
@@ -363,7 +366,10 @@ export function RegistrationTable({
           registration={selectedRegistration}
           attendanceMap={attendanceMap}
           onClose={() => setSelectedRegistration(null)}
-          onPaymentStatusUpdated={handleUpdate}
+          onPaymentStatusUpdated={(updated) => handleUpdate(updated)}
+          onRegistrationUpdated={(updated, updatedAttendance) =>
+            handleUpdate(updated, updatedAttendance)
+          }
           onDeleteRequested={(reg) => setRegistrationToDelete(reg)}
         />
       )}

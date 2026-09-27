@@ -1,6 +1,6 @@
 "use client";
 
-import { RegistrationStats } from "@/lib/supabase/admin";
+import type { RegistrationStats } from "@/lib/supabase/types";
 import { Users, UserCheck, CheckCircle2, Clock, IndianRupee } from "lucide-react";
 
 interface AdminStatsProps {

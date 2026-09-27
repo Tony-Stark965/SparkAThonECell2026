@@ -8,7 +8,7 @@ import type {
   AttendanceRecord,
   AttendanceStatus,
 } from "@/lib/supabase/types";
-import { calculateRegistrationStats } from "@/lib/supabase/types";
+import { calculateRegistrationStats, OFFICIAL_DOMAINS } from "@/lib/supabase/types";
 import { AdminStats } from "./AdminStats";
 import { RegistrationTable } from "./RegistrationTable";
 import { AttendanceRegister } from "./AttendanceRegister";
@@ -35,14 +35,6 @@ interface AdminDashboardClientProps {
 }
 
 type ActiveTab = "COMMAND_CENTER" | "REGISTRATIONS" | "ATTENDANCE";
-
-const OFFICIAL_DOMAINS = [
-  "AI and Cybersec",
-  "Smart Energy Systems",
-  "Robotics or Drone and Fixed Wing",
-  "IoT or Embedded Systems",
-  "Open Innovation",
-];
 
 export function AdminDashboardClient({
   initialRegistrations,
@@ -85,10 +77,27 @@ export function AdminDashboardClient({
     return { name: domainName, count, percentage };
   });
 
-  const handleRegistrationUpdated = (updated: RegistrationRecord) => {
+  const handleRegistrationUpdated = (
+    updated: RegistrationRecord,
+    updatedAttendance?: AttendanceRecord[]
+  ) => {
     setRegistrations((prev) =>
       prev.map((r) => (r.id === updated.id ? updated : r))
     );
+    if (updatedAttendance && updatedAttendance.length > 0) {
+      setAttendanceMap((prev) => {
+        const next = { ...prev };
+        for (const key of Object.keys(next)) {
+          if (key.startsWith(`${updated.id}_`)) {
+            delete next[key];
+          }
+        }
+        for (const rec of updatedAttendance) {
+          next[`${rec.registration_id}_${rec.participant_index}`] = rec.status;
+        }
+        return next;
+      });
+    }
   };
 
   const handleRegistrationDeleted = (deletedId: string) => {
