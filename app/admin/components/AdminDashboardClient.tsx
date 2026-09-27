@@ -12,6 +12,7 @@ import { calculateRegistrationStats } from "@/lib/supabase/types";
 import { AdminStats } from "./AdminStats";
 import { RegistrationTable } from "./RegistrationTable";
 import { AttendanceRegister } from "./AttendanceRegister";
+import { DomainAttendanceSheets } from "./DomainAttendanceSheets";
 import {
   LogOut,
   RefreshCw,
@@ -22,6 +23,7 @@ import {
   UserCheck,
   Compass,
   ArrowRight,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface AdminDashboardClientProps {
@@ -51,6 +53,7 @@ export function AdminDashboardClient({
 }: AdminDashboardClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ActiveTab>("COMMAND_CENTER");
+  const [attendanceSubTab, setAttendanceSubTab] = useState<"ROSTERS" | "LIVE_CHECKIN">("ROSTERS");
   const [registrations, setRegistrations] =
     useState<RegistrationRecord[]>(initialRegistrations);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -350,15 +353,50 @@ export function AdminDashboardClient({
 
       {/* Tab 3: ATTENDANCE */}
       {activeTab === "ATTENDANCE" && (
-        <section aria-labelledby="attendance-heading">
+        <section aria-labelledby="attendance-heading" className="space-y-6">
           <h2 id="attendance-heading" className="sr-only">
-            Event Day Attendance
+            Event Day Attendance &amp; Domain Rosters
           </h2>
-          <AttendanceRegister
-            registrations={registrations}
-            attendanceMap={attendanceMap}
-            onAttendanceUpdated={handleAttendanceUpdated}
-          />
+
+          {/* Sub Navigation Bar */}
+          <div className="no-print flex items-center gap-2 border-b border-neutral-800/80 pb-3 overflow-x-auto">
+            <button
+              onClick={() => setAttendanceSubTab("ROSTERS")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                attendanceSubTab === "ROSTERS"
+                  ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.12)]"
+                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+              }`}
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>OFFICIAL DOMAIN ATTENDANCE SHEETS</span>
+            </button>
+
+            <button
+              onClick={() => setAttendanceSubTab("LIVE_CHECKIN")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                attendanceSubTab === "LIVE_CHECKIN"
+                  ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.12)]"
+                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+              }`}
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>LIVE CHECK-IN LEDGER</span>
+            </button>
+          </div>
+
+          {attendanceSubTab === "ROSTERS" ? (
+            <DomainAttendanceSheets
+              registrations={registrations}
+              onRefresh={handleRefresh}
+            />
+          ) : (
+            <AttendanceRegister
+              registrations={registrations}
+              attendanceMap={attendanceMap}
+              onAttendanceUpdated={handleAttendanceUpdated}
+            />
+          )}
         </section>
       )}
     </div>

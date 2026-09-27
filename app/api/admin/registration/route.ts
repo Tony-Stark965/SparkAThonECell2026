@@ -1,9 +1,41 @@
 import { NextResponse } from "next/server";
 import { createClient, isAuthorizedAdmin } from "@/lib/supabase/server";
-import { deleteRegistration } from "@/lib/supabase/admin";
+import { deleteRegistration, getRegistrations } from "@/lib/supabase/admin";
 import { PROTECTED_QA_IDS } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
+
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized: Authentication required." },
+        { status: 401 }
+      );
+    }
+
+    if (!isAuthorizedAdmin(user.email)) {
+      return NextResponse.json(
+        { error: "Forbidden: Admin privileges required." },
+        { status: 403 }
+      );
+    }
+
+    const registrations = await getRegistrations();
+    return NextResponse.json({ success: true, registrations });
+  } catch (error) {
+    console.error("[Admin Registration GET Route Error]:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
 
 export async function DELETE(request: Request) {
   try {
