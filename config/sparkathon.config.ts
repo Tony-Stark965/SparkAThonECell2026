@@ -72,6 +72,13 @@ export const SPARKATHON_CONFIG = {
       "IoT or Embedded Systems",
       "Open Innovation",
     ] as const,
+    maxTeams: {
+      "AI and Cybersec": 12,
+      "Smart Energy Systems": 10,
+      "Robotics or Drone and Fixed Wing": 6,
+      "IoT or Embedded Systems": 10,
+      "Open Innovation": 12,
+    } as Record<string, number>,
   },
 
   // Payment Configuration (Dual Mode)

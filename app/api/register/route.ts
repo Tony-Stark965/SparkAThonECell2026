@@ -293,9 +293,11 @@ export async function POST(request: Request) {
         
         if (countResponse.ok) {
           const countData = await countResponse.json();
-          if (Array.isArray(countData) && countData.length >= 10) {
+          const maxCapacity =
+            SPARKATHON_CONFIG.sectors.maxTeams[domain as keyof typeof SPARKATHON_CONFIG.sectors.maxTeams] ?? 10;
+          if (Array.isArray(countData) && countData.length >= maxCapacity) {
             return NextResponse.json(
-              { error: `${domain} has reached its maximum capacity of 10 teams. Please select another available domain.` },
+              { error: `${domain} has reached its maximum capacity of ${maxCapacity} teams. Please select another available domain.` },
               { status: 400 }
             );
           }
@@ -429,6 +431,16 @@ export async function POST(request: Request) {
     }
 
     // Scenario B: Safe Development Fallback (Supabase credentials not yet supplied)
+    const maxCapacityDev =
+      SPARKATHON_CONFIG.sectors.maxTeams[domain as keyof typeof SPARKATHON_CONFIG.sectors.maxTeams] ?? 10;
+    const devDomainCount = devRegistrationBuffer.filter((r) => r.domain === domain).length;
+    if (devDomainCount >= maxCapacityDev) {
+      return NextResponse.json(
+        { error: `${domain} has reached its maximum capacity of ${maxCapacityDev} teams. Please select another available domain.` },
+        { status: 400 }
+      );
+    }
+
     const devId = `REG-DEV-${Date.now().toString(36).toUpperCase()}`;
     const devRecord: DevRecord = {
       id: devId,

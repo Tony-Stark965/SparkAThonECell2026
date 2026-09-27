@@ -133,6 +133,12 @@ export function RegistrationChamber({ onReturnToHero, onNextAct }: RegistrationC
     else if (college.trim().length < 2) errs.college = "College must be at least 2 characters.";
     
     if (!domain) errs.domain = "Technical domain selection is required.";
+    else {
+      const max = SPARKATHON_CONFIG.sectors.maxTeams[domain] ?? 10;
+      if ((domainCapacities[domain] || 0) >= max) {
+        errs.domain = `${domain} has reached its maximum capacity of ${max} teams. Please select another domain.`;
+      }
+    }
     
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -418,10 +424,11 @@ export function RegistrationChamber({ onReturnToHero, onNextAct }: RegistrationC
                         <option value="" disabled>-- SELECT YOUR DOMAIN --</option>
                         {SPARKATHON_CONFIG.sectors.domains.map((dom) => {
                           const count = domainCapacities[dom] || 0;
-                          const isFull = count >= 10;
+                          const max = SPARKATHON_CONFIG.sectors.maxTeams[dom] ?? 10;
+                          const isFull = count >= max;
                           return (
                             <option key={dom} value={dom} disabled={isFull} className="py-2">
-                              {dom} ({count}/10){isFull ? " — FULL" : ""}
+                              {dom} ({count}/{max}){isFull ? " — FULL" : ""}
                             </option>
                           );
                         })}
