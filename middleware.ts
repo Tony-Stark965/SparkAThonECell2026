@@ -21,8 +21,11 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Only intercept /admin and subroutes
-  if (!pathname.startsWith("/admin")) {
+  // Only intercept /admin and /judge subroutes
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isJudgeRoute = pathname.startsWith("/judge");
+
+  if (!isAdminRoute && !isJudgeRoute) {
     return response;
   }
 
@@ -30,8 +33,11 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (pathname !== "/admin/login") {
+    if (isAdminRoute && pathname !== "/admin/login") {
       return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+    if (isJudgeRoute && pathname !== "/judge/login") {
+      return NextResponse.redirect(new URL("/judge/login", request.url));
     }
     return response;
   }
@@ -65,41 +71,58 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLoginPage = pathname === "/admin/login";
-  const isAuthorized = checkIsAuthorizedAdmin(user?.email);
+  // === ADMIN ROUTE PROTECTION ===
+  if (isAdminRoute) {
+    const isLoginPage = pathname === "/admin/login";
+    const isAuthorized = checkIsAuthorizedAdmin(user?.email);
 
-  if (isLoginPage) {
-    // If already authenticated and authorized as admin, redirect to /admin
-    if (user && isAuthorized) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-    return response;
-  }
-
-  // Any protected /admin route:
-  // Case 1: Unauthenticated
-  if (!user) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
-  }
-
-  // Case 2: Authenticated but unauthorized (not in ADMIN_EMAIL)
-  if (!isAuthorized) {
-    await supabase.auth.signOut();
-    const loginUrl = new URL("/admin/login?error=unauthorized", request.url);
-    response = NextResponse.redirect(loginUrl);
-    const allCookies = request.cookies.getAll();
-    allCookies.forEach((c) => {
-      if (c.name.startsWith("sb-")) {
-        response.cookies.delete(c.name);
+    if (isLoginPage) {
+      if (user && isAuthorized) {
+        return NextResponse.redirect(new URL("/admin", request.url));
       }
-    });
+      return response;
+    }
+
+    if (!user) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+
+    if (!isAuthorized) {
+      await supabase.auth.signOut();
+      const loginUrl = new URL("/admin/login?error=unauthorized", request.url);
+      response = NextResponse.redirect(loginUrl);
+      const allCookies = request.cookies.getAll();
+      allCookies.forEach((c) => {
+        if (c.name.startsWith("sb-")) {
+          response.cookies.delete(c.name);
+        }
+      });
+      return response;
+    }
+
     return response;
   }
 
-  // Case 3: Authenticated and authorized
+  // === JUDGE ROUTE PROTECTION ===
+  if (isJudgeRoute) {
+    const isJudgeLoginPage = pathname === "/judge/login";
+
+    if (isJudgeLoginPage) {
+      // If user is already authenticated on /judge/login, allow page to check active judge status
+      return response;
+    }
+
+    // Protected /judge routes: require authenticated session
+    if (!user) {
+      return NextResponse.redirect(new URL("/judge/login", request.url));
+    }
+
+    return response;
+  }
+
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/judge/:path*"],
 };

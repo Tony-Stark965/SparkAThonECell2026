@@ -196,6 +196,16 @@ export function JudgesManagement({ registrations }: JudgesManagementProps) {
             />
           </button>
 
+          <a
+            href="/judge/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-amber-500/30 bg-amber-950/20 hover:bg-amber-950/40 text-amber-400 font-mono font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            title="Open Judge Portal in new tab"
+          >
+            <span>JUDGE PORTAL ↗</span>
+          </a>
+
           <button
             onClick={() => setIsAddOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-mono font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.2)]"
