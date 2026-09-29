@@ -8,11 +8,16 @@ import type {
   AttendanceRecord,
   AttendanceStatus,
 } from "@/lib/supabase/types";
-import { calculateRegistrationStats, OFFICIAL_DOMAINS } from "@/lib/supabase/types";
+import { calculateRegistrationStats } from "@/lib/supabase/types";
+import { ATTENDANCE_DOMAINS, getTeamsForDomain } from "@/lib/attendance-export";
 import { AdminStats } from "./AdminStats";
 import { RegistrationTable } from "./RegistrationTable";
 import { AttendanceRegister } from "./AttendanceRegister";
 import { DomainAttendanceSheets } from "./DomainAttendanceSheets";
+import { JudgesManagement } from "./JudgesManagement";
+import { RubricsManagement } from "./RubricsManagement";
+import { JudgingOverview } from "./JudgingOverview";
+import { JudgingResults } from "./JudgingResults";
 import {
   LogOut,
   RefreshCw,
@@ -24,6 +29,10 @@ import {
   Compass,
   ArrowRight,
   FileSpreadsheet,
+  Users,
+  Award,
+  Activity,
+  Trophy,
 } from "lucide-react";
 
 interface AdminDashboardClientProps {
@@ -34,7 +43,14 @@ interface AdminDashboardClientProps {
   onLogout: () => Promise<void>;
 }
 
-type ActiveTab = "COMMAND_CENTER" | "REGISTRATIONS" | "ATTENDANCE";
+type ActiveTab =
+  | "COMMAND_CENTER"
+  | "REGISTRATIONS"
+  | "ATTENDANCE"
+  | "JUDGES"
+  | "RUBRICS"
+  | "JUDGING"
+  | "RESULTS";
 
 export function AdminDashboardClient({
   initialRegistrations,
@@ -48,6 +64,8 @@ export function AdminDashboardClient({
   const [attendanceSubTab, setAttendanceSubTab] = useState<"ROSTERS" | "LIVE_CHECKIN">("ROSTERS");
   const [registrations, setRegistrations] =
     useState<RegistrationRecord[]>(initialRegistrations);
+  const [selectedRegistrationDomain, setSelectedRegistrationDomain] =
+    useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Initialize attendance map from server records
@@ -64,17 +82,30 @@ export function AdminDashboardClient({
   // Dynamic live telemetry calculated from current registrations state
   const stats: RegistrationStats = calculateRegistrationStats(registrations);
 
-  // Domain breakdown calculation
-  const domainBreakdown = OFFICIAL_DOMAINS.map((domainName) => {
-    const matching = registrations.filter(
-      (r) => (r.domain || "").trim().toLowerCase() === domainName.toLowerCase()
-    );
+  // Domain breakdown calculation using unified ATTENDANCE_DOMAINS source
+  const domainBreakdown = ATTENDANCE_DOMAINS.map((domainConfig, index) => {
+    const matching = getTeamsForDomain(registrations, domainConfig);
     const count = matching.length;
+    const max = domainConfig.maxTeams;
+    const capacityPercent = Math.min(100, Math.round((count / max) * 100));
     const percentage =
       registrations.length > 0
         ? Math.round((count / registrations.length) * 100)
         : 0;
-    return { name: domainName, count, percentage };
+    const isFull = count >= max;
+    const slotsRemaining = Math.max(0, max - count);
+
+    return {
+      sectorNumber: `0${index + 1}`,
+      name: domainConfig.key,
+      displayName: domainConfig.displayName,
+      count,
+      max,
+      capacityPercent,
+      percentage,
+      isFull,
+      slotsRemaining,
+    };
   });
 
   const handleRegistrationUpdated = (
@@ -123,7 +154,16 @@ export function AdminDashboardClient({
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
+      const res = await fetch("/api/admin/registration", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.registrations)) {
+          setRegistrations(data.registrations);
+        }
+      }
       router.refresh();
+    } catch (err) {
+      console.warn("Could not sync registrations:", err);
     } finally {
       setTimeout(() => setIsRefreshing(false), 600);
     }
@@ -211,7 +251,7 @@ export function AdminDashboardClient({
       >
         <button
           onClick={() => setActiveTab("COMMAND_CENTER")}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
             activeTab === "COMMAND_CENTER"
               ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
@@ -223,7 +263,7 @@ export function AdminDashboardClient({
 
         <button
           onClick={() => setActiveTab("REGISTRATIONS")}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
             activeTab === "REGISTRATIONS"
               ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
@@ -235,7 +275,7 @@ export function AdminDashboardClient({
 
         <button
           onClick={() => setActiveTab("ATTENDANCE")}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
             activeTab === "ATTENDANCE"
               ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
@@ -243,6 +283,54 @@ export function AdminDashboardClient({
         >
           <UserCheck className="w-3.5 h-3.5" />
           <span>ATTENDANCE</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("JUDGES")}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+            activeTab === "JUDGES"
+              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>JUDGES</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("RUBRICS")}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+            activeTab === "RUBRICS"
+              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+          }`}
+        >
+          <Award className="w-3.5 h-3.5" />
+          <span>RUBRICS</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("JUDGING")}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+            activeTab === "JUDGING"
+              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5" />
+          <span>JUDGING TELEMETRY</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("RESULTS")}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+            activeTab === "RESULTS"
+              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+          }`}
+        >
+          <Trophy className="w-3.5 h-3.5" />
+          <span>RESULTS &amp; RANKINGS</span>
         </button>
       </nav>
 
@@ -275,33 +363,62 @@ export function AdminDashboardClient({
               {domainBreakdown.map((domain) => (
                 <div
                   key={domain.name}
-                  className="bg-[#0e0c0a] border border-neutral-800/80 rounded-lg p-3.5 space-y-2 hover:border-amber-500/30 transition-colors"
+                  onClick={() => {
+                    setSelectedRegistrationDomain(domain.name);
+                    setActiveTab("REGISTRATIONS");
+                  }}
+                  className="bg-[#0e0c0a] border border-neutral-800/80 rounded-lg p-3.5 space-y-2 hover:border-amber-500/40 hover:bg-[#12100d] transition-all cursor-pointer group shadow-sm"
+                  title={`View ${domain.displayName} registrations`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span
-                      className="font-bold text-neutral-200 text-xs leading-snug line-clamp-2"
-                      title={domain.name}
-                    >
-                      {domain.name}
-                    </span>
+                  <div className="flex items-start justify-between gap-1.5">
+                    <div className="space-y-0.5">
+                      <span className="font-mono text-[9px] text-amber-400/80 font-bold uppercase tracking-wider block">
+                        SECTOR {domain.sectorNumber}
+                      </span>
+                      <span
+                        className="font-bold text-neutral-200 text-xs leading-snug line-clamp-1 group-hover:text-amber-300 transition-colors uppercase"
+                        title={domain.displayName}
+                      >
+                        {domain.displayName}
+                      </span>
+                    </div>
                     <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-[10px] shrink-0">
                       {domain.percentage}%
                     </span>
                   </div>
 
                   <div className="flex items-baseline justify-between pt-1">
-                    <span className="text-xl font-bold text-amber-400">
+                    <span className="text-xl font-bold text-amber-400 font-sans">
                       {domain.count}
                     </span>
-                    <span className="text-neutral-500 text-[11px]">squads</span>
+                    <span className="text-neutral-400 text-[11px]">
+                      / {domain.max} squads
+                    </span>
                   </div>
 
                   {/* Visual Progress Bar */}
                   <div className="w-full bg-neutral-900 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-amber-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${domain.percentage}%` }}
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        domain.isFull
+                          ? "bg-red-500"
+                          : "bg-gradient-to-r from-amber-500 to-amber-400"
+                      }`}
+                      style={{ width: `${domain.capacityPercent}%` }}
                     />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-neutral-500 pt-0.5">
+                    <span>{domain.capacityPercent}% filled</span>
+                    <span
+                      className={
+                        domain.isFull
+                          ? "text-red-400 font-bold"
+                          : "text-amber-400/90 font-medium"
+                      }
+                    >
+                      {domain.isFull ? "FULL" : `${domain.slotsRemaining} left`}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -309,9 +426,12 @@ export function AdminDashboardClient({
           </section>
 
           {/* Quick Action Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 font-mono text-xs">
             <div
-              onClick={() => setActiveTab("REGISTRATIONS")}
+              onClick={() => {
+                setSelectedRegistrationDomain(null);
+                setActiveTab("REGISTRATIONS");
+              }}
               className="bg-[#12100d] border border-neutral-800 hover:border-amber-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
             >
               <div className="flex items-center justify-between">
@@ -341,6 +461,70 @@ export function AdminDashboardClient({
                 and monitor live venue check-in statistics.
               </p>
             </div>
+
+            <div
+              onClick={() => setActiveTab("JUDGES")}
+              className="bg-[#12100d] border border-neutral-800 hover:border-blue-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm uppercase">
+                  JUDGES MANAGEMENT
+                </span>
+                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+              </div>
+              <p className="text-neutral-400 leading-relaxed">
+                Register official evaluators, assign squads by technical domain,
+                and manage evaluator accounts.
+              </p>
+            </div>
+
+            <div
+              onClick={() => setActiveTab("RUBRICS")}
+              className="bg-[#12100d] border border-neutral-800 hover:border-purple-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm uppercase">
+                  RUBRIC CRITERIA
+                </span>
+                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
+              </div>
+              <p className="text-neutral-400 leading-relaxed">
+                Configure standardized evaluation criteria, maximum points,
+                weighting, and score guidelines.
+              </p>
+            </div>
+
+            <div
+              onClick={() => setActiveTab("JUDGING")}
+              className="bg-[#12100d] border border-neutral-800 hover:border-cyan-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm uppercase">
+                  JUDGING TELEMETRY
+                </span>
+                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+              </div>
+              <p className="text-neutral-400 leading-relaxed">
+                Track live evaluation completion across domains, inspect judge
+                workload, and monitor pending scorecards.
+              </p>
+            </div>
+
+            <div
+              onClick={() => setActiveTab("RESULTS")}
+              className="bg-[#12100d] border border-neutral-800 hover:border-amber-400/50 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm uppercase">
+                  RESULTS &amp; RANKINGS
+                </span>
+                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-amber-400 group-hover:translate-x-1 transition-all" />
+              </div>
+              <p className="text-neutral-400 leading-relaxed">
+                View real-time domain leaderboards, top ranks, and winner
+                spotlights dynamically scored by evaluators.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -356,6 +540,9 @@ export function AdminDashboardClient({
             attendanceMap={attendanceMap}
             onRegistrationUpdated={handleRegistrationUpdated}
             onRegistrationDeleted={handleRegistrationDeleted}
+            onRefresh={handleRefresh}
+            selectedDomain={selectedRegistrationDomain}
+            onSelectDomain={setSelectedRegistrationDomain}
           />
         </section>
       )}
@@ -406,6 +593,46 @@ export function AdminDashboardClient({
               onAttendanceUpdated={handleAttendanceUpdated}
             />
           )}
+        </section>
+      )}
+
+      {/* Tab 4: JUDGES */}
+      {activeTab === "JUDGES" && (
+        <section aria-labelledby="judges-heading">
+          <h2 id="judges-heading" className="sr-only">
+            Judges Management Roster
+          </h2>
+          <JudgesManagement registrations={registrations} />
+        </section>
+      )}
+
+      {/* Tab 5: RUBRICS */}
+      {activeTab === "RUBRICS" && (
+        <section aria-labelledby="rubrics-heading">
+          <h2 id="rubrics-heading" className="sr-only">
+            Standardized Rubrics Management
+          </h2>
+          <RubricsManagement />
+        </section>
+      )}
+
+      {/* Tab 6: JUDGING TELEMETRY */}
+      {activeTab === "JUDGING" && (
+        <section aria-labelledby="judging-heading">
+          <h2 id="judging-heading" className="sr-only">
+            Judging Operations Telemetry
+          </h2>
+          <JudgingOverview />
+        </section>
+      )}
+
+      {/* Tab 7: RESULTS & RANKINGS */}
+      {activeTab === "RESULTS" && (
+        <section aria-labelledby="results-heading">
+          <h2 id="results-heading" className="sr-only">
+            Domain Results &amp; Rankings Leaderboard
+          </h2>
+          <JudgingResults />
         </section>
       )}
     </div>

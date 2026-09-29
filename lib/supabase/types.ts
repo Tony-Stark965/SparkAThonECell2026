@@ -163,3 +163,146 @@ export const OFFICIAL_DOMAINS = [
 ] as const;
 
 export type OfficialDomain = (typeof OFFICIAL_DOMAINS)[number];
+
+// ============================================================
+// JUDGING SYSTEM TYPES & INTERFACES
+// ============================================================
+
+export interface Judge {
+  id: string;
+  name: string;
+  email: string;
+  auth_user_id?: string | null;
+  domain: OfficialDomain;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JudgeTeamAssignment {
+  id: string;
+  judge_id: string;
+  registration_id: string;
+  created_at: string;
+}
+
+export interface JudgingRubric {
+  id: string;
+  name: string;
+  description?: string | null;
+  max_score: number;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type EvaluationStatus = "draft" | "in_progress" | "submitted";
+
+export interface JudgingEvaluation {
+  id: string;
+  judge_id: string;
+  registration_id: string;
+  status: EvaluationStatus;
+  started_at?: string | null;
+  submitted_at?: string | null;
+  total_score?: number | null;
+  feedback?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JudgingScore {
+  id: string;
+  evaluation_id: string;
+  rubric_id: string;
+  score: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JudgeWithDetails extends Judge {
+  assigned_teams_count: number;
+  judged_count: number;
+  remaining_count: number;
+  assigned_registration_ids: string[];
+}
+
+export interface DomainJudgingProgress {
+  domain: OfficialDomain;
+  totalTeams: number;
+  judged: number;
+  remaining: number;
+  progressPercent: number;
+}
+
+export interface JudgeProgressItem {
+  judge: Judge;
+  assignedCount: number;
+  judgedCount: number;
+  remainingCount: number;
+  progressPercent: number;
+}
+
+export interface JudgingProgressStats {
+  totalJudges: number;
+  totalAssignedTeams: number;
+  totalJudged: number;
+  totalRemaining: number;
+  domainProgress: DomainJudgingProgress[];
+  judgeProgress: JudgeProgressItem[];
+}
+
+export interface TeamEvaluationSummary {
+  judge_id: string;
+  judge_name: string;
+  total_score: number;
+  submitted_at: string | null;
+  status: EvaluationStatus;
+}
+
+export interface TeamResultRank {
+  team_id: string;
+  team_name: string;
+  college: string;
+  domain: string;
+  evaluation_count: number;
+  average_score: number;
+  max_possible_score: number;
+  status: "Completed" | "In Progress" | "Unassigned";
+  evaluations: TeamEvaluationSummary[];
+  rank: number;
+}
+
+export const DEFAULT_RUBRIC_CRITERIA = [
+  {
+    name: "Creativity & Innovation",
+    description: "Originality and uniqueness of solution",
+    max_score: 10,
+    sort_order: 1,
+  },
+  {
+    name: "Technical Feasibility",
+    description: "Architecture, engineering, and implementation capability",
+    max_score: 10,
+    sort_order: 2,
+  },
+  {
+    name: "Scalability & Market Potential",
+    description: "Real-world viability, growth potential, and target audience",
+    max_score: 10,
+    sort_order: 3,
+  },
+  {
+    name: "Presentation & Clarity",
+    description: "Pitch delivery, demo quality, communication, and Q&A",
+    max_score: 10,
+    sort_order: 4,
+  },
+  {
+    name: "Problem-Solving Impact",
+    description: "Value delivered, social or industry impact",
+    max_score: 10,
+    sort_order: 5,
+  },
+] as const;

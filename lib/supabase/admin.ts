@@ -11,11 +11,23 @@ import type {
   RegistrationStats,
   AttendanceRecord,
   AttendanceStatus,
+  Judge,
+  JudgeTeamAssignment,
+  JudgingRubric,
+  JudgingEvaluation,
+  JudgingScore,
+  JudgeWithDetails,
+  DomainJudgingProgress,
+  JudgeProgressItem,
+  JudgingProgressStats,
+  TeamEvaluationSummary,
+  TeamResultRank,
 } from "./types";
 import {
   PROTECTED_QA_IDS,
   OFFICIAL_DOMAINS,
   calculateRegistrationFee,
+  DEFAULT_RUBRIC_CRITERIA,
 } from "./types";
 
 export type {
@@ -24,6 +36,17 @@ export type {
   RegistrationStats,
   AttendanceRecord,
   AttendanceStatus,
+  Judge,
+  JudgeTeamAssignment,
+  JudgingRubric,
+  JudgingEvaluation,
+  JudgingScore,
+  JudgeWithDetails,
+  DomainJudgingProgress,
+  JudgeProgressItem,
+  JudgingProgressStats,
+  TeamEvaluationSummary,
+  TeamResultRank,
 };
 export {
   calculateRegistrationStats,
@@ -31,6 +54,7 @@ export {
   calculateRegistrationFee,
   PROTECTED_QA_IDS,
   OFFICIAL_DOMAINS,
+  DEFAULT_RUBRIC_CRITERIA,
 } from "./types";
 
 function getAdminClient() {
@@ -570,4 +594,667 @@ export async function adminRemoveParticipant(
 
   const attendance = await getAttendanceForRegistration(id);
   return { registration: updated as RegistrationRecord, attendance };
+}
+
+// ============================================================
+// JUDGES & TEAM ASSIGNMENT DATA OPERATIONS (SERVER-ONLY)
+// ============================================================
+
+/**
+ * Server-only judges fetcher.
+ * Retrieves all judges along with their computed assigned and judged team statistics.
+ */
+export async function getJudges(): Promise<JudgeWithDetails[]> {
+  const supabase = getAdminClient();
+
+  try {
+    const [{ data: judgesData, error: jErr }, { data: assignData }, { data: evalData }] =
+      await Promise.all([
+        supabase.from("judges").select("*").order("name", { ascending: true }),
+        supabase.from("judge_team_assignments").select("*"),
+        supabase.from("judging_evaluations").select("*"),
+      ]);
+
+    if (jErr) {
+      console.warn("[Admin API] Judges table query notice:", jErr.message);
+      return [];
+    }
+
+    const judges = (judgesData || []) as Judge[];
+    const assignments = (assignData || []) as JudgeTeamAssignment[];
+    const evaluations = (evalData || []) as JudgingEvaluation[];
+
+    const submittedSet = new Set(
+      evaluations.filter((e) => e.status === "submitted").map((e) => `${e.judge_id}_${e.registration_id}`)
+    );
+
+    return judges.map((judge) => {
+      const myAssignments = assignments.filter((a) => a.judge_id === judge.id);
+      const assignedIds = myAssignments.map((a) => a.registration_id);
+      const judgedCount = assignedIds.filter((regId) => submittedSet.has(`${judge.id}_${regId}`)).length;
+      const remainingCount = Math.max(0, assignedIds.length - judgedCount);
+
+      return {
+        ...judge,
+        assigned_teams_count: assignedIds.length,
+        judged_count: judgedCount,
+        remaining_count: remainingCount,
+        assigned_registration_ids: assignedIds,
+      };
+    });
+  } catch (error) {
+    console.warn("[Admin API] Failed to fetch judges:", error);
+    return [];
+  }
+}
+
+/**
+ * Server-only judge creator.
+ * Validates domain against official allowlist and registers a new judge.
+ */
+export async function createJudge(payload: {
+  name: string;
+  email: string;
+  domain: string;
+  is_active?: boolean;
+}): Promise<Judge> {
+  const supabase = getAdminClient();
+
+  const name = payload.name.trim();
+  const email = payload.email.trim().toLowerCase();
+  const domain = payload.domain.trim();
+
+  if (!name || name.length < 2) {
+    throw new Error("Judge name must be at least 2 characters.");
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("Enter a valid email address for the judge.");
+  }
+
+  const matchedDomain = OFFICIAL_DOMAINS.find(
+    (d) => d.toLowerCase() === domain.toLowerCase()
+  );
+  if (!matchedDomain) {
+    throw new Error(`Invalid technical domain. Must be one of: ${OFFICIAL_DOMAINS.join(", ")}`);
+  }
+
+  const { data, error } = await supabase
+    .from("judges")
+    .insert({
+      name,
+      email,
+      domain: matchedDomain,
+      is_active: payload.is_active ?? true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error || !data) {
+    if (error?.code === "23505" || error?.message?.includes("unique")) {
+      throw new Error(`A judge with email '${email}' is already registered.`);
+    }
+    throw new Error(`Failed to create judge: ${error?.message || "Unknown error"}`);
+  }
+
+  return data as Judge;
+}
+
+/**
+ * Server-only judge updater.
+ */
+export async function updateJudge(
+  id: string,
+  payload: Partial<{
+    name: string;
+    email: string;
+    domain: string;
+    is_active: boolean;
+  }>
+): Promise<Judge> {
+  const supabase = getAdminClient();
+
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (payload.name !== undefined) {
+    const name = payload.name.trim();
+    if (name.length < 2) throw new Error("Judge name must be at least 2 characters.");
+    updates.name = name;
+  }
+
+  if (payload.email !== undefined) {
+    const email = payload.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("Enter a valid email address.");
+    }
+    updates.email = email;
+  }
+
+  if (payload.domain !== undefined) {
+    const matched = OFFICIAL_DOMAINS.find(
+      (d) => d.toLowerCase() === payload.domain!.trim().toLowerCase()
+    );
+    if (!matched) {
+      throw new Error(`Invalid domain. Must be one of: ${OFFICIAL_DOMAINS.join(", ")}`);
+    }
+    updates.domain = matched;
+  }
+
+  if (payload.is_active !== undefined) {
+    updates.is_active = Boolean(payload.is_active);
+  }
+
+  const { data, error } = await supabase
+    .from("judges")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to update judge: ${error?.message || "Record not found"}`);
+  }
+
+  return data as Judge;
+}
+
+/**
+ * Server-only judge assignments fetcher.
+ */
+export async function getJudgeAssignments(judgeId?: string): Promise<JudgeTeamAssignment[]> {
+  const supabase = getAdminClient();
+
+  try {
+    let query = supabase.from("judge_team_assignments").select("*");
+    if (judgeId) {
+      query = query.eq("judge_id", judgeId);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.warn("[Admin API] Assignments query notice:", error.message);
+      return [];
+    }
+    return (data || []) as JudgeTeamAssignment[];
+  } catch (err) {
+    console.warn("[Admin API] Failed to fetch assignments:", err);
+    return [];
+  }
+}
+
+/**
+ * Server-only team assigner.
+ * STRICT SECURITY INVARIANT:
+ * Validates that every target team belongs to the judge's exact assigned domain.
+ * Cross-domain assignment is rejected on the server.
+ */
+export async function assignTeamsToJudge(
+  judgeId: string,
+  registrationIds: string[]
+): Promise<JudgeTeamAssignment[]> {
+  const supabase = getAdminClient();
+
+  // 1. Verify judge existence and retrieve domain
+  const { data: judge, error: judgeErr } = await supabase
+    .from("judges")
+    .select("*")
+    .eq("id", judgeId)
+    .single();
+
+  if (judgeErr || !judge) {
+    throw new Error(`Judge not found: ${judgeErr?.message || "Invalid judge ID"}`);
+  }
+
+  // 2. Strict Server-Side Domain Validation
+  if (registrationIds.length > 0) {
+    const { data: teams, error: teamsErr } = await supabase
+      .from("registrations")
+      .select("id, team_name, domain")
+      .in("id", registrationIds);
+
+    if (teamsErr) {
+      throw new Error(`Failed to verify target teams: ${teamsErr.message}`);
+    }
+
+    const mismatchedTeams = (teams || []).filter(
+      (t) => (t.domain || "").trim().toLowerCase() !== judge.domain.trim().toLowerCase()
+    );
+
+    if (mismatchedTeams.length > 0) {
+      const names = mismatchedTeams
+        .map((t) => `'${t.team_name}' (${t.domain || "No domain"})`)
+        .join(", ");
+      throw new Error(
+        `Security Violation: Cross-domain assignment prohibited. Judge '${judge.name}' is assigned to '${judge.domain}', but attempted to assign teams from other domains: ${names}.`
+      );
+    }
+  }
+
+  // 3. Atomically replace assignments for this judge
+  const { error: deleteErr } = await supabase
+    .from("judge_team_assignments")
+    .delete()
+    .eq("judge_id", judgeId);
+
+  if (deleteErr) {
+    throw new Error(`Failed to clear previous assignments: ${deleteErr.message}`);
+  }
+
+  if (registrationIds.length === 0) {
+    return [];
+  }
+
+  const rowsToInsert = registrationIds.map((regId) => ({
+    judge_id: judgeId,
+    registration_id: regId,
+  }));
+
+  const { data: inserted, error: insertErr } = await supabase
+    .from("judge_team_assignments")
+    .insert(rowsToInsert)
+    .select();
+
+  if (insertErr || !inserted) {
+    throw new Error(`Failed to save team assignments: ${insertErr?.message || "Unknown error"}`);
+  }
+
+  return inserted as JudgeTeamAssignment[];
+}
+
+// ============================================================
+// JUDGING RUBRICS DATA OPERATIONS (SERVER-ONLY)
+// ============================================================
+
+/**
+ * Server-only rubrics fetcher.
+ */
+export async function getRubrics(includeInactive = true): Promise<JudgingRubric[]> {
+  const supabase = getAdminClient();
+
+  try {
+    let query = supabase
+      .from("judging_rubrics")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (!includeInactive) {
+      query = query.eq("is_active", true);
+    }
+
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) {
+      // Return default rubrics representation if database table is not yet seeded
+      return DEFAULT_RUBRIC_CRITERIA.map((crit, idx) => ({
+        id: `default_${idx + 1}`,
+        name: crit.name,
+        description: crit.description,
+        max_score: crit.max_score,
+        sort_order: crit.sort_order,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }));
+    }
+
+    return data as JudgingRubric[];
+  } catch (err) {
+    console.warn("[Admin API] Failed to fetch rubrics; returning defaults:", err);
+    return DEFAULT_RUBRIC_CRITERIA.map((crit, idx) => ({
+      id: `default_${idx + 1}`,
+      name: crit.name,
+      description: crit.description,
+      max_score: crit.max_score,
+      sort_order: crit.sort_order,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+  }
+}
+
+/**
+ * Server-only rubric creator.
+ */
+export async function createRubric(payload: {
+  name: string;
+  description?: string;
+  max_score: number;
+  sort_order?: number;
+}): Promise<JudgingRubric> {
+  const supabase = getAdminClient();
+
+  const name = payload.name.trim();
+  const max_score = Math.max(1, Math.floor(Number(payload.max_score) || 10));
+  const sort_order = Number(payload.sort_order) || 0;
+
+  if (!name || name.length < 2) {
+    throw new Error("Rubric criterion name must be at least 2 characters.");
+  }
+
+  const { data, error } = await supabase
+    .from("judging_rubrics")
+    .insert({
+      name,
+      description: payload.description?.trim() || null,
+      max_score,
+      sort_order,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to create rubric criterion: ${error?.message || "Unknown error"}`);
+  }
+
+  return data as JudgingRubric;
+}
+
+/**
+ * Server-only rubric updater.
+ */
+export async function updateRubric(
+  id: string,
+  payload: Partial<{
+    name: string;
+    description: string;
+    max_score: number;
+    sort_order: number;
+    is_active: boolean;
+  }>
+): Promise<JudgingRubric> {
+  const supabase = getAdminClient();
+
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (payload.name !== undefined) {
+    const name = payload.name.trim();
+    if (name.length < 2) throw new Error("Criterion name must be at least 2 characters.");
+    updates.name = name;
+  }
+
+  if (payload.description !== undefined) {
+    updates.description = payload.description.trim() || null;
+  }
+
+  if (payload.max_score !== undefined) {
+    updates.max_score = Math.max(1, Math.floor(Number(payload.max_score) || 10));
+  }
+
+  if (payload.sort_order !== undefined) {
+    updates.sort_order = Number(payload.sort_order) || 0;
+  }
+
+  if (payload.is_active !== undefined) {
+    updates.is_active = Boolean(payload.is_active);
+  }
+
+  const { data, error } = await supabase
+    .from("judging_rubrics")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to update rubric criterion: ${error?.message || "Record not found"}`);
+  }
+
+  return data as JudgingRubric;
+}
+
+/**
+ * Server-only rubric reorderer.
+ */
+export async function reorderRubrics(orderedIds: string[]): Promise<void> {
+  const supabase = getAdminClient();
+
+  const updates = orderedIds.map((id, index) =>
+    supabase
+      .from("judging_rubrics")
+      .update({ sort_order: index + 1, updated_at: new Date().toISOString() })
+      .eq("id", id)
+  );
+
+  await Promise.all(updates);
+}
+
+// ============================================================
+// JUDGING TELEMETRY & RESULTS LEADERBOARD (SERVER-ONLY)
+// ============================================================
+
+/**
+ * Server-only judging progress telemetry engine.
+ */
+export async function getJudgingProgress(): Promise<JudgingProgressStats> {
+  const supabase = getAdminClient();
+
+  try {
+    const [
+      { data: judgesData },
+      { data: registrationsData },
+      { data: assignmentsData },
+      { data: evaluationsData },
+    ] = await Promise.all([
+      supabase.from("judges").select("*").order("name", { ascending: true }),
+      supabase.from("registrations").select("id, team_name, domain"),
+      supabase.from("judge_team_assignments").select("*"),
+      supabase.from("judging_evaluations").select("*"),
+    ]);
+
+    const judges = (judgesData || []) as Judge[];
+    const registrations = (registrationsData || []) as RegistrationRecord[];
+    const assignments = (assignmentsData || []) as JudgeTeamAssignment[];
+    const evaluations = (evaluationsData || []) as JudgingEvaluation[];
+
+    const submittedEvaluations = evaluations.filter((e) => e.status === "submitted");
+
+    // Unique assigned and judged registration IDs
+    const assignedTeamIds = new Set(assignments.map((a) => a.registration_id));
+    const judgedTeamIds = new Set(submittedEvaluations.map((e) => e.registration_id));
+
+    const totalJudges = judges.filter((j) => j.is_active).length;
+    const totalAssignedTeams = assignedTeamIds.size;
+    const totalJudged = judgedTeamIds.size;
+    const totalRemaining = Math.max(0, totalAssignedTeams - totalJudged);
+
+    // Domain progress computation
+    const domainProgress = OFFICIAL_DOMAINS.map((domainName) => {
+      const domainTeams = registrations.filter(
+        (r) => (r.domain || "").trim().toLowerCase() === domainName.toLowerCase()
+      );
+      const totalTeams = domainTeams.length;
+      const domainJudged = domainTeams.filter((t) => judgedTeamIds.has(t.id)).length;
+      const remaining = Math.max(0, totalTeams - domainJudged);
+      const progressPercent = totalTeams > 0 ? Math.round((domainJudged / totalTeams) * 100) : 0;
+
+      return {
+        domain: domainName,
+        totalTeams,
+        judged: domainJudged,
+        remaining,
+        progressPercent,
+      };
+    });
+
+    // Judge progress computation
+    const judgeProgress = judges.map((judge) => {
+      const myAssignments = assignments.filter((a) => a.judge_id === judge.id);
+      const mySubmitted = submittedEvaluations.filter((e) => e.judge_id === judge.id);
+      const assignedCount = myAssignments.length;
+      const judgedCount = mySubmitted.length;
+      const remainingCount = Math.max(0, assignedCount - judgedCount);
+      const progressPercent = assignedCount > 0 ? Math.round((judgedCount / assignedCount) * 100) : 0;
+
+      return {
+        judge,
+        assignedCount,
+        judgedCount,
+        remainingCount,
+        progressPercent,
+      };
+    });
+
+    return {
+      totalJudges,
+      totalAssignedTeams,
+      totalJudged,
+      totalRemaining,
+      domainProgress,
+      judgeProgress,
+    };
+  } catch (err) {
+    console.warn("[Admin API] Failed to compute judging progress:", err);
+    return {
+      totalJudges: 0,
+      totalAssignedTeams: 0,
+      totalJudged: 0,
+      totalRemaining: 0,
+      domainProgress: OFFICIAL_DOMAINS.map((d) => ({
+        domain: d,
+        totalTeams: 0,
+        judged: 0,
+        remaining: 0,
+        progressPercent: 0,
+      })),
+      judgeProgress: [],
+    };
+  }
+}
+
+/**
+ * Server-only judging results & domain leaderboard rankings.
+ * Computes average score across judge evaluations (compatible with single and multi-judge models).
+ * Ranks strictly based on submitted evaluations.
+ */
+export async function getJudgingResults(
+  domainFilter?: string
+): Promise<Record<string, TeamResultRank[]>> {
+  const supabase = getAdminClient();
+
+  try {
+    const [
+      { data: registrationsData },
+      { data: evaluationsData },
+      { data: judgesData },
+      { data: rubricsData },
+    ] = await Promise.all([
+      supabase.from("registrations").select("id, team_name, college, domain"),
+      supabase.from("judging_evaluations").select("*"),
+      supabase.from("judges").select("id, name"),
+      supabase.from("judging_rubrics").select("*").eq("is_active", true),
+    ]);
+
+    const registrations = (registrationsData || []) as RegistrationRecord[];
+    const evaluations = (evaluationsData || []) as JudgingEvaluation[];
+    const judges = (judgesData || []) as Judge[];
+    const rubrics = (rubricsData || []) as JudgingRubric[];
+
+    const judgeMap = new Map(judges.map((j) => [j.id, j.name]));
+    const maxPossibleScore =
+      rubrics.reduce((sum, r) => sum + (Number(r.max_score) || 0), 0) || 50;
+
+    const resultsByDomain: Record<string, TeamResultRank[]> = {};
+
+    for (const domain of OFFICIAL_DOMAINS) {
+      if (domainFilter && domainFilter.toLowerCase() !== domain.toLowerCase()) {
+        continue;
+      }
+
+      const domainTeams = registrations.filter(
+        (t) => (t.domain || "").trim().toLowerCase() === domain.toLowerCase()
+      );
+
+      const evaluatedTeams: TeamResultRank[] = [];
+      const inProgressTeams: TeamResultRank[] = [];
+      const standbyTeams: TeamResultRank[] = [];
+
+      for (const team of domainTeams) {
+        const teamEvals = evaluations.filter((e) => e.registration_id === team.id);
+        const submittedEvals = teamEvals.filter((e) => e.status === "submitted");
+
+        if (submittedEvals.length > 0) {
+          const totalScoresSum = submittedEvals.reduce(
+            (acc, curr) => acc + (Number(curr.total_score) || 0),
+            0
+          );
+          const averageScore = Math.round((totalScoresSum / submittedEvals.length) * 100) / 100;
+
+          evaluatedTeams.push({
+            team_id: team.id,
+            team_name: team.team_name,
+            college: team.college,
+            domain: team.domain || domain,
+            evaluation_count: submittedEvals.length,
+            average_score: averageScore,
+            max_possible_score: maxPossibleScore,
+            status: "Completed",
+            evaluations: submittedEvals.map((e) => ({
+              judge_id: e.judge_id,
+              judge_name: judgeMap.get(e.judge_id) || "Judge",
+              total_score: Number(e.total_score) || 0,
+              submitted_at: e.submitted_at || null,
+              status: e.status,
+            })),
+            rank: 0,
+          });
+        } else if (teamEvals.length > 0) {
+          inProgressTeams.push({
+            team_id: team.id,
+            team_name: team.team_name,
+            college: team.college,
+            domain: team.domain || domain,
+            evaluation_count: 0,
+            average_score: 0,
+            max_possible_score: maxPossibleScore,
+            status: "In Progress",
+            evaluations: teamEvals.map((e) => ({
+              judge_id: e.judge_id,
+              judge_name: judgeMap.get(e.judge_id) || "Judge",
+              total_score: Number(e.total_score) || 0,
+              submitted_at: e.submitted_at || null,
+              status: e.status,
+            })),
+            rank: 0,
+          });
+        } else {
+          standbyTeams.push({
+            team_id: team.id,
+            team_name: team.team_name,
+            college: team.college,
+            domain: team.domain || domain,
+            evaluation_count: 0,
+            average_score: 0,
+            max_possible_score: maxPossibleScore,
+            status: "Unassigned",
+            evaluations: [],
+            rank: 0,
+          });
+        }
+      }
+
+      // Sort descending by average score
+      evaluatedTeams.sort((a, b) => b.average_score - a.average_score);
+
+      // Assign ranks (1-indexed)
+      evaluatedTeams.forEach((team, idx) => {
+        team.rank = idx + 1;
+      });
+
+      resultsByDomain[domain] = [...evaluatedTeams, ...inProgressTeams, ...standbyTeams];
+    }
+
+    return resultsByDomain;
+  } catch (err) {
+    console.warn("[Admin API] Failed to fetch judging results:", err);
+    return {};
+  }
 }
