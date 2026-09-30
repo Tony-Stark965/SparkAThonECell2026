@@ -193,6 +193,29 @@ export function JudgeDashboardClient({
             </div>
           </div>
         </div>
+
+        {/* OVERALL JUDGING PROGRESS HUD BAR */}
+        <div className="mt-6 pt-5 border-t border-neutral-800/80 font-mono space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-neutral-400 font-semibold tracking-wider uppercase flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              SQUAD EVALUATION COMPLETION
+            </span>
+            <span className="text-amber-400 font-bold">
+              {stats.assigned > 0
+                ? `${Math.round((stats.completed / stats.assigned) * 100)}% COMPLETE (${stats.completed} / ${stats.assigned} TEAMS)`
+                : "NO TEAMS ASSIGNED"}
+            </span>
+          </div>
+          <div className="w-full bg-neutral-900/90 rounded-full h-2.5 overflow-hidden border border-neutral-800/80">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-500 to-emerald-500 transition-all duration-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]"
+              style={{
+                width: `${stats.assigned > 0 ? Math.round((stats.completed / stats.assigned) * 100) : 0}%`,
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* FILTER & SEARCH CONTROLS */}
@@ -214,9 +237,18 @@ export function JudgeDashboardClient({
           {(
             [
               { key: "ALL", label: `ALL (${teams.length})` },
-              { key: "standby", label: `STANDBY (${stats.remaining - stats.inProgress > 0 ? stats.remaining - stats.inProgress : 0})` },
-              { key: "in_progress", label: `IN PROGRESS (${stats.inProgress})` },
-              { key: "submitted", label: `SUBMITTED (${stats.completed})` },
+              {
+                key: "standby",
+                label: `STANDBY (${teams.filter((t) => t.status === "standby").length})`,
+              },
+              {
+                key: "in_progress",
+                label: `IN PROGRESS (${teams.filter((t) => t.status === "in_progress").length})`,
+              },
+              {
+                key: "submitted",
+                label: `SUBMITTED (${teams.filter((t) => t.status === "submitted").length})`,
+              },
             ] as const
           ).map(({ key, label }) => (
             <button

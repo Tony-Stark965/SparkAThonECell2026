@@ -9,7 +9,9 @@ export interface StoredTimerState {
   duration: number; // default 600 (10 min)
 }
 
-const DEFAULT_DURATION = 600; // 10 minutes
+export type TimerPhase = "normal" | "warning" | "critical" | "time_up";
+
+export const DEFAULT_DURATION = 600; // 10 minutes
 
 export function formatPitchTime(seconds: number): string {
   const safeSec = Math.max(0, Math.floor(seconds));
@@ -85,35 +87,39 @@ export function useTeamTimer(
     return readStoredState(teamId);
   });
 
-  const stateRef = useRef(timerState);
-  stateRef.current = timerState;
+  const [currentTimeMs, setCurrentTimeMs] = useState<number>(() => Date.now());
 
-  // Calculate current effective seconds remaining
-  const calculateEffectiveRemaining = useCallback((state: StoredTimerState): number => {
+  // Ref to hold the latest timer state safely without mutating during render
+  const stateRef = useRef(timerState);
+  useEffect(() => {
+    stateRef.current = timerState;
+  }, [timerState]);
+
+  // Calculate effective seconds remaining derived purely from state & current time
+  const calculateEffectiveRemaining = useCallback((state: StoredTimerState, now: number): number => {
     if (!state.isRunning || !state.lastStartedAt) {
       return state.remaining;
     }
-    const elapsed = Math.floor((Date.now() - state.lastStartedAt) / 1000);
+    const elapsed = Math.floor((now - state.lastStartedAt) / 1000);
     return Math.max(0, state.remaining - elapsed);
   }, []);
 
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(() =>
-    calculateEffectiveRemaining(timerState)
-  );
+  // Compute live seconds remaining
+  const secondsRemaining = calculateEffectiveRemaining(timerState, currentTimeMs);
 
   // Sync with storage on mount and when external events fire
   useEffect(() => {
     const syncState = () => {
       const stored = readStoredState(teamId);
       setTimerState(stored);
-      setSecondsRemaining(calculateEffectiveRemaining(stored));
+      setCurrentTimeMs(Date.now());
     };
 
     const handleCustomSync = (e: Event) => {
       const customEvent = e as CustomEvent<{ teamId: string; state: StoredTimerState }>;
       if (customEvent.detail?.teamId === teamId) {
         setTimerState(customEvent.detail.state);
-        setSecondsRemaining(calculateEffectiveRemaining(customEvent.detail.state));
+        setCurrentTimeMs(Date.now());
       }
     };
 
@@ -130,20 +136,20 @@ export function useTeamTimer(
       window.removeEventListener("spark_timer_sync", handleCustomSync);
       window.removeEventListener("storage", handleStorageEvent);
     };
-  }, [teamId, calculateEffectiveRemaining]);
+  }, [teamId]);
 
-  // Main countdown tick interval
+  // Drift-free interval ticker when running
   useEffect(() => {
     if (!timerState.isRunning || !timerState.lastStartedAt) {
-      setSecondsRemaining(timerState.remaining);
       return;
     }
 
     const interval = setInterval(() => {
-      const currentRemaining = calculateEffectiveRemaining(timerState);
-      setSecondsRemaining(currentRemaining);
+      const now = Date.now();
+      setCurrentTimeMs(now);
 
-      if (currentRemaining <= 0) {
+      const effective = calculateEffectiveRemaining(timerState, now);
+      if (effective <= 0) {
         const finalState: StoredTimerState = {
           ...timerState,
           remaining: 0,
@@ -153,12 +159,12 @@ export function useTeamTimer(
         setTimerState(finalState);
         writeStoredState(teamId, finalState);
       }
-    }, 500);
+    }, 250);
 
     return () => clearInterval(interval);
   }, [timerState, calculateEffectiveRemaining, teamId]);
 
-  // Actions: Start, Stop, Reset
+  // Action: START
   const start = useCallback(() => {
     const current = stateRef.current;
     let baseRemaining = current.remaining;
@@ -168,15 +174,16 @@ export function useTeamTimer(
       baseRemaining = DEFAULT_DURATION;
     }
 
+    const now = Date.now();
     const nextState: StoredTimerState = {
       remaining: baseRemaining,
       isRunning: true,
-      lastStartedAt: Date.now(),
+      lastStartedAt: now,
       duration: current.duration || DEFAULT_DURATION,
     };
 
     setTimerState(nextState);
-    setSecondsRemaining(baseRemaining);
+    setCurrentTimeMs(now);
     writeStoredState(teamId, nextState);
 
     if (options?.onStart) {
@@ -184,11 +191,13 @@ export function useTeamTimer(
     }
   }, [teamId, options]);
 
+  // Action: STOP
   const stop = useCallback(() => {
     const current = stateRef.current;
     if (!current.isRunning) return;
 
-    const remainingNow = calculateEffectiveRemaining(current);
+    const now = Date.now();
+    const remainingNow = calculateEffectiveRemaining(current, now);
     const nextState: StoredTimerState = {
       remaining: remainingNow,
       isRunning: false,
@@ -197,7 +206,7 @@ export function useTeamTimer(
     };
 
     setTimerState(nextState);
-    setSecondsRemaining(remainingNow);
+    setCurrentTimeMs(now);
     writeStoredState(teamId, nextState);
 
     if (options?.onStop) {
@@ -205,8 +214,10 @@ export function useTeamTimer(
     }
   }, [teamId, calculateEffectiveRemaining, options]);
 
+  // Action: RESET
   const reset = useCallback(
     (newDuration: number = DEFAULT_DURATION) => {
+      const now = Date.now();
       const nextState: StoredTimerState = {
         remaining: newDuration,
         isRunning: false,
@@ -215,7 +226,7 @@ export function useTeamTimer(
       };
 
       setTimerState(nextState);
-      setSecondsRemaining(newDuration);
+      setCurrentTimeMs(now);
       writeStoredState(teamId, nextState);
 
       if (options?.onReset) {
@@ -225,12 +236,39 @@ export function useTeamTimer(
     [teamId, options]
   );
 
+  // Compute timer phases based on official specifications:
+  // 10:00 -> 03:01 = normal
+  // 03:00 -> 01:01 = warning
+  // 01:00 -> 00:01 = critical
+  // 00:00 = time_up
+  let timerPhase: TimerPhase = "normal";
+  if (secondsRemaining <= 0) {
+    timerPhase = "time_up";
+  } else if (secondsRemaining <= 60) {
+    timerPhase = "critical";
+  } else if (secondsRemaining <= 180) {
+    timerPhase = "warning";
+  } else {
+    timerPhase = "normal";
+  }
+
+  // Progress percentage (0% to 100% of duration elapsed)
+  const totalDuration = timerState.duration || DEFAULT_DURATION;
+  const progressPercent = Math.max(
+    0,
+    Math.min(100, Math.round(((totalDuration - secondsRemaining) / totalDuration) * 100))
+  );
+
   return {
     secondsRemaining,
     formattedTime: formatPitchTime(secondsRemaining),
     isRunning: timerState.isRunning,
     isComplete: secondsRemaining === 0,
-    isWarning: secondsRemaining <= 120 && secondsRemaining > 0,
+    isWarning: timerPhase === "warning",
+    isCritical: timerPhase === "critical",
+    isTimeUp: timerPhase === "time_up",
+    timerPhase,
+    progressPercent,
     start,
     stop,
     reset,
