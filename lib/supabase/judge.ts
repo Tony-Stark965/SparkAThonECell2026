@@ -115,7 +115,24 @@ export async function getAuthenticatedJudge(): Promise<AuthenticatedJudgeResult>
     }
 
     const admin = getAdminClient();
-    const userEmail = (user.email || "").trim().toLowerCase();
+    let userEmail = (
+      user.email ||
+      (user.user_metadata?.email as string) ||
+      (user.app_metadata?.email as string) ||
+      ""
+    ).trim().toLowerCase();
+
+    // If userEmail is still empty, look up user from Supabase auth admin directly
+    if (!userEmail && user.id) {
+      try {
+        const { data: adminUserData } = await admin.auth.admin.getUserById(user.id);
+        if (adminUserData?.user?.email) {
+          userEmail = adminUserData.user.email.trim().toLowerCase();
+        }
+      } catch (authFetchErr) {
+        console.warn("[Judge Auth] Notice retrieving user details by ID:", authFetchErr);
+      }
+    }
 
     // 1. Look for judge by auth_user_id
     const { data: byAuthId, error: errAuthId } = await admin
@@ -827,11 +844,170 @@ export async function submitJudgingEvaluation(
     throw new Error(`Failed to finalize evaluation: ${updateErr?.message || "Unknown error"}`);
   }
 
+  // 7. Check if this submission completes an approved correction request
+  try {
+    const { data: approvedReq } = await admin
+      .from("judging_correction_requests")
+      .select("id")
+      .eq("evaluation_id", evaluation.id)
+      .eq("status", "approved")
+      .order("requested_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (approvedReq) {
+      await admin
+        .from("judging_correction_requests")
+        .update({
+          status: "completed",
+          revised_total_score: finalTotal,
+          revised_scores_snapshot: providedScores,
+          updated_at: submittedAt,
+        })
+        .eq("id", approvedReq.id);
+    }
+  } catch (crErr) {
+    console.warn("[Judge API] Notice: Could not update correction request status:", crErr);
+  }
+
   return {
     success: true,
     total_score: finalTotal,
     submitted_at: submittedAt,
     evaluation: updatedEval as JudgingEvaluation,
+  };
+}
+
+/**
+ * Server-only evaluation correction request handler.
+ * Allows a judge to file a formal correction request for a locked submission.
+ * Enforces assignment and submitted status.
+ * Preserves the locked status while awaiting Phase 4 admin approval.
+ * Snapshots original rubric scores and inserts into judging_correction_requests.
+ */
+export async function requestJudgingCorrection(
+  judgeId: string,
+  registrationId: string,
+  payload: {
+    reason: string;
+    explanation: string;
+  }
+): Promise<{
+  success: boolean;
+  message: string;
+  requestId: string;
+  requestedAt: string;
+  status: "pending_admin_approval";
+}> {
+  const admin = getAdminClient();
+
+  // 1. Verify assignment
+  const { data: assignment, error: assignErr } = await admin
+    .from("judge_team_assignments")
+    .select("id")
+    .eq("judge_id", judgeId)
+    .eq("registration_id", registrationId)
+    .maybeSingle();
+
+  if (assignErr || !assignment) {
+    throw new Error("Unauthorized: You are not assigned to evaluate this team.");
+  }
+
+  // 2. Fetch evaluation
+  const { data: evaluation, error: evalErr } = await admin
+    .from("judging_evaluations")
+    .select("id, status, total_score, feedback")
+    .eq("judge_id", judgeId)
+    .eq("registration_id", registrationId)
+    .single();
+
+  if (evalErr || !evaluation) {
+    throw new Error("Evaluation record not found.");
+  }
+
+  if (evaluation.status !== "submitted") {
+    throw new Error("Correction requests can only be filed for submitted, locked evaluations.");
+  }
+
+  // 3. Validate input
+  const reason = (payload.reason || "").trim();
+  const explanation = (payload.explanation || "").trim();
+
+  if (!reason) {
+    throw new Error("A reason must be selected for the correction request.");
+  }
+
+  if (!explanation || explanation.length < 10) {
+    throw new Error("Please provide a detailed explanation of the correction (minimum 10 characters).");
+  }
+
+  const requestId = `CORR-${evaluation.id.slice(0, 8).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+  const requestedAt = new Date().toISOString();
+
+  // 4. Snapshot current rubric scores
+  const scoreSnapshot: Record<string, number> = {};
+  try {
+    const { data: currentScores } = await admin
+      .from("judging_scores")
+      .select("rubric_id, score")
+      .eq("evaluation_id", evaluation.id);
+
+    if (currentScores && Array.isArray(currentScores)) {
+      for (const cs of currentScores) {
+        scoreSnapshot[cs.rubric_id] = Number(cs.score) || 0;
+      }
+    }
+  } catch (snapErr) {
+    console.warn("[Judge API] Notice: Could not snapshot scores:", snapErr);
+  }
+
+  // 5. Attempt insertion into dedicated judging_correction_requests table
+  try {
+    await admin.from("judging_correction_requests").insert({
+      evaluation_id: evaluation.id,
+      judge_id: judgeId,
+      registration_id: registrationId,
+      reason,
+      explanation,
+      status: "pending",
+      original_total_score: evaluation.total_score,
+      original_scores_snapshot: scoreSnapshot,
+      requested_at: requestedAt,
+      created_at: requestedAt,
+      updated_at: requestedAt,
+    });
+  } catch (insertErr) {
+    console.warn("[Judge API] Notice: Could not insert to judging_correction_requests:", insertErr);
+  }
+
+  // 6. Persist official audit note directly in judging_evaluations feedback as secondary defense
+  const auditHeader = `[CORRECTION REQUEST: ${requestId}]`;
+  const existingFeedback = (evaluation.feedback || "").trim();
+  const correctionNote = `${auditHeader}\nReason: ${reason}\nExplanation: ${explanation}\nSubmitted At: ${requestedAt}`;
+
+  const updatedFeedback = existingFeedback
+    ? `${existingFeedback}\n\n${correctionNote}`
+    : correctionNote;
+
+  const { error: updateErr } = await admin
+    .from("judging_evaluations")
+    .update({
+      feedback: updatedFeedback,
+      updated_at: requestedAt,
+    })
+    .eq("id", evaluation.id);
+
+  if (updateErr) {
+    console.error("[Judge API] Error persisting correction request:", updateErr.message);
+    throw new Error("Failed to record correction request in database.");
+  }
+
+  return {
+    success: true,
+    message: "Correction request registered successfully. Awaiting Phase 4 Admin review.",
+    requestId,
+    requestedAt,
+    status: "pending_admin_approval",
   };
 }
 

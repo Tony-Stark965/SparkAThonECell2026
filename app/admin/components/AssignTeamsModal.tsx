@@ -1,8 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { JudgeWithDetails, Judge, RegistrationRecord, JudgeTeamAssignment } from "@/lib/supabase/types";
-import { X, Loader2, AlertCircle, CheckSquare, Square, Layers, Search, ShieldCheck } from "lucide-react";
+import type {
+  JudgeWithDetails,
+  Judge,
+  RegistrationRecord,
+  JudgeTeamAssignment,
+  OfficialDomain,
+} from "@/lib/supabase/types";
+import { OFFICIAL_DOMAIN_CAPACITIES } from "@/lib/supabase/types";
+import {
+  X,
+  Loader2,
+  AlertCircle,
+  CheckSquare,
+  Square,
+  Layers,
+  Search,
+  ShieldCheck,
+  UserCheck,
+} from "lucide-react";
 
 interface AssignTeamsModalProps {
   judge: JudgeWithDetails | Judge;
@@ -18,35 +35,74 @@ export function AssignTeamsModal({
   onSuccess,
 }: AssignTeamsModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [otherAssignments, setOtherAssignments] = useState<
+    Map<string, { judgeId: string; judgeName: string }>
+  >(new Map());
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Domain capacity limit
+  const domainCapacity =
+    OFFICIAL_DOMAIN_CAPACITIES[judge.domain as OfficialDomain] || 10;
+
   // Filter registrations strictly by the judge's domain
   const domainTeams = registrations.filter(
-    (r) => (r.domain || "").trim().toLowerCase() === judge.domain.trim().toLowerCase()
+    (r) =>
+      (r.domain || "").trim().toLowerCase() ===
+      judge.domain.trim().toLowerCase()
   );
 
   // Fetch current assignments on mount
   useEffect(() => {
     let isMounted = true;
-    async function fetchAssignments() {
+    async function fetchAssignmentsAndJudges() {
       setIsLoadingAssignments(true);
       setError(null);
       try {
-        const res = await fetch(`/api/admin/assignments?judgeId=${judge.id}`);
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.error || "Failed to load current assignments.");
-        }
+        const [assignRes, judgesRes] = await Promise.all([
+          fetch(`/api/admin/assignments`),
+          fetch(`/api/admin/judges`),
+        ]);
+
+        const [assignData, judgesData] = await Promise.all([
+          assignRes.json(),
+          judgesRes.json(),
+        ]);
+
         if (isMounted) {
-          const ids = new Set<string>((data.assignments || []).map((a: JudgeTeamAssignment) => a.registration_id));
-          setSelectedIds(ids);
+          const allJudges = (judgesData.judges || []) as Judge[];
+          const judgeMap = new Map(allJudges.map((j) => [j.id, j.name]));
+
+          const myIds = new Set<string>();
+          const otherMap = new Map<
+            string,
+            { judgeId: string; judgeName: string }
+          >();
+
+          for (const a of (assignData.assignments ||
+            []) as JudgeTeamAssignment[]) {
+            if (a.judge_id === judge.id) {
+              myIds.add(a.registration_id);
+            } else {
+              otherMap.set(a.registration_id, {
+                judgeId: a.judge_id,
+                judgeName: judgeMap.get(a.judge_id) || "Another Judge",
+              });
+            }
+          }
+
+          setSelectedIds(myIds);
+          setOtherAssignments(otherMap);
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err.message : "Failed to load assignments.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load assignments directory."
+          );
         }
       } finally {
         if (isMounted) {
@@ -55,7 +111,7 @@ export function AssignTeamsModal({
       }
     }
 
-    fetchAssignments();
+    fetchAssignmentsAndJudges();
     return () => {
       isMounted = false;
     };
@@ -124,7 +180,9 @@ export function AssignTeamsModal({
       onSuccess(data.count ?? selectedIds.size);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save team assignments.");
+      setError(
+        err instanceof Error ? err.message : "Failed to save team assignments."
+      );
       setIsSaving(false);
     }
   };
@@ -177,15 +235,23 @@ export function AssignTeamsModal({
             </button>
           </div>
 
-          {/* Judge Context Summary */}
-          <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-xs">
-            <span className="text-white font-semibold">{judge.name}</span>
-            <span className="text-neutral-500">•</span>
-            <span className="text-neutral-400">{judge.email}</span>
-            <span className="text-neutral-500">•</span>
-            <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 font-medium">
-              Domain: {judge.domain}
-            </span>
+          {/* Judge Context Summary & Domain Capacity */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 font-mono text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-white font-semibold">{judge.name}</span>
+              <span className="text-neutral-500">•</span>
+              <span className="text-neutral-400">{judge.email}</span>
+              <span className="text-neutral-500">•</span>
+              <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 font-medium">
+                {judge.domain}
+              </span>
+            </div>
+
+            <div className="px-2.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-neutral-300 text-[11px]">
+              Sector Capacity:{" "}
+              <strong className="text-amber-400">{domainTeams.length}</strong> /{" "}
+              {domainCapacity} Squads
+            </div>
           </div>
         </div>
 
@@ -241,9 +307,12 @@ export function AssignTeamsModal({
           ) : domainTeams.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-neutral-400 font-mono text-xs space-y-2">
               <Layers className="w-8 h-8 text-neutral-600 mx-auto" />
-              <p className="text-neutral-300 font-medium">No Squads Registered in This Domain</p>
+              <p className="text-neutral-300 font-medium">
+                No Squads Registered in This Domain
+              </p>
               <p className="text-neutral-500 text-[11px] max-w-sm">
-                There are currently no teams registered under the &quot;{judge.domain}&quot; domain.
+                There are currently no teams registered under the &quot;
+                {judge.domain}&quot; domain.
               </p>
             </div>
           ) : filteredTeams.length === 0 ? (
@@ -254,6 +323,8 @@ export function AssignTeamsModal({
             <div className="space-y-2">
               {filteredTeams.map((team) => {
                 const isSelected = selectedIds.has(team.id);
+                const other = otherAssignments.get(team.id);
+
                 return (
                   <div
                     key={team.id}
@@ -290,6 +361,11 @@ export function AssignTeamsModal({
                     </div>
 
                     <div className="shrink-0 flex items-center gap-2">
+                      {other && !isSelected && (
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-neutral-900 border border-neutral-700 text-neutral-400">
+                          Assigned to: {other.judgeName}
+                        </span>
+                      )}
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${
                           team.payment_status === "completed"
@@ -308,35 +384,36 @@ export function AssignTeamsModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-neutral-800 flex items-center justify-between gap-3 shrink-0 font-mono text-xs">
-          <div className="text-neutral-400 text-[11px] hidden sm:block">
-            {selectedIds.size} team{selectedIds.size === 1 ? "" : "s"} allocated to {judge.name}
+        <div className="p-4 sm:p-6 border-t border-neutral-800 bg-[#0d0c0a] flex items-center justify-between shrink-0 font-mono text-xs">
+          <div className="flex items-center gap-2 text-neutral-400 text-[11px]">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Domain boundary safety active: only {judge.domain} teams displayed.</span>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isSaving}
               className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 font-medium transition-colors disabled:opacity-50 cursor-pointer"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={isSaving || isLoadingAssignments}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.2)]"
             >
               {isSaving ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>SAVING...</span>
+                  <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>SAVE ASSIGNMENTS ({selectedIds.size})</span>
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Save Assignments ({selectedIds.size})</span>
                 </>
               )}
             </button>

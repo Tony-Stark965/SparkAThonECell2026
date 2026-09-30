@@ -75,9 +75,9 @@ export const SPARKATHON_CONFIG = {
     maxTeams: {
       "AI and Cybersec": 12,
       "Smart Energy Systems": 10,
-      "Robotics or Drone and Fixed Wing": 6,
-      "IoT or Embedded Systems": 10,
-      "Open Innovation": 12,
+      "Robotics or Drone and Fixed Wing": 5,
+      "IoT or Embedded Systems": 8,
+      "Open Innovation": 15,
     } as Record<string, number>,
   },
 

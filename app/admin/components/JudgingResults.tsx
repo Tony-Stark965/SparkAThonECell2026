@@ -70,8 +70,9 @@ export function JudgingResults() {
     };
   }, [selectedDomain]);
 
-  // Evaluated teams and top-ranked winner
-  const evaluatedTeams = results.filter((r) => r.evaluation_count > 0);
+  // Safe results array guard
+  const safeResults = Array.isArray(results) ? results : [];
+  const evaluatedTeams = safeResults.filter((r) => r && r.evaluation_count > 0);
   const topTeam = evaluatedTeams.length > 0 ? evaluatedTeams[0] : null;
 
   return (
@@ -217,7 +218,7 @@ export function JudgingResults() {
               <div className="flex items-center gap-2">
                 <Medal className="w-4 h-4 text-amber-400" />
                 <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-                  Official Domain Leaderboard ({results.length} Squads)
+                  Official Domain Leaderboard ({safeResults.length} Squads)
                 </h3>
               </div>
               <span className="font-mono text-xs text-neutral-400">
@@ -239,7 +240,7 @@ export function JudgingResults() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
-                  {results.map((team, idx) => {
+                  {safeResults.map((team, idx) => {
                     const hasEvaluations = team.evaluation_count > 0;
                     const rankDisplay = hasEvaluations ? `#${team.rank}` : `—`;
                     const totalScore = team.evaluations.reduce((s, e) => s + e.total_score, 0);

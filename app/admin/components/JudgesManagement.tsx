@@ -380,15 +380,28 @@ export function JudgesManagement({ registrations }: JudgesManagementProps) {
                       key={judge.id}
                       className="hover:bg-neutral-900/40 transition-colors group"
                     >
-                      {/* Name & Email */}
+                      {/* Name, Email, & Auth Status */}
                       <td className="py-4 px-4">
                         <div className="space-y-0.5">
                           <span className="font-bold text-white block text-sm">
                             {judge.name}
                           </span>
-                          <span className="text-neutral-400 text-[11px]">
+                          <span className="text-neutral-400 text-[11px] block">
                             {judge.email}
                           </span>
+                          <div className="flex items-center gap-2 pt-0.5 text-[10px]">
+                            {judge.auth_user_id ? (
+                              <span className="inline-flex items-center gap-1 text-emerald-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                Auth Identity Linked
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-neutral-500">
+                                <span className="w-1.5 h-1.5 rounded-full bg-neutral-600" />
+                                Auth Identity Pending
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
 

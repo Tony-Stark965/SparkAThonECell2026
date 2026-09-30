@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, email, domain, is_active } = body;
+    const { name, email, domain, is_active, password } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json(
@@ -82,17 +82,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const judge = await createJudge({
+    const judgeResult = await createJudge({
       name,
       email,
       domain,
       is_active: is_active !== undefined ? Boolean(is_active) : true,
+      password: typeof password === "string" ? password : undefined,
     });
 
     return NextResponse.json({
       success: true,
-      message: `Judge '${judge.name}' successfully registered for domain '${judge.domain}'.`,
-      judge,
+      message: `Judge '${judgeResult.name}' successfully registered for domain '${judgeResult.domain}'.`,
+      judge: judgeResult,
+      credentials: {
+        email: judgeResult.email,
+        password: judgeResult.initialPassword,
+      },
     });
   } catch (error) {
     console.error("[Admin Judges POST Route Error]:", error);

@@ -164,6 +164,29 @@ export const OFFICIAL_DOMAINS = [
 
 export type OfficialDomain = (typeof OFFICIAL_DOMAINS)[number];
 
+export const OFFICIAL_DOMAIN_CAPACITIES: Record<OfficialDomain, number> = {
+  "AI and Cybersec": 12,
+  "Smart Energy Systems": 10,
+  "Robotics or Drone and Fixed Wing": 5,
+  "IoT or Embedded Systems": 8,
+  "Open Innovation": 15,
+};
+
+export const TOTAL_OFFICIAL_CAPACITY = 50;
+
+export interface DomainCapacityStats {
+  domain: OfficialDomain;
+  registered: number;
+  capacity: number;
+  percentage: number;
+  slotsRemaining: number;
+  isFull: boolean;
+  isOverCapacity: boolean;
+  paidCount: number;
+  pendingCount: number;
+  revenue: number;
+}
+
 // ============================================================
 // JUDGING SYSTEM TYPES & INTERFACES
 // ============================================================
@@ -306,3 +329,85 @@ export const DEFAULT_RUBRIC_CRITERIA = [
     sort_order: 5,
   },
 ] as const;
+
+// ============================================================
+// CORRECTION REQUESTS (PHASE 4 DEDICATED ARCHITECTURE)
+// ============================================================
+
+export type CorrectionRequestStatus = "pending" | "approved" | "rejected" | "completed";
+
+export interface JudgingCorrectionRequest {
+  id: string;
+  evaluation_id: string;
+  judge_id: string;
+  registration_id: string;
+  reason: string;
+  explanation: string;
+  status: CorrectionRequestStatus;
+  original_total_score?: number | null;
+  original_scores_snapshot?: Record<string, number> | null;
+  revised_total_score?: number | null;
+  revised_scores_snapshot?: Record<string, number> | null;
+  admin_notes?: string | null;
+  reviewed_by?: string | null;
+  requested_at: string;
+  reviewed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  // Enriched relational attributes for display
+  judge_name?: string;
+  judge_email?: string;
+  team_name?: string;
+  college?: string;
+  domain?: string;
+}
+
+/**
+ * Computes live domain capacity statistics across all official domains
+ */
+export function calculateDomainCapacityStats(
+  registrations: RegistrationRecord[]
+): Record<OfficialDomain, DomainCapacityStats> {
+  const result = {} as Record<OfficialDomain, DomainCapacityStats>;
+
+  for (const domain of OFFICIAL_DOMAINS) {
+    const capacity = OFFICIAL_DOMAIN_CAPACITIES[domain];
+    const squads = registrations.filter(
+      (r) => (r.domain || "").trim().toLowerCase() === domain.toLowerCase()
+    );
+    const registered = squads.length;
+    const percentage = capacity > 0 ? Math.round((registered / capacity) * 100) : 0;
+    const slotsRemaining = Math.max(0, capacity - registered);
+    const isFull = registered >= capacity;
+    const isOverCapacity = registered > capacity;
+
+    let paidCount = 0;
+    let pendingCount = 0;
+    let revenue = 0;
+
+    for (const sq of squads) {
+      const pStatus = (sq.payment_status || "").trim().toLowerCase();
+      if (pStatus === "completed" || pStatus === "paid") {
+        paidCount++;
+        revenue += Number(sq.registration_fee) || 0;
+      } else {
+        pendingCount++;
+      }
+    }
+
+    result[domain] = {
+      domain,
+      registered,
+      capacity,
+      percentage,
+      slotsRemaining,
+      isFull,
+      isOverCapacity,
+      paidCount,
+      pendingCount,
+      revenue,
+    };
+  }
+
+  return result;
+}

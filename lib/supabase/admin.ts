@@ -22,6 +22,9 @@ import type {
   JudgingProgressStats,
   TeamEvaluationSummary,
   TeamResultRank,
+  JudgingCorrectionRequest,
+  CorrectionRequestStatus,
+  DomainCapacityStats,
 } from "./types";
 import {
   PROTECTED_QA_IDS,
@@ -47,13 +50,19 @@ export type {
   JudgingProgressStats,
   TeamEvaluationSummary,
   TeamResultRank,
+  JudgingCorrectionRequest,
+  CorrectionRequestStatus,
+  DomainCapacityStats,
 };
 export {
   calculateRegistrationStats,
   calculateAttendanceSummary,
   calculateRegistrationFee,
+  calculateDomainCapacityStats,
   PROTECTED_QA_IDS,
   OFFICIAL_DOMAINS,
+  OFFICIAL_DOMAIN_CAPACITIES,
+  TOTAL_OFFICIAL_CAPACITY,
   DEFAULT_RUBRIC_CRITERIA,
 } from "./types";
 
@@ -650,14 +659,16 @@ export async function getJudges(): Promise<JudgeWithDetails[]> {
 
 /**
  * Server-only judge creator.
- * Validates domain against official allowlist and registers a new judge.
+ * Validates domain against official allowlist, provisions Supabase Auth user,
+ * and registers judge record with linked auth_user_id.
  */
 export async function createJudge(payload: {
   name: string;
   email: string;
   domain: string;
   is_active?: boolean;
-}): Promise<Judge> {
+  password?: string;
+}): Promise<Judge & { initialPassword?: string }> {
   const supabase = getAdminClient();
 
   const name = payload.name.trim();
@@ -678,11 +689,51 @@ export async function createJudge(payload: {
     throw new Error(`Invalid technical domain. Must be one of: ${OFFICIAL_DOMAINS.join(", ")}`);
   }
 
+  // Provision or link Supabase Auth user
+  let authUserId: string | null = null;
+  const initialPassword =
+    payload.password?.trim() || `SparkJudge2026!${Math.random().toString(36).slice(2, 6)}`;
+
+  try {
+    const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+      email,
+      password: initialPassword,
+      email_confirm: true,
+      user_metadata: {
+        name,
+        role: "judge",
+        domain: matchedDomain,
+      },
+    });
+
+    if (userError) {
+      // User might already exist in auth.users
+      const { data: listData } = await supabase.auth.admin.listUsers();
+      const existing = (listData?.users || []).find(
+        (u) => (u.email || "").toLowerCase() === email
+      );
+      if (existing) {
+        authUserId = existing.id;
+        await supabase.auth.admin.updateUserById(existing.id, {
+          user_metadata: { name, role: "judge", domain: matchedDomain },
+          password: payload.password?.trim() || undefined,
+        });
+      } else {
+        console.warn("[Admin API] Notice: Could not provision auth user:", userError.message);
+      }
+    } else if (userData?.user) {
+      authUserId = userData.user.id;
+    }
+  } catch (authErr) {
+    console.warn("[Admin API] Supabase auth provisioning notice:", authErr);
+  }
+
   const { data, error } = await supabase
     .from("judges")
     .insert({
       name,
       email,
+      auth_user_id: authUserId,
       domain: matchedDomain,
       is_active: payload.is_active ?? true,
       created_at: new Date().toISOString(),
@@ -698,11 +749,16 @@ export async function createJudge(payload: {
     throw new Error(`Failed to create judge: ${error?.message || "Unknown error"}`);
   }
 
-  return data as Judge;
+  return {
+    ...(data as Judge),
+    initialPassword,
+  };
 }
 
 /**
  * Server-only judge updater.
+ * Updates judge properties and synchronizes metadata with auth.users if linked.
+ * Preserves historical assignments and evaluations if deactivated.
  */
 export async function updateJudge(
   id: string,
@@ -758,7 +814,29 @@ export async function updateJudge(
     throw new Error(`Failed to update judge: ${error?.message || "Record not found"}`);
   }
 
-  return data as Judge;
+  const updatedJudge = data as Judge;
+
+  // Sync auth user metadata if auth_user_id exists
+  if (updatedJudge.auth_user_id) {
+    try {
+      const authUpdates: Record<string, unknown> = {};
+      if (payload.email) authUpdates.email = payload.email;
+      if (payload.name || payload.domain) {
+        authUpdates.user_metadata = {
+          name: updatedJudge.name,
+          domain: updatedJudge.domain,
+          role: "judge",
+        };
+      }
+      if (Object.keys(authUpdates).length > 0) {
+        await supabase.auth.admin.updateUserById(updatedJudge.auth_user_id, authUpdates);
+      }
+    } catch (syncErr) {
+      console.warn("[Admin API] Auth user metadata sync notice:", syncErr);
+    }
+  }
+
+  return updatedJudge;
 }
 
 /**
@@ -1257,4 +1335,258 @@ export async function getJudgingResults(
     console.warn("[Admin API] Failed to fetch judging results:", err);
     return {};
   }
+}
+
+// ============================================================
+// CORRECTION REQUESTS GOVERNANCE (SERVER-ONLY)
+// ============================================================
+
+/**
+ * Server-only correction requests fetcher.
+ * Retrieves all correction requests enriched with Judge and Registration details.
+ * Gracefully falls back if table is not yet migrated in PostgreSQL.
+ */
+export async function getCorrectionRequests(): Promise<JudgingCorrectionRequest[]> {
+  const supabase = getAdminClient();
+
+  try {
+    // 1. Try querying public.judging_correction_requests
+    const { data, error } = await supabase
+      .from("judging_correction_requests")
+      .select("*")
+      .order("requested_at", { ascending: false });
+
+    if (!error && Array.isArray(data) && data.length > 0) {
+      // Enrich with judge and registration metadata
+      const [{ data: judges }, { data: regs }] = await Promise.all([
+        supabase.from("judges").select("id, name, email, domain"),
+        supabase.from("registrations").select("id, team_name, college, domain"),
+      ]);
+
+      const judgeMap = new Map((judges || []).map((j) => [j.id, j]));
+      const regMap = new Map((regs || []).map((r) => [r.id, r]));
+
+      return data.map((cr) => {
+        const j = judgeMap.get(cr.judge_id);
+        const r = regMap.get(cr.registration_id);
+        return {
+          ...cr,
+          judge_name: j?.name || "Judge",
+          judge_email: j?.email || "",
+          team_name: r?.team_name || "Team",
+          college: r?.college || "",
+          domain: r?.domain || j?.domain || "",
+        };
+      });
+    }
+
+    // Fallback: Parse from judging_evaluations feedback
+    const { data: evaluations } = await supabase
+      .from("judging_evaluations")
+      .select("*")
+      .like("feedback", "%[CORRECTION REQUEST:%");
+
+    if (evaluations && evaluations.length > 0) {
+      const [{ data: judges }, { data: regs }] = await Promise.all([
+        supabase.from("judges").select("id, name, email, domain"),
+        supabase.from("registrations").select("id, team_name, college, domain"),
+      ]);
+
+      const judgeMap = new Map((judges || []).map((j) => [j.id, j]));
+      const regMap = new Map((regs || []).map((r) => [r.id, r]));
+
+      const parsed: JudgingCorrectionRequest[] = [];
+
+      for (const ev of evaluations) {
+        const feedback = ev.feedback || "";
+        const match = feedback.match(
+          /\[CORRECTION REQUEST: (CORR-[^\]]+)\]\s*\nReason: ([^\r\n]*)\nExplanation: ([\s\S]*?)(?:\nSubmitted At: ([^\r\n]*))?(?:\nAdmin Note: ([^\r\n]*))?(?:\nStatus: ([^\r\n]*))?(?:$|\n\n)/
+        );
+
+        const requestId = match ? match[1] : `CORR-${ev.id.slice(0, 8)}`;
+        const reason = match ? match[2] : "Score discrepancy";
+        const explanation = match ? match[3] : "Judge requested re-evaluation";
+        const requestedAt = match && match[4] ? match[4] : ev.updated_at || ev.created_at;
+        const adminNotes = match && match[5] ? match[5] : null;
+        let status: CorrectionRequestStatus = "pending";
+        if (ev.status === "in_progress") {
+          status = "approved";
+        } else if (match && match[6]) {
+          status = match[6] as CorrectionRequestStatus;
+        }
+
+        const j = judgeMap.get(ev.judge_id);
+        const r = regMap.get(ev.registration_id);
+
+        parsed.push({
+          id: requestId,
+          evaluation_id: ev.id,
+          judge_id: ev.judge_id,
+          registration_id: ev.registration_id,
+          reason,
+          explanation,
+          status,
+          original_total_score: ev.total_score,
+          admin_notes: adminNotes,
+          requested_at: requestedAt,
+          created_at: ev.created_at,
+          updated_at: ev.updated_at,
+          judge_name: j?.name || "Judge",
+          judge_email: j?.email || "",
+          team_name: r?.team_name || "Team",
+          college: r?.college || "",
+          domain: r?.domain || j?.domain || "",
+        });
+      }
+
+      return parsed.sort(
+        (a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime()
+      );
+    }
+
+    return [];
+  } catch (err) {
+    console.warn("[Admin API] Failed to fetch correction requests:", err);
+    return [];
+  }
+}
+
+/**
+ * Server-only correction request approver.
+ * 1. Sets correction request status = 'approved'.
+ * 2. Unlocks evaluation: status = 'in_progress', allowing the judge to update scores.
+ */
+export async function approveCorrectionRequest(
+  requestId: string,
+  adminNotes?: string,
+  adminEmail?: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = getAdminClient();
+  const reviewedAt = new Date().toISOString();
+
+  // Try updating public.judging_correction_requests first
+  let evalId: string | null = null;
+  const { data: cr } = await supabase
+    .from("judging_correction_requests")
+    .select("evaluation_id")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (cr) {
+    evalId = cr.evaluation_id;
+    await supabase
+      .from("judging_correction_requests")
+      .update({
+        status: "approved",
+        admin_notes: adminNotes || null,
+        reviewed_by: adminEmail || "Admin",
+        reviewed_at: reviewedAt,
+        updated_at: reviewedAt,
+      })
+      .eq("id", requestId);
+  }
+
+  // If not found in table, search evaluations feedback
+  if (!evalId) {
+    const { data: evals } = await supabase
+      .from("judging_evaluations")
+      .select("id, feedback")
+      .like("feedback", `%${requestId}%`);
+
+    if (evals && evals.length > 0) {
+      evalId = evals[0].id;
+      const existingFb = evals[0].feedback || "";
+      const updatedFb = `${existingFb}\nAdmin Note: ${adminNotes || "Approved by Admin"}\nStatus: approved\nReviewed At: ${reviewedAt}`;
+      await supabase
+        .from("judging_evaluations")
+        .update({ feedback: updatedFb })
+        .eq("id", evalId);
+    }
+  }
+
+  if (!evalId) {
+    // If requestId is actually an evaluation ID
+    const { data: ev } = await supabase
+      .from("judging_evaluations")
+      .select("id")
+      .eq("id", requestId)
+      .maybeSingle();
+    if (ev) evalId = ev.id;
+  }
+
+  if (!evalId) {
+    throw new Error("Target evaluation for correction request could not be located.");
+  }
+
+  // Reopen evaluation session: status moves from 'submitted' back to 'in_progress'
+  const { error: evalUpdateErr } = await supabase
+    .from("judging_evaluations")
+    .update({
+      status: "in_progress",
+      updated_at: reviewedAt,
+    })
+    .eq("id", evalId);
+
+  if (evalUpdateErr) {
+    throw new Error(`Failed to reopen evaluation session: ${evalUpdateErr.message}`);
+  }
+
+  return {
+    success: true,
+    message: "Correction request approved. Evaluation session unlocked for judge re-scoring.",
+  };
+}
+
+/**
+ * Server-only correction request rejector.
+ * 1. Sets correction request status = 'rejected'.
+ * 2. Leaves evaluation status = 'submitted' (locked).
+ */
+export async function rejectCorrectionRequest(
+  requestId: string,
+  adminNotes?: string,
+  adminEmail?: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = getAdminClient();
+  const reviewedAt = new Date().toISOString();
+
+  // Try updating public.judging_correction_requests first
+  const { data: cr } = await supabase
+    .from("judging_correction_requests")
+    .select("id")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (cr) {
+    await supabase
+      .from("judging_correction_requests")
+      .update({
+        status: "rejected",
+        admin_notes: adminNotes || null,
+        reviewed_by: adminEmail || "Admin",
+        reviewed_at: reviewedAt,
+        updated_at: reviewedAt,
+      })
+      .eq("id", requestId);
+  } else {
+    // Fallback: update evaluation feedback
+    const { data: evals } = await supabase
+      .from("judging_evaluations")
+      .select("id, feedback")
+      .like("feedback", `%${requestId}%`);
+
+    if (evals && evals.length > 0) {
+      const existingFb = evals[0].feedback || "";
+      const updatedFb = `${existingFb}\nAdmin Note: ${adminNotes || "Rejected by Admin"}\nStatus: rejected\nReviewed At: ${reviewedAt}`;
+      await supabase
+        .from("judging_evaluations")
+        .update({ feedback: updatedFb })
+        .eq("id", evals[0].id);
+    }
+  }
+
+  return {
+    success: true,
+    message: "Correction request rejected. Evaluation remains permanently locked.",
+  };
 }

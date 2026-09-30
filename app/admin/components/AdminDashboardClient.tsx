@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type {
   RegistrationRecord,
@@ -18,6 +18,7 @@ import { JudgesManagement } from "./JudgesManagement";
 import { RubricsManagement } from "./RubricsManagement";
 import { JudgingOverview } from "./JudgingOverview";
 import { JudgingResults } from "./JudgingResults";
+import { AdminCorrectionsQueue } from "./AdminCorrectionsQueue";
 import {
   LogOut,
   RefreshCw,
@@ -33,6 +34,7 @@ import {
   Award,
   Activity,
   Trophy,
+  FileEdit,
 } from "lucide-react";
 
 interface AdminDashboardClientProps {
@@ -50,7 +52,8 @@ type ActiveTab =
   | "JUDGES"
   | "RUBRICS"
   | "JUDGING"
-  | "RESULTS";
+  | "RESULTS"
+  | "CORRECTIONS";
 
 export function AdminDashboardClient({
   initialRegistrations,
@@ -67,6 +70,38 @@ export function AdminDashboardClient({
   const [selectedRegistrationDomain, setSelectedRegistrationDomain] =
     useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pendingCorrectionsCount, setPendingCorrectionsCount] = useState(0);
+
+  // Fetch pending corrections count
+  const fetchPendingCorrections = async () => {
+    try {
+      const res = await fetch("/api/admin/corrections", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.stats) {
+          setPendingCorrectionsCount(data.stats.pending || 0);
+        }
+      }
+    } catch {
+      // Graceful fallback
+    }
+  };
+
+  useEffect(() => {
+    let isSubscribed = true;
+    fetch("/api/admin/corrections", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (isSubscribed && data.success && data.stats) {
+          setPendingCorrectionsCount(data.stats.pending || 0);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, []);
 
   // Initialize attendance map from server records
   const [attendanceMap, setAttendanceMap] = useState<
@@ -88,10 +123,7 @@ export function AdminDashboardClient({
     const count = matching.length;
     const max = domainConfig.maxTeams;
     const capacityPercent = Math.min(100, Math.round((count / max) * 100));
-    const percentage =
-      registrations.length > 0
-        ? Math.round((count / registrations.length) * 100)
-        : 0;
+    const percentage = capacityPercent;
     const isFull = count >= max;
     const slotsRemaining = Math.max(0, max - count);
 
@@ -161,6 +193,7 @@ export function AdminDashboardClient({
           setRegistrations(data.registrations);
         }
       }
+      await fetchPendingCorrections();
       router.refresh();
     } catch (err) {
       console.warn("Could not sync registrations:", err);
@@ -331,6 +364,23 @@ export function AdminDashboardClient({
         >
           <Trophy className="w-3.5 h-3.5" />
           <span>RESULTS &amp; RANKINGS</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("CORRECTIONS")}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+            activeTab === "CORRECTIONS"
+              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+          }`}
+        >
+          <FileEdit className="w-3.5 h-3.5" />
+          <span>CORRECTIONS</span>
+          {pendingCorrectionsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-bold animate-pulse">
+              {pendingCorrectionsCount}
+            </span>
+          )}
         </button>
       </nav>
 
@@ -633,6 +683,16 @@ export function AdminDashboardClient({
             Domain Results &amp; Rankings Leaderboard
           </h2>
           <JudgingResults />
+        </section>
+      )}
+
+      {/* Tab 8: CORRECTIONS DISPATCH & AUDIT */}
+      {activeTab === "CORRECTIONS" && (
+        <section aria-labelledby="corrections-heading">
+          <h2 id="corrections-heading" className="sr-only">
+            Judging Score Corrections Queue
+          </h2>
+          <AdminCorrectionsQueue />
         </section>
       )}
     </div>
