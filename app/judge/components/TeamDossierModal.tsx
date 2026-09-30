@@ -14,6 +14,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { TeamTimerWidget } from "./TeamTimerWidget";
 
 interface TeamDossierModalProps {
   team: JudgeAssignedTeam | null;
@@ -160,6 +161,14 @@ export function TeamDossierModal({ team, onClose }: TeamDossierModalProps) {
               <p className="text-neutral-500 italic">No additional participants recorded.</p>
             )}
           </div>
+        </div>
+
+        {/* Presentation Pitch Timer & Controls */}
+        <div className="pt-2">
+          <TeamTimerWidget
+            teamId={team.id}
+            teamStatus={team.status}
+          />
         </div>
 
         {/* Modal Action Footer */}

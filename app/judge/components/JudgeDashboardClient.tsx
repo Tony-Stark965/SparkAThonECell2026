@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { Judge, JudgeAssignedTeam, JudgeDashboardStats } from "@/lib/supabase/judge";
 import { TeamDossierModal } from "./TeamDossierModal";
+import { TeamTimerWidget } from "./TeamTimerWidget";
 import {
   Gavel,
   Shield,
@@ -56,6 +57,24 @@ export function JudgeDashboardClient({
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleTeamStatusChange = (
+    teamId: string,
+    newStatus: "standby" | "in_progress" | "submitted"
+  ) => {
+    setTeams((prev) => {
+      const updated = prev.map((t) => (t.id === teamId ? { ...t, status: newStatus } : t));
+      const completed = updated.filter((t) => t.status === "submitted").length;
+      const inProgress = updated.filter((t) => t.status === "in_progress").length;
+      setStats((prevStats) => ({
+        ...prevStats,
+        completed,
+        inProgress,
+        remaining: Math.max(0, updated.length - completed),
+      }));
+      return updated;
+    });
   };
 
   const filteredTeams = useMemo(() => {
@@ -317,6 +336,16 @@ export function JudgeDashboardClient({
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Presentation Pitch Timer & Controls (Start / Stop / Reset) */}
+                <div className="mt-4 pt-3 border-t border-neutral-900/60">
+                  <TeamTimerWidget
+                    teamId={team.id}
+                    teamStatus={team.status}
+                    onStatusChange={(newStatus) => handleTeamStatusChange(team.id, newStatus)}
+                    compact
+                  />
                 </div>
 
                 {/* Team Card Actions */}

@@ -517,6 +517,63 @@ export async function startJudgingSession(
 }
 
 /**
+ * Server-only reset session handler.
+ * Resets an in-progress or draft evaluation session back to standby.
+ * Submitted evaluations cannot be reset.
+ */
+export async function resetJudgingSession(
+  judgeId: string,
+  registrationId: string
+): Promise<{ success: boolean; message: string }> {
+  const admin = getAdminClient();
+
+  // 1. Verify judge assignment
+  const { data: assignment, error: assignErr } = await admin
+    .from("judge_team_assignments")
+    .select("id")
+    .eq("judge_id", judgeId)
+    .eq("registration_id", registrationId)
+    .maybeSingle();
+
+  if (assignErr || !assignment) {
+    throw new Error("Unauthorized: You are not assigned to evaluate this team.");
+  }
+
+  // 2. Fetch existing evaluation
+  const { data: existingEval, error: fetchErr } = await admin
+    .from("judging_evaluations")
+    .select("id, status")
+    .eq("judge_id", judgeId)
+    .eq("registration_id", registrationId)
+    .maybeSingle();
+
+  if (fetchErr) {
+    throw new Error(`Failed to check evaluation status: ${fetchErr.message}`);
+  }
+
+  if (!existingEval) {
+    return { success: true, message: "No active evaluation session found." };
+  }
+
+  if (existingEval.status === "submitted") {
+    throw new Error("Cannot reset an evaluation that has already been submitted and locked.");
+  }
+
+  // 3. Clear draft scores and remove the unsubmitted evaluation
+  await admin.from("judging_scores").delete().eq("evaluation_id", existingEval.id);
+  const { error: deleteErr } = await admin
+    .from("judging_evaluations")
+    .delete()
+    .eq("id", existingEval.id);
+
+  if (deleteErr) {
+    throw new Error(`Failed to reset evaluation session: ${deleteErr.message}`);
+  }
+
+  return { success: true, message: "Evaluation session reset to standby successfully." };
+}
+
+/**
  * Server-only draft save handler.
  * Saves rubric scores and judge feedback without finalizing.
  * Calculates total score authoritative on the server.

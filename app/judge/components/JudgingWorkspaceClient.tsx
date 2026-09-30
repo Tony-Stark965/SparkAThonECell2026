@@ -20,7 +20,11 @@ import {
   ChevronUp,
   Loader2,
   Lock,
+  Play,
+  Square,
+  RotateCcw,
 } from "lucide-react";
+import { useTeamTimer } from "@/lib/hooks/useTeamTimer";
 
 interface JudgingWorkspaceClientProps {
   initialDossier: JudgeTeamDossier;
@@ -76,56 +80,43 @@ export function JudgingWorkspaceClient({
     return sum;
   }, 0);
 
-  // 10-Minute Timer Logic
-  // Total duration: 10 minutes (600 seconds)
-  const TOTAL_DURATION_SECONDS = 600;
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(() => {
-    if (isSubmitted) return 0;
-    if (!evaluation.started_at) return TOTAL_DURATION_SECONDS;
-
-    const startTime = new Date(evaluation.started_at).getTime();
-    const elapsedSeconds = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
-    return Math.max(0, TOTAL_DURATION_SECONDS - elapsedSeconds);
-  });
-
-  // Automatically start evaluation session on first mount if not started
-  useEffect(() => {
-    if (!isSubmitted && !evaluation.started_at) {
-      fetch(`/api/judge/teams/${team.id}/start`, { method: "POST" })
-        .then((res) => res.json())
-        .then((data) => {
+  // Unified 10-Minute Presentation Timer with Start / Stop / Reset controls
+  const timer = useTeamTimer(team.id, {
+    initialStartedAt: evaluation.started_at,
+    isSubmitted,
+    onStart: async () => {
+      if (!isSubmitted && !evaluation.started_at) {
+        try {
+          const res = await fetch(`/api/judge/teams/${team.id}/start`, { method: "POST" });
+          const data = await res.json();
           if (data.success && data.evaluation) {
             setEvaluation(data.evaluation);
           }
-        })
-        .catch((err) => console.error("Error starting judging session:", err));
-    }
-  }, [team.id, isSubmitted, evaluation.started_at]);
+        } catch (err) {
+          console.error("Error starting judging session:", err);
+        }
+      }
+    },
+    onReset: async () => {
+      if (!isSubmitted && evaluation.status === "in_progress") {
+        try {
+          const res = await fetch(`/api/judge/teams/${team.id}/reset`, { method: "POST" });
+          const data = await res.json();
+          if (data.success) {
+            setEvaluation((prev) => ({
+              ...prev,
+              status: "standby" as any,
+              started_at: null,
+            }));
+          }
+        } catch (err) {
+          console.error("Error resetting judging session:", err);
+        }
+      }
+    },
+  });
 
-  // Reliable 10-Minute Countdown Timer
-  useEffect(() => {
-    if (isSubmitted || !evaluation.started_at) return;
-
-    const startTime = new Date(evaluation.started_at).getTime();
-
-    const updateTimer = () => {
-      const elapsed = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
-      const remaining = Math.max(0, TOTAL_DURATION_SECONDS - elapsed);
-      setSecondsRemaining(remaining);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [evaluation.started_at, isSubmitted]);
-
-  // Format MM:SS
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remSecs = secs % 60;
-    return `${mins.toString().padStart(2, "0")}:${remSecs.toString().padStart(2, "0")}`;
-  };
+  const { secondsRemaining, formattedTime, isRunning, isComplete, isWarning } = timer;
 
   // Draft Save Handler
   const handleSaveDraft = useCallback(
@@ -291,23 +282,70 @@ export function JudgingWorkspaceClient({
                   ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-400"
                   : secondsRemaining === 0
                   ? "border-red-500/60 bg-red-950/40 text-red-400 animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-                  : secondsRemaining <= 120
+                  : isWarning
                   ? "border-orange-500/50 bg-orange-950/30 text-orange-400"
-                  : "border-amber-500/40 bg-neutral-950/80 text-amber-400"
+                  : isRunning
+                  ? "border-amber-500/50 bg-amber-950/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+                  : "border-neutral-800 bg-neutral-950/80 text-neutral-300"
               }`}
             >
-              <Clock className="w-5 h-5 shrink-0" />
+              <Clock className={`w-5 h-5 shrink-0 ${isRunning ? "text-amber-400 animate-spin" : ""}`} style={{ animationDuration: "3s" }} />
               <div className="flex flex-col">
                 <span className="text-2xl sm:text-3xl font-black tracking-wider leading-none">
-                  {isSubmitted ? "COMPLETED" : formatTime(secondsRemaining)}
+                  {isSubmitted ? "COMPLETED" : formattedTime}
                 </span>
-                {secondsRemaining === 0 && !isSubmitted && (
+                {isComplete && !isSubmitted && (
                   <span className="text-[10px] uppercase tracking-wider text-red-400 font-bold mt-1">
                     TIME COMPLETE // FINISH EVALUATION
                   </span>
                 )}
               </div>
             </div>
+
+            {/* Start / Stop / Reset Buttons */}
+            {!isSubmitted && (
+              <div className="flex items-center gap-1.5 mt-2 font-mono text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => timer.start()}
+                  disabled={isRunning}
+                  aria-label="Start pitch timer"
+                  className={`flex items-center gap-1 py-1.5 px-3 rounded-lg border transition-all cursor-pointer ${
+                    isRunning
+                      ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-extrabold cursor-default"
+                      : "bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/60 active:scale-95"
+                  }`}
+                >
+                  <Play className={`w-3 h-3 ${isRunning ? "fill-current" : ""}`} />
+                  <span>{isRunning ? "RUNNING" : "START"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => timer.stop()}
+                  disabled={!isRunning}
+                  aria-label="Stop pitch timer"
+                  className={`flex items-center gap-1 py-1.5 px-3 rounded-lg border transition-all cursor-pointer ${
+                    !isRunning
+                      ? "bg-neutral-900/50 border-neutral-800 text-neutral-600 opacity-50 cursor-not-allowed"
+                      : "bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-500/40 hover:border-amber-500/70 active:scale-95"
+                  }`}
+                >
+                  <Square className="w-2.5 h-2.5 fill-current" />
+                  <span>STOP</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => timer.reset()}
+                  aria-label="Reset pitch timer"
+                  className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800 hover:border-neutral-700 transition-all cursor-pointer active:scale-95"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>RESET</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

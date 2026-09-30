@@ -110,6 +110,24 @@ async function main() {
     .select("id, registration_id")
     .eq("judge_id", judgeId);
 
+  // Always ensure Backshot FC is assigned to Demo Judge
+  const { data: backshotTeam } = await supabase
+    .from("registrations")
+    .select("id, team_name")
+    .ilike("team_name", "%Backshot%")
+    .maybeSingle();
+
+  if (backshotTeam) {
+    const isAlreadyAssigned = existingAssignments?.some((a) => a.registration_id === backshotTeam.id);
+    if (!isAlreadyAssigned) {
+      await supabase.from("judge_team_assignments").insert({
+        judge_id: judgeId,
+        registration_id: backshotTeam.id,
+      });
+      console.log(`Assigned "${backshotTeam.team_name}" (${backshotTeam.id}) to Demo Judge.`);
+    }
+  }
+
   if (!existingAssignments || existingAssignments.length === 0) {
     // Look for real registrations in AI and Cybersec domain first
     let { data: realTeams } = await supabase
@@ -129,6 +147,7 @@ async function main() {
 
     if (realTeams && realTeams.length > 0) {
       for (const t of realTeams) {
+        if (t.id === backshotTeam?.id) continue;
         await supabase.from("judge_team_assignments").insert({
           judge_id: judgeId,
           registration_id: t.id,
@@ -139,7 +158,7 @@ async function main() {
       console.log("No registrations found in database to assign.");
     }
   } else {
-    console.log(`Demo Judge already has ${existingAssignments.length} assigned team(s).`);
+    console.log(`Demo Judge has ${existingAssignments.length} assigned team(s).`);
   }
 
   console.log(`[4/4] Verifying rubrics are populated...`);
