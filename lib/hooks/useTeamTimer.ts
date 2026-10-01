@@ -3,21 +3,47 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface StoredTimerState {
-  remaining: number; // seconds
+  remaining: number; // seconds remaining in total session (600 max)
   isRunning: boolean;
   lastStartedAt: number | null; // timestamp ms
-  duration: number; // default 600 (10 min)
+  duration: number; // total duration (default 600 = 10 min)
 }
 
-export type TimerPhase = "normal" | "warning" | "critical" | "time_up";
+export type JudgingPhase = "pitch" | "qa" | "time_ended";
+export type TimerAlertLevel = "normal" | "warning" | "critical" | "time_up";
 
-export const DEFAULT_DURATION = 600; // 10 minutes
+export const TOTAL_SESSION_DURATION = 600; // 10 minutes total
+export const PITCH_DURATION = 480; // 8 minutes pitch
+export const QA_DURATION = 120; // 2 minutes Q&A
+export const DEFAULT_DURATION = TOTAL_SESSION_DURATION;
 
 export function formatPitchTime(seconds: number): string {
   const safeSec = Math.max(0, Math.floor(seconds));
   const mins = Math.floor(safeSec / 60);
   const secs = safeSec % 60;
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
+export function playBeep(freq = 880, duration = 0.25) {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch {
+    // Audio restrictions before user gesture
+  }
 }
 
 function getStorageKey(teamId: string) {
@@ -40,7 +66,7 @@ function readStoredState(teamId: string): StoredTimerState {
       const parsed = JSON.parse(raw);
       if (typeof parsed.remaining === "number") {
         return {
-          remaining: parsed.remaining,
+          remaining: Math.max(0, Math.min(DEFAULT_DURATION, parsed.remaining)),
           isRunning: Boolean(parsed.isRunning),
           lastStartedAt: parsed.lastStartedAt || null,
           duration: parsed.duration || DEFAULT_DURATION,
@@ -88,6 +114,10 @@ export function useTeamTimer(
   });
 
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(() => Date.now());
+  const [showQaTransition, setShowQaTransition] = useState<boolean>(false);
+
+  // Vibration guard ref: ensure vibration fires at most ONCE per session completion
+  const hasVibratedRef = useRef(false);
 
   // Ref to hold the latest timer state safely without mutating during render
   const stateRef = useRef(timerState);
@@ -104,8 +134,33 @@ export function useTeamTimer(
     return Math.max(0, state.remaining - elapsed);
   }, []);
 
-  // Compute live seconds remaining
-  const secondsRemaining = calculateEffectiveRemaining(timerState, currentTimeMs);
+  // Compute live seconds remaining in overall 10-minute session (600 -> 0)
+  const sessionRemaining = calculateEffectiveRemaining(timerState, currentTimeMs);
+
+  // Compute Judging Phase & Phase Remaining Seconds
+  // Phase 1: PITCH (8 minutes = 480s) when sessionRemaining > 120s
+  // Phase 2: Q&A (2 minutes = 120s) when 0 < sessionRemaining <= 120s
+  // Phase 3: TIME ENDED when sessionRemaining === 0
+  let judgingPhase: JudgingPhase = "pitch";
+  let phaseRemaining = 0;
+  let phaseDuration = PITCH_DURATION;
+
+  if (sessionRemaining <= 0) {
+    judgingPhase = "time_ended";
+    phaseRemaining = 0;
+    phaseDuration = QA_DURATION;
+  } else if (sessionRemaining <= QA_DURATION) {
+    judgingPhase = "qa";
+    phaseRemaining = sessionRemaining;
+    phaseDuration = QA_DURATION;
+  } else {
+    judgingPhase = "pitch";
+    phaseRemaining = sessionRemaining - QA_DURATION;
+    phaseDuration = PITCH_DURATION;
+  }
+
+  // Ref to track phase changes and detect exact pitch -> qa transition
+  const prevPhaseRef = useRef<JudgingPhase>(judgingPhase);
 
   // Sync with storage on mount and when external events fire
   useEffect(() => {
@@ -149,7 +204,19 @@ export function useTeamTimer(
       setCurrentTimeMs(now);
 
       const effective = calculateEffectiveRemaining(timerState, now);
+
+      // Detect automatic transition from PITCH to Q&A
+      if (effective <= QA_DURATION && effective > 0 && prevPhaseRef.current === "pitch") {
+        prevPhaseRef.current = "qa";
+        setShowQaTransition(true);
+        playBeep(880, 0.3);
+      }
+
       if (effective <= 0) {
+        if (prevPhaseRef.current !== "time_ended") {
+          playBeep(440, 0.5);
+        }
+        prevPhaseRef.current = "time_ended";
         const finalState: StoredTimerState = {
           ...timerState,
           remaining: 0,
@@ -158,20 +225,47 @@ export function useTeamTimer(
         };
         setTimerState(finalState);
         writeStoredState(teamId, finalState);
+
+        // Trigger device vibration EXACTLY ONCE on final 10-minute session completion
+        if (!hasVibratedRef.current) {
+          hasVibratedRef.current = true;
+          if (
+            typeof window !== "undefined" &&
+            "navigator" in window &&
+            typeof navigator.vibrate === "function"
+          ) {
+            try {
+              navigator.vibrate([300, 150, 300, 150, 500]);
+            } catch {
+              // Ignored if browser security/platform restricts vibration
+            }
+          }
+        }
       }
     }, 250);
 
     return () => clearInterval(interval);
   }, [timerState, calculateEffectiveRemaining, teamId]);
 
+  // Auto-dismiss the Q&A cinematic transition after 5 seconds
+  useEffect(() => {
+    if (!showQaTransition) return;
+    const timeout = setTimeout(() => {
+      setShowQaTransition(false);
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [showQaTransition]);
+
   // Action: START
   const start = useCallback(() => {
     const current = stateRef.current;
     let baseRemaining = current.remaining;
 
-    // If already at 0, reset to 10 min first
+    // If already at 0, reset to full 10-minute session first
     if (baseRemaining <= 0) {
       baseRemaining = DEFAULT_DURATION;
+      hasVibratedRef.current = false;
+      prevPhaseRef.current = "pitch";
     }
 
     const now = Date.now();
@@ -191,7 +285,7 @@ export function useTeamTimer(
     }
   }, [teamId, options]);
 
-  // Action: STOP
+  // Action: STOP / PAUSE
   const stop = useCallback(() => {
     const current = stateRef.current;
     if (!current.isRunning) return;
@@ -214,63 +308,159 @@ export function useTeamTimer(
     }
   }, [teamId, calculateEffectiveRemaining, options]);
 
-  // Action: RESET
+  // Action: RESET (returns current phase to full time: 8:00 for Pitch, 2:00 for Q&A)
   const reset = useCallback(
-    (newDuration: number = DEFAULT_DURATION) => {
-      const now = Date.now();
+    (targetPhase?: "pitch" | "qa") => {
+      hasVibratedRef.current = false;
+      setShowQaTransition(false);
+
+      const current = stateRef.current;
+      const effective = calculateEffectiveRemaining(current, Date.now());
+      const isCurrentlyQa =
+        targetPhase === "qa" ||
+        (targetPhase === undefined && effective <= QA_DURATION && effective > 0);
+
+      const newRemaining = isCurrentlyQa ? QA_DURATION : TOTAL_SESSION_DURATION;
+      prevPhaseRef.current = isCurrentlyQa ? "qa" : "pitch";
+
       const nextState: StoredTimerState = {
-        remaining: newDuration,
+        remaining: newRemaining,
         isRunning: false,
         lastStartedAt: null,
-        duration: newDuration,
+        duration: TOTAL_SESSION_DURATION,
       };
 
       setTimerState(nextState);
-      setCurrentTimeMs(now);
+      setCurrentTimeMs(Date.now());
       writeStoredState(teamId, nextState);
 
       if (options?.onReset) {
         options.onReset();
       }
     },
-    [teamId, options]
+    [teamId, options, calculateEffectiveRemaining]
   );
 
-  // Compute timer phases based on official specifications:
-  // 10:00 -> 03:01 = normal
-  // 03:00 -> 01:01 = warning
-  // 01:00 -> 00:01 = critical
+  // Action: Skip to Q&A phase (02:00)
+  const skipToQa = useCallback(() => {
+    hasVibratedRef.current = false;
+    prevPhaseRef.current = "qa";
+    const current = stateRef.current;
+    const nextState: StoredTimerState = {
+      ...current,
+      remaining: QA_DURATION,
+      lastStartedAt: current.isRunning ? Date.now() : null,
+    };
+    setTimerState(nextState);
+    setCurrentTimeMs(Date.now());
+    writeStoredState(teamId, nextState);
+    playBeep(660, 0.2);
+  }, [teamId]);
+
+  // Action: Back to Pitch phase (08:00)
+  const backToPitch = useCallback(() => {
+    hasVibratedRef.current = false;
+    prevPhaseRef.current = "pitch";
+    const current = stateRef.current;
+    const nextState: StoredTimerState = {
+      ...current,
+      remaining: TOTAL_SESSION_DURATION,
+      lastStartedAt: current.isRunning ? Date.now() : null,
+    };
+    setTimerState(nextState);
+    setCurrentTimeMs(Date.now());
+    writeStoredState(teamId, nextState);
+  }, [teamId]);
+
+  const dismissQaTransition = useCallback(() => {
+    setShowQaTransition(false);
+  }, []);
+
+  // Compute alert level based on phase:
+  // In Pitch:
+  // <= 10s: critical (red + subtle pulse)
+  // <= 60s: warning (amber)
+  // In Q&A:
+  // <= 10s: critical (red + subtle pulse)
+  // <= 30s: warning (amber)
+  // At Time Ended:
   // 00:00 = time_up
-  let timerPhase: TimerPhase = "normal";
-  if (secondsRemaining <= 0) {
-    timerPhase = "time_up";
-  } else if (secondsRemaining <= 60) {
-    timerPhase = "critical";
-  } else if (secondsRemaining <= 180) {
-    timerPhase = "warning";
+  let timerAlertLevel: TimerAlertLevel = "normal";
+  if (sessionRemaining <= 0) {
+    timerAlertLevel = "time_up";
+  } else if (judgingPhase === "qa") {
+    if (phaseRemaining <= 10) {
+      timerAlertLevel = "critical";
+    } else if (phaseRemaining <= 30) {
+      timerAlertLevel = "warning";
+    } else {
+      timerAlertLevel = "normal";
+    }
   } else {
-    timerPhase = "normal";
+    // Pitch phase
+    if (phaseRemaining <= 10) {
+      timerAlertLevel = "critical";
+    } else if (phaseRemaining <= 60) {
+      timerAlertLevel = "warning";
+    } else {
+      timerAlertLevel = "normal";
+    }
   }
 
-  // Progress percentage (0% to 100% of duration elapsed)
-  const totalDuration = timerState.duration || DEFAULT_DURATION;
-  const progressPercent = Math.max(
+  // Phase-specific progress percentage (0% to 100% of current phase elapsed)
+  const phaseProgressPercent = Math.max(
     0,
-    Math.min(100, Math.round(((totalDuration - secondsRemaining) / totalDuration) * 100))
+    Math.min(100, Math.round(((phaseDuration - phaseRemaining) / phaseDuration) * 100))
   );
 
+  // Overall session progress (0% to 100% of 10-minute session elapsed)
+  const sessionProgressPercent = Math.max(
+    0,
+    Math.min(100, Math.round(((TOTAL_SESSION_DURATION - sessionRemaining) / TOTAL_SESSION_DURATION) * 100))
+  );
+
+  const phaseFormattedTime = formatPitchTime(phaseRemaining);
+
   return {
-    secondsRemaining,
-    formattedTime: formatPitchTime(secondsRemaining),
+    // Current phase readout (PITCH countdown 08:00->00:00, then Q&A countdown 02:00->00:00, then 00:00)
+    secondsRemaining: phaseRemaining,
+    formattedTime: phaseFormattedTime,
+    phaseFormattedTime,
+    phaseRemaining,
+    phaseDuration,
+
+    // Overall 10-minute session data
+    sessionRemaining,
+    sessionFormattedTime: formatPitchTime(sessionRemaining),
+    totalDuration: TOTAL_SESSION_DURATION,
+
+    // Phase identification
+    judgingPhase,
+    isPitch: judgingPhase === "pitch",
+    isQa: judgingPhase === "qa",
+    isTimeEnded: judgingPhase === "time_ended",
+
+    // State flags
     isRunning: timerState.isRunning,
-    isComplete: secondsRemaining === 0,
-    isWarning: timerPhase === "warning",
-    isCritical: timerPhase === "critical",
-    isTimeUp: timerPhase === "time_up",
-    timerPhase,
-    progressPercent,
+    isComplete: sessionRemaining === 0,
+    isTimeUp: sessionRemaining === 0,
+    isWarning: timerAlertLevel === "warning",
+    isCritical: timerAlertLevel === "critical",
+    timerPhase: timerAlertLevel,
+
+    // Progress
+    progressPercent: phaseProgressPercent,
+    sessionProgressPercent,
+
+    // Cinematic transition
+    showQaTransition,
+    dismissQaTransition,
+
+    // Control actions
     start,
     stop,
     reset,
+    skipToQa,
+    backToPitch,
   };
 }

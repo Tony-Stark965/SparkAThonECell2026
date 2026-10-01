@@ -27,6 +27,7 @@ import {
   FileEdit,
 } from "lucide-react";
 import { useTeamTimer } from "@/lib/hooks/useTeamTimer";
+import { FloatingPitchTimer } from "./FloatingPitchTimer";
 
 interface JudgingWorkspaceClientProps {
   initialDossier: JudgeTeamDossier;
@@ -354,7 +355,9 @@ export function JudgingWorkspaceClient({
   const strokeDashoffset = circumference - (circumference * progressPercent) / 100;
 
   return (
-    <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-24">
+    <>
+      <FloatingPitchTimer timer={timer} isSubmitted={isSubmitted} />
+      <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-24">
       {/* STICKY TOP COMMAND CONSOLE HUD */}
       <div className="sticky top-0 z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-[#0c0a08]/95 backdrop-blur-md border-b border-amber-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.7)] flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
         <div className="flex items-center gap-3">
@@ -541,7 +544,7 @@ export function JudgingWorkspaceClient({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-bold">
-                    PITCH CLOCK (10:00)
+                    {timer.isTimeEnded ? "SESSION COMPLETE" : timer.isQa ? "Q&A CLOCK (2:00)" : "PITCH CLOCK (8:00)"}
                   </span>
                   {isTimeUp ? (
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-red-950/60 text-red-400 border border-red-500/50 animate-pulse">
@@ -1260,6 +1263,7 @@ export function JudgingWorkspaceClient({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
