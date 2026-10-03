@@ -101,14 +101,13 @@ export function JudgingWorkspaceClient({
       }
     },
     onReset: async () => {
-      if (!isSubmitted && evaluation.status === "in_progress") {
+      if (!isSubmitted && (evaluation.status === "in_progress" || evaluation.started_at)) {
         try {
           const res = await fetch(`/api/judge/teams/${team.id}/reset`, { method: "POST" });
           const data = await res.json();
           if (data.success) {
             setEvaluation((prev) => ({
               ...prev,
-              status: "draft",
               started_at: null,
             }));
           }
@@ -232,6 +231,7 @@ export function JudgingWorkspaceClient({
         body: JSON.stringify({
           scores,
           feedback,
+          total_score: clientLiveTotal,
         }),
       });
 
@@ -244,6 +244,7 @@ export function JudgingWorkspaceClient({
       if (data.evaluation) {
         setEvaluation(data.evaluation);
       }
+      timer.stop();
       router.refresh();
     } catch (err) {
       console.error("Submission error:", err);
@@ -1063,7 +1064,7 @@ export function JudgingWorkspaceClient({
       )}
 
       {/* TIMER RESET CONFIRMATION MODAL */}
-      {showResetModal && (
+      {showResetModal && !isSubmitted && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-150"
           onClick={() => setShowResetModal(false)}

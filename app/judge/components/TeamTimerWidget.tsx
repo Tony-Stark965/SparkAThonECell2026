@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Pause, RotateCcw, Timer, Loader2, AlertTriangle, X, Check } from "lucide-react";
+import { Play, Pause, RotateCcw, Timer, Loader2, AlertTriangle, X, Check, Lock } from "lucide-react";
 import { useTeamTimer } from "@/lib/hooks/useTeamTimer";
 
 interface TeamTimerWidgetProps {
@@ -20,7 +20,10 @@ export function TeamTimerWidget({
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  const isSubmitted = teamStatus === "submitted";
+
   const timer = useTeamTimer(teamId, {
+    isSubmitted,
     onStart: async () => {
       // If team is in standby, initiate judging session on server
       if (teamStatus === "standby") {
@@ -160,59 +163,66 @@ export function TeamTimerWidget({
         />
       </div>
 
-      {/* Control Buttons: START, STOP, RESET */}
-      <div className="grid grid-cols-3 gap-1.5 font-mono text-[11px] font-bold">
-        {/* START Button */}
-        <button
-          type="button"
-          onClick={() => timer.start()}
-          disabled={isRunning || isProcessing}
-          aria-label="Start presentation timer"
-          className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg border transition-all cursor-pointer ${
-            isRunning
-              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-extrabold shadow-[0_0_10px_rgba(16,185,129,0.2)] cursor-default"
-              : "bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/60 hover:shadow-[0_0_10px_rgba(16,185,129,0.15)] active:scale-95"
-          }`}
-        >
-          {isProcessing ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
-          ) : (
-            <Play className={`w-3 h-3 ${isRunning ? "fill-current" : ""}`} />
-          )}
-          <span>{isRunning ? "RUNNING" : "START"}</span>
-        </button>
+      {/* Control Buttons: START, STOP, RESET or SESSION LOCKED */}
+      {isSubmitted ? (
+        <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 font-mono text-[11px] font-bold">
+          <Lock className="w-3 h-3" />
+          <span>SESSION LOCKED</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-1.5 font-mono text-[11px] font-bold">
+          {/* START Button */}
+          <button
+            type="button"
+            onClick={() => timer.start()}
+            disabled={isRunning || isProcessing}
+            aria-label="Start presentation timer"
+            className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg border transition-all cursor-pointer ${
+              isRunning
+                ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-extrabold shadow-[0_0_10px_rgba(16,185,129,0.2)] cursor-default"
+                : "bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/60 hover:shadow-[0_0_10px_rgba(16,185,129,0.15)] active:scale-95"
+            }`}
+          >
+            {isProcessing ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <Play className={`w-3 h-3 ${isRunning ? "fill-current" : ""}`} />
+            )}
+            <span>{isRunning ? "RUNNING" : "START"}</span>
+          </button>
 
-        {/* STOP / PAUSE Button */}
-        <button
-          type="button"
-          onClick={() => timer.stop()}
-          disabled={!isRunning || isProcessing}
-          aria-label="Pause presentation timer"
-          className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg border transition-all cursor-pointer ${
-            !isRunning
-              ? "bg-neutral-900/50 border-neutral-800 text-neutral-600 opacity-50 cursor-not-allowed"
-              : "bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-500/40 hover:border-amber-500/70 hover:shadow-[0_0_10px_rgba(245,158,11,0.15)] active:scale-95"
-          }`}
-        >
-          <Pause className="w-3 h-3 fill-current" />
-          <span>PAUSE</span>
-        </button>
+          {/* STOP / PAUSE Button */}
+          <button
+            type="button"
+            onClick={() => timer.stop()}
+            disabled={!isRunning || isProcessing}
+            aria-label="Pause presentation timer"
+            className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg border transition-all cursor-pointer ${
+              !isRunning
+                ? "bg-neutral-900/50 border-neutral-800 text-neutral-600 opacity-50 cursor-not-allowed"
+                : "bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-500/40 hover:border-amber-500/70 hover:shadow-[0_0_10px_rgba(245,158,11,0.15)] active:scale-95"
+            }`}
+          >
+            <Pause className="w-3 h-3 fill-current" />
+            <span>PAUSE</span>
+          </button>
 
-        {/* RESET Button (Opens Confirmation Modal) */}
-        <button
-          type="button"
-          onClick={() => setShowResetConfirm(true)}
-          disabled={isProcessing}
-          aria-label="Reset presentation timer"
-          className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800 hover:border-neutral-700 transition-all cursor-pointer active:scale-95"
-        >
-          <RotateCcw className="w-3 h-3" />
-          <span>RESET</span>
-        </button>
-      </div>
+          {/* RESET Button (Opens Confirmation Modal) */}
+          <button
+            type="button"
+            onClick={() => setShowResetConfirm(true)}
+            disabled={isProcessing}
+            aria-label="Reset presentation timer"
+            className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800 hover:border-neutral-700 transition-all cursor-pointer active:scale-95"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>RESET</span>
+          </button>
+        </div>
+      )}
 
       {/* RESET CONFIRMATION MODAL */}
-      {showResetConfirm && (
+      {showResetConfirm && !isSubmitted && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150"
           onClick={() => setShowResetConfirm(false)}

@@ -576,15 +576,33 @@ export async function resetJudgingSession(
     throw new Error("Cannot reset an evaluation that has already been submitted and locked.");
   }
 
-  // 3. Clear draft scores and remove the unsubmitted evaluation
-  await admin.from("judging_scores").delete().eq("evaluation_id", existingEval.id);
-  const { error: deleteErr } = await admin
-    .from("judging_evaluations")
-    .delete()
-    .eq("id", existingEval.id);
+  // 3. Reset session timer/started_at back to standby while preserving any drafted scores
+  const { count: scoresCount } = await admin
+    .from("judging_scores")
+    .select("id", { count: "exact", head: true })
+    .eq("evaluation_id", existingEval.id);
 
-  if (deleteErr) {
-    throw new Error(`Failed to reset evaluation session: ${deleteErr.message}`);
+  if (!scoresCount || scoresCount === 0) {
+    const { error: deleteErr } = await admin
+      .from("judging_evaluations")
+      .delete()
+      .eq("id", existingEval.id);
+
+    if (deleteErr) {
+      throw new Error(`Failed to reset evaluation session: ${deleteErr.message}`);
+    }
+  } else {
+    const { error: updateErr } = await admin
+      .from("judging_evaluations")
+      .update({
+        started_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existingEval.id);
+
+    if (updateErr) {
+      throw new Error(`Failed to reset evaluation session: ${updateErr.message}`);
+    }
   }
 
   return { success: true, message: "Evaluation session reset to standby successfully." };
@@ -636,7 +654,7 @@ export async function saveJudgingDraft(
 
   // 3. Strict Locking: Submitted evaluations cannot be edited
   if (evaluation.status === "submitted") {
-    throw new Error("Security Violation: This evaluation has already been submitted and is locked.");
+    throw new Error("Security Violation: This evaluation has already been submitted and is permanently locked.");
   }
 
   // 4. Fetch active rubrics for validation
@@ -657,12 +675,19 @@ export async function saveJudgingDraft(
 
   for (const [rubricId, rawScore] of scoreEntries) {
     const rubric = rubricMap.get(rubricId);
-    if (!rubric) continue; // Skip unknown/inactive rubrics
+    if (!rubric) {
+      throw new Error(`Unrecognized rubric criterion: ${rubricId}`);
+    }
 
     const scoreNum = Number(rawScore);
-    if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > rubric.max_score) {
+    if (
+      isNaN(scoreNum) ||
+      !Number.isInteger(scoreNum) ||
+      scoreNum < 0 ||
+      scoreNum > rubric.max_score
+    ) {
       throw new Error(
-        `Invalid score for '${rubric.name}'. Score must be between 0 and ${rubric.max_score}.`
+        `Invalid score for '${rubric.name}'. Score must be an integer between 0 and ${rubric.max_score}.`
       );
     }
 
@@ -687,7 +712,7 @@ export async function saveJudgingDraft(
     }
   }
 
-  // 6. Update evaluation draft
+  // 6. Update evaluation draft with atomic lock safeguard
   const updates: Record<string, unknown> = {
     total_score: Math.round(computedTotal * 100) / 100,
     updated_at: new Date().toISOString(),
@@ -705,11 +730,12 @@ export async function saveJudgingDraft(
     .from("judging_evaluations")
     .update(updates)
     .eq("id", evaluation.id)
+    .neq("status", "submitted")
     .select()
     .single();
 
   if (updateErr || !updatedEval) {
-    throw new Error(`Failed to save draft: ${updateErr?.message || "Unknown error"}`);
+    throw new Error("Failed to save draft: Evaluation is submitted and permanently locked.");
   }
 
   return {
@@ -723,10 +749,10 @@ export async function saveJudgingDraft(
  * Server-only final evaluation submit handler.
  * STRICT SERVER-SIDE VALIDATION:
  * 1. Verifies session, active judge, and team assignment.
- * 2. Enforces that EVERY active rubric criterion has a valid score.
- * 3. Authoritatively calculates final total score.
+ * 2. Enforces that EVERY active rubric criterion has a valid integer score (0-10).
+ * 3. Authoritatively calculates final total score (max 50) and verifies client agreement.
  * 4. Permanently locks evaluation: status = 'submitted', submitted_at = now().
- * 5. Rejects any subsequent modification attempts.
+ * 5. Atomic database safeguard (.neq("status", "submitted")) rejects any subsequent modifications.
  */
 export async function submitJudgingEvaluation(
   judgeId: string,
@@ -734,6 +760,7 @@ export async function submitJudgingEvaluation(
   payload: {
     scores: Record<string, number>;
     feedback?: string;
+    total_score?: number;
   }
 ): Promise<{
   success: boolean;
@@ -769,7 +796,7 @@ export async function submitJudgingEvaluation(
 
   // 3. Strict Lock Check
   if (evaluation.status === "submitted") {
-    throw new Error("Evaluation is already finalized and submitted.");
+    throw new Error("Permanent Lock: Evaluation has already been finalized and submitted.");
   }
 
   // 4. Fetch all active rubrics
@@ -783,22 +810,40 @@ export async function submitJudgingEvaluation(
     throw new Error("No active judging rubrics found.");
   }
 
-  // 5. Authoritative Validation: Every rubric MUST have a valid score
-  let authoritativeTotal = 0;
+  if (rubrics.length !== 5) {
+    throw new Error(`Integrity Violation: Expected exactly 5 active judging rubrics, found ${rubrics.length}.`);
+  }
+
+  const rubricMap = new Map(rubrics.map((r) => [r.id, r]));
   const providedScores = payload.scores || {};
+
+  // Reject unexpected or unmapped keys
+  for (const key of Object.keys(providedScores)) {
+    if (!rubricMap.has(key)) {
+      throw new Error(`Unrecognized rubric criterion in submitted scores: ${key}`);
+    }
+  }
+
+  // 5. Authoritative Validation: Every rubric MUST have a valid integer score between 0 and 10
+  let authoritativeTotal = 0;
 
   for (const rubric of rubrics) {
     const rawScore = providedScores[rubric.id];
     if (rawScore === undefined || rawScore === null) {
       throw new Error(
-        `Incomplete Evaluation: Missing score for '${rubric.name}'. All ${rubrics.length} criteria must be scored.`
+        `Incomplete Evaluation: Missing score for '${rubric.name}'. All 5 criteria must be scored.`
       );
     }
 
     const scoreNum = Number(rawScore);
-    if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > rubric.max_score) {
+    if (
+      isNaN(scoreNum) ||
+      !Number.isInteger(scoreNum) ||
+      scoreNum < 0 ||
+      scoreNum > rubric.max_score
+    ) {
       throw new Error(
-        `Invalid score for '${rubric.name}'. Must be between 0 and ${rubric.max_score}.`
+        `Invalid score for '${rubric.name}'. Must be an integer between 0 and ${rubric.max_score}.`
       );
     }
 
@@ -823,10 +868,21 @@ export async function submitJudgingEvaluation(
     }
   }
 
-  const finalTotal = Math.round(authoritativeTotal * 100) / 100;
+  const finalTotal = authoritativeTotal;
+  if (finalTotal < 0 || finalTotal > 50) {
+    throw new Error(`Authoritative total score (${finalTotal}) exceeds allowed maximum of 50.`);
+  }
+
+  // Strict Total Verification: Client total (if provided) must agree with authoritative total
+  if (payload.total_score !== undefined && Number(payload.total_score) !== finalTotal) {
+    throw new Error(
+      `Score validation mismatch: Client total (${payload.total_score}) does not match authoritative calculation (${finalTotal}).`
+    );
+  }
+
   const submittedAt = new Date().toISOString();
 
-  // 6. Permanently lock evaluation
+  // 6. Permanently lock evaluation with atomic safeguard
   const { data: updatedEval, error: updateErr } = await admin
     .from("judging_evaluations")
     .update({
@@ -837,11 +893,12 @@ export async function submitJudgingEvaluation(
       updated_at: submittedAt,
     })
     .eq("id", evaluation.id)
+    .neq("status", "submitted")
     .select()
     .single();
 
   if (updateErr || !updatedEval) {
-    throw new Error(`Failed to finalize evaluation: ${updateErr?.message || "Unknown error"}`);
+    throw new Error("Failed to finalize evaluation: Evaluation is already submitted and locked.");
   }
 
   return {

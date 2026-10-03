@@ -195,7 +195,7 @@ export function useTeamTimer(
 
   // Drift-free interval ticker when running
   useEffect(() => {
-    if (!timerState.isRunning || !timerState.lastStartedAt) {
+    if (options?.isSubmitted || !timerState.isRunning || !timerState.lastStartedAt) {
       return;
     }
 
@@ -245,7 +245,7 @@ export function useTeamTimer(
     }, 250);
 
     return () => clearInterval(interval);
-  }, [timerState, calculateEffectiveRemaining, teamId]);
+  }, [timerState, calculateEffectiveRemaining, teamId, options?.isSubmitted]);
 
   // Auto-dismiss the Q&A cinematic transition after 5 seconds
   useEffect(() => {
@@ -258,17 +258,19 @@ export function useTeamTimer(
 
   // Action: START
   const start = useCallback(() => {
-    const current = stateRef.current;
-    let baseRemaining = current.remaining;
+    if (options?.isSubmitted) return;
 
-    // If already at 0, reset to full 10-minute session first
+    const current = stateRef.current;
+    const now = Date.now();
+    let baseRemaining = calculateEffectiveRemaining(current, now);
+
+    // If already at 0 (or finished), reset to full 10-minute session first
     if (baseRemaining <= 0) {
       baseRemaining = DEFAULT_DURATION;
       hasVibratedRef.current = false;
       prevPhaseRef.current = "pitch";
     }
 
-    const now = Date.now();
     const nextState: StoredTimerState = {
       remaining: baseRemaining,
       isRunning: true,
@@ -283,10 +285,12 @@ export function useTeamTimer(
     if (options?.onStart) {
       options.onStart();
     }
-  }, [teamId, options]);
+  }, [teamId, calculateEffectiveRemaining, options]);
 
   // Action: STOP / PAUSE
   const stop = useCallback(() => {
+    if (options?.isSubmitted) return;
+
     const current = stateRef.current;
     if (!current.isRunning) return;
 
@@ -308,20 +312,17 @@ export function useTeamTimer(
     }
   }, [teamId, calculateEffectiveRemaining, options]);
 
-  // Action: RESET (returns current phase to full time: 8:00 for Pitch, 2:00 for Q&A)
+  // Action: RESET (returns timer back to full 10:00 duration)
   const reset = useCallback(
     (targetPhase?: "pitch" | "qa") => {
+      if (options?.isSubmitted) return;
+
       hasVibratedRef.current = false;
       setShowQaTransition(false);
 
-      const current = stateRef.current;
-      const effective = calculateEffectiveRemaining(current, Date.now());
-      const isCurrentlyQa =
-        targetPhase === "qa" ||
-        (targetPhase === undefined && effective <= QA_DURATION && effective > 0);
-
-      const newRemaining = isCurrentlyQa ? QA_DURATION : TOTAL_SESSION_DURATION;
-      prevPhaseRef.current = isCurrentlyQa ? "qa" : "pitch";
+      const isQa = targetPhase === "qa";
+      const newRemaining = isQa ? QA_DURATION : TOTAL_SESSION_DURATION;
+      prevPhaseRef.current = isQa ? "qa" : "pitch";
 
       const nextState: StoredTimerState = {
         remaining: newRemaining,
@@ -338,11 +339,12 @@ export function useTeamTimer(
         options.onReset();
       }
     },
-    [teamId, options, calculateEffectiveRemaining]
+    [teamId, options]
   );
 
   // Action: Skip to Q&A phase (02:00)
   const skipToQa = useCallback(() => {
+    if (options?.isSubmitted) return;
     hasVibratedRef.current = false;
     prevPhaseRef.current = "qa";
     const current = stateRef.current;
@@ -355,10 +357,11 @@ export function useTeamTimer(
     setCurrentTimeMs(Date.now());
     writeStoredState(teamId, nextState);
     playBeep(660, 0.2);
-  }, [teamId]);
+  }, [teamId, options]);
 
   // Action: Back to Pitch phase (08:00)
   const backToPitch = useCallback(() => {
+    if (options?.isSubmitted) return;
     hasVibratedRef.current = false;
     prevPhaseRef.current = "pitch";
     const current = stateRef.current;
@@ -370,7 +373,7 @@ export function useTeamTimer(
     setTimerState(nextState);
     setCurrentTimeMs(Date.now());
     writeStoredState(teamId, nextState);
-  }, [teamId]);
+  }, [teamId, options]);
 
   const dismissQaTransition = useCallback(() => {
     setShowQaTransition(false);
@@ -441,7 +444,7 @@ export function useTeamTimer(
     isTimeEnded: judgingPhase === "time_ended",
 
     // State flags
-    isRunning: timerState.isRunning,
+    isRunning: options?.isSubmitted ? false : timerState.isRunning,
     isComplete: sessionRemaining === 0,
     isTimeUp: sessionRemaining === 0,
     isWarning: timerAlertLevel === "warning",

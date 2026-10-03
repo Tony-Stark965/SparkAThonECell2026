@@ -27,7 +27,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { scores, feedback } = body || {};
+    const { scores, feedback, total_score } = body || {};
 
     if (!scores || typeof scores !== "object" || Array.isArray(scores)) {
       return NextResponse.json(
@@ -40,6 +40,7 @@ export async function POST(
     const result = await submitJudgingEvaluation(authResult.judge.id, registrationId, {
       scores,
       feedback: typeof feedback === "string" ? feedback : undefined,
+      total_score: typeof total_score === "number" ? total_score : undefined,
     });
 
     return NextResponse.json({
