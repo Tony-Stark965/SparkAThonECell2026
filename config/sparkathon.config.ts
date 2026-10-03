@@ -1,3 +1,5 @@
+import { OFFICIAL_DOMAINS, OFFICIAL_DOMAIN_CAPACITIES } from "@/lib/supabase/types";
+
 export interface DomainItem {
   id: string;
   number: string;
@@ -65,20 +67,8 @@ export const SPARKATHON_CONFIG = {
 
   // Official Spark-A-Thon Sector Domains (Allowlist for Team Selection)
   sectors: {
-    domains: [
-      "AI and Cybersec",
-      "Smart Energy Systems",
-      "Robotics or Drone and Fixed Wing",
-      "IoT or Embedded Systems",
-      "Open Innovation",
-    ] as const,
-    maxTeams: {
-      "AI and Cybersec": 12,
-      "Smart Energy Systems": 10,
-      "Robotics or Drone and Fixed Wing": 5,
-      "IoT or Embedded Systems": 8,
-      "Open Innovation": 15,
-    } as Record<string, number>,
+    domains: OFFICIAL_DOMAINS,
+    maxTeams: OFFICIAL_DOMAIN_CAPACITIES as Record<string, number>,
   },
 
   // Payment Configuration (Dual Mode)

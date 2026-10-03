@@ -53,7 +53,7 @@ export function AddMemberModal({
 
     // Check duplicate mobile within team
     const existingMobiles = (registration.participants || []).map((p) =>
-      p.mobile.replace(/\D/g, "")
+      (p.mobile || "").replace(/\D/g, "")
     );
     if (existingMobiles.includes(cleanMobile)) {
       setError("This mobile number is already registered for another participant in this team.");

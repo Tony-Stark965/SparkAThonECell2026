@@ -281,7 +281,7 @@ export async function POST(request: Request) {
         const cleanBaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
         
         // 6.5 Domain Capacity Check (Race Condition Prevention)
-        const countResponse = await fetch(`${cleanBaseUrl}/rest/v1/registrations?select=id&domain=eq.${encodeURIComponent(domain)}&payment_status=eq.completed`, {
+        const countResponse = await fetch(`${cleanBaseUrl}/rest/v1/registrations?select=id&domain=eq.${encodeURIComponent(domain)}`, {
           method: "GET",
           headers: {
             apikey: supabaseKey,

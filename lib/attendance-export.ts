@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import type { RegistrationRecord } from "./supabase/types";
+import { OFFICIAL_DOMAIN_CAPACITIES } from "./supabase/types";
 
 export interface AttendanceDomainConfig {
   key: string;
@@ -23,7 +24,7 @@ export const ATTENDANCE_DOMAINS: AttendanceDomainConfig[] = [
       "ai-cybersec",
     ],
     displayName: "AI & CyberSec",
-    maxTeams: 12,
+    maxTeams: OFFICIAL_DOMAIN_CAPACITIES["AI and Cybersec"],
     csvFilename: "AI_and_CyberSec_Attendance.csv",
     xlsxFilename: "AI_and_CyberSec_Attendance.xlsx",
   },
@@ -35,7 +36,7 @@ export const ATTENDANCE_DOMAINS: AttendanceDomainConfig[] = [
       "smart-energy",
     ],
     displayName: "Smart Energy Systems",
-    maxTeams: 10,
+    maxTeams: OFFICIAL_DOMAIN_CAPACITIES["Smart Energy Systems"],
     csvFilename: "Smart_Energy_Systems_Attendance.csv",
     xlsxFilename: "Smart_Energy_Systems_Attendance.xlsx",
   },
@@ -48,7 +49,7 @@ export const ATTENDANCE_DOMAINS: AttendanceDomainConfig[] = [
       "robotics-drones",
     ],
     displayName: "Robotics or Drone and Fixed Wing",
-    maxTeams: 5,
+    maxTeams: OFFICIAL_DOMAIN_CAPACITIES["Robotics or Drone and Fixed Wing"],
     csvFilename: "Robotics_Drone_Fixed_Wing_Attendance.csv",
     xlsxFilename: "Robotics_Drone_Fixed_Wing_Attendance.xlsx",
   },
@@ -61,7 +62,7 @@ export const ATTENDANCE_DOMAINS: AttendanceDomainConfig[] = [
       "iot-embedded",
     ],
     displayName: "IoT or Embedded Systems",
-    maxTeams: 8,
+    maxTeams: OFFICIAL_DOMAIN_CAPACITIES["IoT or Embedded Systems"],
     csvFilename: "IoT_Embedded_Systems_Attendance.csv",
     xlsxFilename: "IoT_Embedded_Systems_Attendance.xlsx",
   },
@@ -73,7 +74,7 @@ export const ATTENDANCE_DOMAINS: AttendanceDomainConfig[] = [
       "open-innovation",
     ],
     displayName: "Open Innovation",
-    maxTeams: 15,
+    maxTeams: OFFICIAL_DOMAIN_CAPACITIES["Open Innovation"],
     csvFilename: "Open_Innovation_Attendance.csv",
     xlsxFilename: "Open_Innovation_Attendance.xlsx",
   },

@@ -17,7 +17,7 @@ export default function JudgeLayout({
   return (
     <div className="relative min-h-screen bg-[#0a0907] text-neutral-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
       {/* Top Security & Protocol Bar */}
-      <header className="sticky top-0 z-40 border-b border-amber-950/40 bg-[#0c0a08]/95 backdrop-blur-md px-4 sm:px-8 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 h-12 border-b border-amber-950/40 bg-[#0c0a08]/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
           <div className="flex items-center gap-2">

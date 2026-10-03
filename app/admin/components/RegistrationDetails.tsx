@@ -347,13 +347,15 @@ export function RegistrationDetails({
                       <span className="text-neutral-200">{member.roll_no || "—"}</span>
                     </div>
 
-                    <a
-                      href={`tel:${member.mobile}`}
-                      className="hover:text-amber-400 transition-colors flex items-center gap-1"
-                    >
-                      <Phone className="w-3 h-3 text-neutral-400" />
-                      <span>{member.mobile}</span>
-                    </a>
+                    {member.mobile && (
+                      <a
+                        href={`tel:${member.mobile}`}
+                        className="hover:text-amber-400 transition-colors flex items-center gap-1"
+                      >
+                        <Phone className="w-3 h-3 text-neutral-400" />
+                        <span>{member.mobile}</span>
+                      </a>
+                    )}
 
                     {attStatus && (
                       <span

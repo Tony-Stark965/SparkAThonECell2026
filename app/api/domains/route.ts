@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
-import { SPARKATHON_CONFIG } from "@/config/sparkathon.config";
+import { OFFICIAL_DOMAINS } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
-
-// In-memory development capacities (when Supabase is missing)
-const DEV_CAPACITIES = {
-  "AI and Cybersec": 0,
-  "Smart Energy Systems": 0,
-  "Robotics or Drone and Fixed Wing": 0,
-  "IoT or Embedded Systems": 0,
-  "Open Innovation": 0,
-};
 
 export async function GET() {
   try {
@@ -28,19 +19,16 @@ export async function GET() {
       !supabaseKey.includes("your-service-role-key-here") &&
       !supabaseKey.includes("your-anon-key-here");
 
-    const domainCapacities: Record<string, number> = {
-      "AI and Cybersec": 0,
-      "Smart Energy Systems": 0,
-      "Robotics or Drone and Fixed Wing": 0,
-      "IoT or Embedded Systems": 0,
-      "Open Innovation": 0,
-    };
+    const domainCapacities: Record<string, number> = {};
+    for (const dom of OFFICIAL_DOMAINS) {
+      domainCapacities[dom] = 0;
+    }
 
     if (isSupabaseConfigured) {
       const cleanBaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
       
-      // Query registrations to count successful teams per domain
-      const response = await fetch(`${cleanBaseUrl}/rest/v1/registrations?select=domain&payment_status=eq.completed`, {
+      // Query registrations to count registered teams per domain
+      const response = await fetch(`${cleanBaseUrl}/rest/v1/registrations?select=domain`, {
         method: "GET",
         headers: {
           apikey: supabaseKey,
@@ -64,21 +52,15 @@ export async function GET() {
       } else {
         console.warn(`[Supabase Domain Capacity Notice] Status: ${response.status}`);
       }
-    } else {
-      // Fallback to dev capacities
-      Object.assign(domainCapacities, DEV_CAPACITIES);
     }
 
     return NextResponse.json(domainCapacities);
   } catch (error) {
     console.error("Domain capacities route error:", error);
-    // Return zeroes safely on failure rather than crashing
-    return NextResponse.json({
-      "AI and Cybersec": 0,
-      "Smart Energy Systems": 0,
-      "Robotics or Drone and Fixed Wing": 0,
-      "IoT or Embedded Systems": 0,
-      "Open Innovation": 0,
-    });
+    const fallback: Record<string, number> = {};
+    for (const dom of OFFICIAL_DOMAINS) {
+      fallback[dom] = 0;
+    }
+    return NextResponse.json(fallback);
   }
 }

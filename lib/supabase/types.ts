@@ -1,7 +1,7 @@
 export interface Participant {
   name: string;
   roll_no?: string;
-  mobile: string;
+  mobile?: string;
   email?: string;
   isLeader?: boolean;
 }
@@ -167,12 +167,12 @@ export type OfficialDomain = (typeof OFFICIAL_DOMAINS)[number];
 export const OFFICIAL_DOMAIN_CAPACITIES: Record<OfficialDomain, number> = {
   "AI and Cybersec": 12,
   "Smart Energy Systems": 10,
-  "Robotics or Drone and Fixed Wing": 5,
+  "Robotics or Drone and Fixed Wing": 7,
   "IoT or Embedded Systems": 8,
-  "Open Innovation": 15,
+  "Open Innovation": 16,
 };
 
-export const TOTAL_OFFICIAL_CAPACITY = 50;
+export const TOTAL_OFFICIAL_CAPACITY = 53;
 
 export interface DomainCapacityStats {
   domain: OfficialDomain;
@@ -300,67 +300,35 @@ export interface TeamResultRank {
 export const DEFAULT_RUBRIC_CRITERIA = [
   {
     name: "Creativity & Innovation",
-    description: "Originality and uniqueness of solution",
+    description: "Originality of the idea, novel approach to the problem, and unique value proposition.",
     max_score: 10,
     sort_order: 1,
   },
   {
     name: "Technical Feasibility",
-    description: "Architecture, engineering, and implementation capability",
+    description: "Soundness of technical architecture, implementation capability, and appropriate use of modern tools.",
     max_score: 10,
     sort_order: 2,
   },
   {
     name: "Scalability & Market Potential",
-    description: "Real-world viability, growth potential, and target audience",
+    description: "Viability of real-world deployment, growth potential, target market sizing, and sustainability.",
     max_score: 10,
     sort_order: 3,
   },
   {
-    name: "Presentation & Clarity",
-    description: "Pitch delivery, demo quality, communication, and Q&A",
+    name: "Prototype & Demonstration Quality",
+    description: "Quality, completeness, functionality, and effectiveness of the working prototype demonstrated by the team.",
     max_score: 10,
     sort_order: 4,
   },
   {
     name: "Problem-Solving Impact",
-    description: "Value delivered, social or industry impact",
+    description: "Significance of the problem addressed, user benefit, and measurable social or industry impact.",
     max_score: 10,
     sort_order: 5,
   },
 ] as const;
-
-// ============================================================
-// CORRECTION REQUESTS (PHASE 4 DEDICATED ARCHITECTURE)
-// ============================================================
-
-export type CorrectionRequestStatus = "pending" | "approved" | "rejected" | "completed";
-
-export interface JudgingCorrectionRequest {
-  id: string;
-  evaluation_id: string;
-  judge_id: string;
-  registration_id: string;
-  reason: string;
-  explanation: string;
-  status: CorrectionRequestStatus;
-  original_total_score?: number | null;
-  original_scores_snapshot?: Record<string, number> | null;
-  revised_total_score?: number | null;
-  revised_scores_snapshot?: Record<string, number> | null;
-  admin_notes?: string | null;
-  reviewed_by?: string | null;
-  requested_at: string;
-  reviewed_at?: string | null;
-  created_at: string;
-  updated_at: string;
-  // Enriched relational attributes for display
-  judge_name?: string;
-  judge_email?: string;
-  team_name?: string;
-  college?: string;
-  domain?: string;
-}
 
 /**
  * Computes live domain capacity statistics across all official domains

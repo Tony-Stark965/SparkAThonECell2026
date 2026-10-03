@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import type { JudgeTeamDossier } from "@/lib/supabase/judge";
 import {
   Shield,
-  Layers,
   Users,
-  Clock,
   CheckCircle2,
   AlertCircle,
   Save,
@@ -24,28 +22,12 @@ import {
   Square,
   RotateCcw,
   Sparkles,
-  FileEdit,
 } from "lucide-react";
 import { useTeamTimer } from "@/lib/hooks/useTeamTimer";
-import { FloatingPitchTimer } from "./FloatingPitchTimer";
 
 interface JudgingWorkspaceClientProps {
   initialDossier: JudgeTeamDossier;
 }
-
-interface CorrectionState {
-  requested: boolean;
-  requestId?: string;
-  reason?: string;
-  requestedAt?: string;
-}
-
-const CORRECTION_REASONS = [
-  "Scoring error / typo in rubric entry",
-  "Misunderstood demo functionality during pitch",
-  "Technical presentation clarification provided by team",
-  "Other legitimate judging discrepancy",
-] as const;
 
 export function JudgingWorkspaceClient({
   initialDossier,
@@ -72,36 +54,6 @@ export function JudgingWorkspaceClient({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
-  const [showCorrectionModal, setShowCorrectionModal] = useState(false);
-  const [correctionReason, setCorrectionReason] = useState<string>(CORRECTION_REASONS[0]);
-  const [correctionExplanation, setCorrectionExplanation] = useState("");
-  const [isSubmittingCorrection, setIsSubmittingCorrection] = useState(false);
-  const [correctionStatus, setCorrectionStatus] = useState<CorrectionState | null>(() => {
-    if (
-      initialDossier.evaluation?.feedback &&
-      initialDossier.evaluation.feedback.includes("[CORRECTION REQUEST:")
-    ) {
-      const match = initialDossier.evaluation.feedback.match(/\[CORRECTION REQUEST:\s*([^\]]+)\]/);
-      const reasonMatch = initialDossier.evaluation.feedback.match(/Reason:\s*([^\n]+)/);
-      return {
-        requested: true,
-        requestId: match ? match[1].trim() : undefined,
-        reason: reasonMatch ? reasonMatch[1].trim() : "Correction Registered",
-      };
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem(`spark_corr_${team.id}`);
-        if (stored) {
-          return JSON.parse(stored);
-        }
-      } catch {
-        // ignore parse error
-      }
-    }
-    return null;
-  });
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
@@ -116,7 +68,7 @@ export function JudgingWorkspaceClient({
     latestFeedbackRef.current = feedback;
   }, [scores, feedback]);
 
-  // Max possible score
+  // Max possible score (5 criteria * 10 = 50)
   const maxPossibleScore =
     rubrics.reduce((sum, r) => sum + (Number(r.max_score) || 10), 0) || 50;
 
@@ -129,6 +81,9 @@ export function JudgingWorkspaceClient({
   }, 0);
 
   // Unified 10-Minute Presentation Timer with Start / Stop / Reset controls
+  // Phase 1: Pitch (8 min, 08:00 -> 00:00, Amber theme)
+  // Phase 2: Q&A (2 min, 02:00 -> 00:00, Electric Cyan theme)
+  // End of Session: 00:00 TIME ENDED + single device vibration (no vibration at 8m)
   const timer = useTeamTimer(team.id, {
     initialStartedAt: evaluation.started_at,
     isSubmitted,
@@ -165,13 +120,39 @@ export function JudgingWorkspaceClient({
   });
 
   const {
-    formattedTime,
+    phaseFormattedTime,
     isRunning,
     isWarning,
     isCritical,
-    isTimeUp,
-    progressPercent,
+    isPitch,
+    isQa,
+    isTimeEnded,
   } = timer;
+
+  // Two-Phase Visual States
+  const isPitchActive = isPitch && !isTimeEnded;
+  const isQaActive = isQa && !isTimeEnded;
+  const isPitchCompleted = isQa || isTimeEnded;
+
+  let pitchDisplay = "08:00";
+  let qaDisplay = "02:00";
+
+  if (isTimeEnded) {
+    pitchDisplay = "00:00";
+    qaDisplay = "00:00";
+  } else if (isQa) {
+    pitchDisplay = "00:00";
+    qaDisplay = phaseFormattedTime;
+  } else {
+    // Pitch active or initial
+    pitchDisplay = phaseFormattedTime;
+    qaDisplay = "02:00";
+  }
+
+  const isPitchWarning = isPitchActive && isWarning;
+  const isPitchCritical = isPitchActive && isCritical;
+  const isQaWarning = isQaActive && isWarning;
+  const isQaCritical = isQaActive && isCritical;
 
   // Draft Save Handler
   const handleSaveDraft = useCallback(
@@ -272,55 +253,12 @@ export function JudgingWorkspaceClient({
     }
   };
 
-  // Handle Correction Request Submission
-  const handleCorrectionSubmit = async () => {
-    if (!correctionReason || !correctionExplanation.trim()) return;
-    setIsSubmittingCorrection(true);
-    setErrorMessage(null);
-
-    try {
-      const res = await fetch(`/api/judge/teams/${team.id}/correction-request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reason: correctionReason,
-          explanation: correctionExplanation.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to register correction request.");
-      }
-
-      const newCorrState: CorrectionState = {
-        requested: true,
-        requestId: data.requestId,
-        reason: correctionReason,
-        requestedAt: data.requestedAt,
-      };
-
-      setCorrectionStatus(newCorrState);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(`spark_corr_${team.id}`, JSON.stringify(newCorrState));
-      }
-      setShowCorrectionModal(false);
-      router.refresh();
-    } catch (err) {
-      console.error("Correction request error:", err);
-      setErrorMessage(err instanceof Error ? err.message : "Failed to file correction request.");
-    } finally {
-      setIsSubmittingCorrection(false);
-    }
-  };
-
   // Keyboard navigation & accessibility (1-5 to jump to criteria, Esc to close modals)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (showConfirmModal) setShowConfirmModal(false);
         if (showResetModal) setShowResetModal(false);
-        if (showCorrectionModal) setShowCorrectionModal(false);
         return;
       }
 
@@ -334,7 +272,7 @@ export function JudgingWorkspaceClient({
         const targetCard = document.getElementById(`rubric-criterion-${index}`);
         if (targetCard) {
           e.preventDefault();
-          targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+          targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
           targetCard.focus();
         }
       }
@@ -342,268 +280,298 @@ export function JudgingWorkspaceClient({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showConfirmModal, showResetModal, showCorrectionModal]);
+  }, [showConfirmModal, showResetModal]);
 
   // Check if all active rubrics have scores
   const allRubricsScored = rubrics.every(
     (r) => scores[r.id] !== undefined && scores[r.id] !== null && !isNaN(scores[r.id])
   );
 
-  // SVG Ring Calculation for circular progress
-  const radius = 38;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (circumference * progressPercent) / 100;
-
   return (
-    <>
-      <FloatingPitchTimer timer={timer} isSubmitted={isSubmitted} />
-      <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-24">
-      {/* STICKY TOP COMMAND CONSOLE HUD */}
-      <div className="sticky top-0 z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-[#0c0a08]/95 backdrop-blur-md border-b border-amber-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.7)] flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/judge"
-            className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-amber-400 transition-colors font-semibold"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">ROSTER</span>
-          </Link>
-          <span className="text-neutral-700 hidden sm:inline">•</span>
-          <span className="font-bold text-white uppercase tracking-tight truncate max-w-[160px] sm:max-w-[240px]">
-            {team.team_name}
-          </span>
-          <span className="px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-950/40 text-amber-400 text-[10px] uppercase font-bold tracking-wider hidden md:inline">
-            {team.domain}
-          </span>
-        </div>
-
-        {/* HUD Rubric Completion Dots & Timer */}
-        <div className="flex items-center gap-3 sm:gap-5 ml-auto">
-          {/* Rubric dots 1-5 */}
-          <div className="flex items-center gap-1">
-            <span className="text-neutral-500 text-[10px] uppercase tracking-wider hidden lg:inline mr-1">
-              RUBRICS:
-            </span>
-            {rubrics.map((r, i) => {
-              const isScored = scores[r.id] !== undefined && scores[r.id] !== null;
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => {
-                    const el = document.getElementById(`rubric-criterion-${i}`);
-                    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  }}
-                  className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold transition-all cursor-pointer ${
-                    isScored
-                      ? "bg-amber-500 text-black border border-amber-300 font-black shadow-[0_0_8px_rgba(245,158,11,0.35)]"
-                      : "bg-neutral-900 border border-neutral-800 text-neutral-500 hover:border-neutral-700 hover:text-neutral-300"
-                  }`}
-                  title={`${r.name}: ${isScored ? `${scores[r.id]}/${r.max_score}` : "Pending"}`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Live Score Readout */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-500/30 bg-amber-950/20">
-            <span className="text-[10px] text-neutral-400 uppercase hidden sm:inline">SCORE:</span>
-            <span className="font-black text-amber-400 text-sm">
-              {isSubmitted ? evaluation.total_score : clientLiveTotal}
-            </span>
-            <span className="text-[10px] text-neutral-500">/ 50</span>
-          </div>
-
-          {/* Compact Timer in HUD */}
-          <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-mono ${
-              isTimeUp
-                ? "border-red-500/60 bg-red-950/40 text-red-400 animate-pulse"
-                : isCritical
-                ? "border-red-500/50 bg-red-950/30 text-red-400"
-                : isWarning
-                ? "border-orange-500/50 bg-orange-950/30 text-orange-400"
-                : isRunning
-                ? "border-amber-500/50 bg-amber-950/30 text-amber-400"
-                : "border-neutral-800 bg-neutral-900 text-neutral-400"
-            }`}
-          >
-            <Clock className={`w-3.5 h-3.5 ${isRunning ? "animate-spin" : ""}`} style={{ animationDuration: "3s" }} />
-            <span className="font-bold text-xs tracking-wider">
-              {isSubmitted ? "LOCKED" : formattedTime}
-            </span>
-          </div>
-
-          {/* Autosave Status Indicator */}
-          {!isSubmitted && (
-            <div className="text-[11px] hidden sm:flex items-center">
-              {draftSaveStatus === "saving" && (
-                <span className="text-amber-400 flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" /> Saving...
-                </span>
-              )}
-              {draftSaveStatus === "saved" && (
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Saved ✓
-                </span>
-              )}
-              {draftSaveStatus === "error" && (
-                <span className="text-red-400">Offline / Retry</span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* TEAM OVERVIEW & CINEMATIC 10-MINUTE TIMER CONSOLE */}
-      <div className="rounded-2xl border border-amber-500/35 bg-gradient-to-b from-[#14120e] to-[#0d0c09] p-5 sm:p-7 shadow-[0_0_40px_rgba(245,158,11,0.07)]">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-950/40 text-amber-400 font-mono text-xs uppercase tracking-wider font-semibold">
-                <Layers className="w-3.5 h-3.5" />
-                {team.domain}
+    <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-40">
+      {/*
+        ============================================================
+        PREMIUM HACKATHON JUDGE CONTROL DECK (FLOATING HUD)
+        Docks at sticky top-12 (below 48px header).
+        Features:
+        - 3-Level Command Deck Hierarchy
+        - TWO-PHASE Side-by-Side Presentation Deck:
+            * PITCH (8 Min): Amber/Gold glow when active
+            * Q&A (2 Min): Electric Cyan glow when active
+            * 10-Minute End: Prominent TIME ENDED alert
+        - Restrained obsidian/gold styling with clean glass shadows
+        - No rubric score clutter in HUD (handled in scoring suite)
+        ============================================================
+      */}
+      {/*
+        ============================================================
+        LEVEL 1 + 2 + 3: FLOATING JUDGE CONTROL DECK
+        - Sticky floating HUD (top-12 z-30)
+        - Lightweight cinematic glass styling with reduced visual mass
+        - Real-time Micro-Animations:
+            * Gentle breathing "● LIVE" status indicator
+            * Active phase breathing glow (Amber for Pitch, Cyan for Q&A)
+            * Dominant active phase vs. quieter queued phase hierarchy
+            * 500ms smooth CSS transition at 8:00 without timer delay
+            * TIME ENDED single visual settle pulse (no endless flashing)
+        - Secondary, compact timer controls & Team Dossier toggle
+        - Mobile responsive (tested 320px–430px)
+        ============================================================
+      */}
+      <div className="sticky top-12 z-30 rounded-xl bg-[#0a0908]/92 border border-amber-500/20 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.7)] p-3 sm:p-4 font-mono transition-all">
+        {/* LEVEL 1: Status, Domain, Roster link, and Autosave */}
+        <div className="flex items-center justify-between gap-3 text-xs mb-2 pb-2 border-b border-neutral-800/40">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Link
+              href="/judge"
+              className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-amber-400 transition-colors font-semibold shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">ROSTER</span>
+            </Link>
+            <span className="text-neutral-700 hidden sm:inline">•</span>
+            {isSubmitted ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                <Lock className="w-3 h-3" />
+                EVALUATION LOCKED
               </span>
-
-              {isSubmitted ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/40 bg-emerald-950/40 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider">
-                  <Lock className="w-3.5 h-3.5" />
-                  EVALUATION LOCKED // SUBMITTED
+            ) : isTimeEnded ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-red-500/40 bg-red-950/40 text-red-300 text-[10px] font-bold uppercase tracking-wider shrink-0 time-ended-pulse">
+                <AlertCircle className="w-3 h-3 text-red-400" />
+                SESSION COMPLETE // TIME ENDED
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-amber-500/25 bg-amber-950/25 text-amber-400 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                <span>EVALUATION IN PROGRESS</span>
+                <span className="inline-flex items-center gap-1 text-amber-300 font-semibold pl-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-dot shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                  <span>LIVE</span>
                 </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/40 bg-amber-950/40 text-amber-400 font-mono text-xs font-bold uppercase tracking-wider animate-pulse">
-                  <Clock className="w-3.5 h-3.5" />
-                  EVALUATION IN PROGRESS
-                </span>
-              )}
-            </div>
+              </span>
+            )}
+          </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white font-sans tracking-tight">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="px-2.5 py-0.5 rounded-full border border-amber-500/20 bg-amber-950/30 text-amber-400 text-[10px] uppercase font-bold tracking-wider">
+              {team.domain}
+            </span>
+            {!isSubmitted && (
+              <div className="text-[11px] hidden sm:flex items-center">
+                {draftSaveStatus === "saving" && (
+                  <span className="text-amber-400 flex items-center gap-1">
+                    <Loader2 className="w-2.5 h-2.5 animate-spin" /> Saving...
+                  </span>
+                )}
+                {draftSaveStatus === "saved" && (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5" /> Saved ✓
+                  </span>
+                )}
+                {draftSaveStatus === "error" && (
+                  <span className="text-red-400">Offline</span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* LEVEL 2: Team Identity & Secondary Dossier Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-2.5">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-black text-white font-sans tracking-tight uppercase truncate">
               {team.team_name}
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-400 font-mono flex items-center gap-2">
-              <span>{team.college}</span>
+            <p className="text-xs text-neutral-400 font-mono mt-0.5 flex flex-wrap items-center gap-2">
+              <span className="text-neutral-300">{team.college}</span>
               <span className="text-neutral-700">•</span>
               <span className="text-neutral-500">Judge: {judge.name}</span>
             </p>
           </div>
 
-          {/* CINEMATIC 10-MINUTE TIMER HUD WITH SVG CIRCULAR RING */}
-          <div className="flex flex-col items-start md:items-end justify-center font-mono">
-            <div className="flex items-center gap-4">
-              {/* Circular Ring Gauge */}
-              <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 88 88">
-                  {/* Track */}
-                  <circle
-                    cx="44"
-                    cy="44"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    className="text-neutral-800/80 fill-none"
-                  />
-                  {/* Indicator */}
-                  <circle
-                    cx="44"
-                    cy="44"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    className={`fill-none transition-all duration-300 ${
-                      isTimeUp
-                        ? "text-red-500"
-                        : isCritical
-                        ? "text-red-500 animate-pulse"
-                        : isWarning
-                        ? "text-orange-400"
-                        : "text-amber-400"
+          {/* Dossier Toggle (Desktop/Tablet) — Compact & visually secondary */}
+          <button
+            type="button"
+            onClick={() => setIsDossierOpen((prev) => !prev)}
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-neutral-800/70 bg-neutral-900/50 hover:bg-neutral-800/80 text-neutral-400 hover:text-neutral-200 text-[11px] font-medium transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+          >
+            <Users className="w-3.5 h-3.5 text-amber-500/80" />
+            <span>TEAM DOSSIER ({team.participant_count})</span>
+            {isDossierOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        </div>
+
+        {/* LEVEL 3: TWO-PHASE TIMER DECK & CONTROLS */}
+        <div className="space-y-2.5 pt-2.5 border-t border-neutral-800/40">
+          {/* TWO PHASES SIDE-BY-SIDE */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {/* PHASE 1: PITCH (8 MINUTES) */}
+            <div
+              className={`relative rounded-xl p-2.5 sm:p-3 border transition-all duration-500 ease-in-out motion-reduce:transition-none ${
+                isSubmitted
+                  ? "border-neutral-800/60 bg-black/30 opacity-40"
+                  : isTimeEnded
+                  ? "border-neutral-800/60 bg-black/30 opacity-40"
+                  : isPitchActive
+                  ? isPitchWarning
+                    ? "border-orange-500/60 bg-orange-950/20 shadow-[0_0_20px_rgba(249,115,22,0.2)] ring-1 ring-orange-500/30"
+                    : isPitchCritical
+                    ? "border-red-500/60 bg-red-950/25 shadow-[0_0_20px_rgba(239,68,68,0.25)] ring-1 ring-red-500/40"
+                    : isRunning
+                    ? "breathe-amber bg-amber-950/20 ring-1 ring-amber-500/20 opacity-100"
+                    : "border-amber-500/40 bg-amber-950/15 opacity-100"
+                  : "border-neutral-800/60 bg-black/30 opacity-45"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-1 mb-1">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isPitchActive
+                        ? "bg-amber-400 live-dot shadow-[0_0_6px_rgba(245,158,11,0.8)]"
+                        : "bg-neutral-600"
                     }`}
                   />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <Clock
-                    className={`w-5 h-5 ${
-                      isRunning
-                        ? "text-amber-400 animate-spin"
-                        : isTimeUp
-                        ? "text-red-400"
-                        : "text-neutral-400"
-                    }`}
-                    style={{ animationDuration: isRunning ? "3s" : undefined }}
-                  />
-                </div>
-              </div>
-
-              {/* Digital Time & Phase Display */}
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-bold">
-                    {timer.isTimeEnded ? "SESSION COMPLETE" : timer.isQa ? "Q&A CLOCK (2:00)" : "PITCH CLOCK (8:00)"}
-                  </span>
-                  {isTimeUp ? (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-red-950/60 text-red-400 border border-red-500/50 animate-pulse">
-                      TIME UP
-                    </span>
-                  ) : isCritical ? (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-red-950/60 text-red-400 border border-red-500/50 animate-pulse">
-                      FINAL MINUTE
-                    </span>
-                  ) : isWarning ? (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-950/60 text-orange-400 border border-orange-500/40">
-                      WARNING
-                    </span>
-                  ) : isRunning ? (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-950/60 text-amber-400 border border-amber-500/40">
-                      RUNNING
-                    </span>
-                  ) : null}
-                </div>
-
-                <div
-                  className={`text-3xl sm:text-4xl font-black tracking-widest leading-none mt-1 ${
-                    isTimeUp
-                      ? "text-red-400 animate-pulse"
-                      : isCritical
-                      ? "text-red-400"
-                      : isWarning
-                      ? "text-orange-400"
-                      : isRunning
-                      ? "text-amber-400"
-                      : "text-neutral-200"
+                  PITCH <span className="hidden sm:inline text-neutral-500 text-[10px] font-normal">(8 MIN)</span>
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase tracking-wider border ${
+                    isPitchActive
+                      ? isRunning
+                        ? "bg-amber-950/80 text-amber-300 border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.25)]"
+                        : "bg-amber-950/40 text-amber-400 border-amber-500/30"
+                      : isPitchCompleted
+                      ? "bg-neutral-900/60 text-neutral-400 border-neutral-800/60"
+                      : "bg-neutral-900/40 text-neutral-500 border-neutral-800/40"
                   }`}
                 >
-                  {isSubmitted ? "COMPLETED" : formattedTime}
-                </div>
+                  {isPitchActive
+                    ? isRunning
+                      ? "● ACTIVE"
+                      : "READY"
+                    : isPitchCompleted
+                    ? "COMPLETED ✓"
+                    : "○ QUEUED"}
+                </span>
+              </div>
 
-                {isTimeUp && !isSubmitted && (
-                  <span className="text-[10px] uppercase tracking-wider text-red-400 font-bold mt-1">
-                    TIME EXPIRED // FINISH EVALUATION
-                  </span>
-                )}
+              <div className="flex items-baseline justify-between mt-1">
+                <span
+                  className={`text-xl sm:text-3xl font-black font-mono tracking-wider tabular-nums leading-none transition-colors duration-200 ${
+                    isPitchActive
+                      ? isPitchCritical
+                        ? "text-red-400"
+                        : isPitchWarning
+                        ? "text-orange-400"
+                        : "text-amber-200"
+                      : "text-neutral-500"
+                  }`}
+                >
+                  {pitchDisplay}
+                </span>
+                <span className="text-[9px] sm:text-[10px] text-neutral-500 uppercase font-mono">
+                  {isPitchCompleted ? "00:00" : "/ 08:00"}
+                </span>
               </div>
             </div>
 
-            {/* Timer Controls: Start / Stop / Reset */}
-            {!isSubmitted && (
-              <div className="flex items-center gap-2 mt-3 font-mono text-xs font-bold w-full sm:w-auto">
+            {/* PHASE 2: Q&A (2 MINUTES) */}
+            <div
+              className={`relative rounded-xl p-2.5 sm:p-3 border transition-all duration-500 ease-in-out motion-reduce:transition-none ${
+                isSubmitted
+                  ? "border-neutral-800/60 bg-black/30 opacity-40"
+                  : isTimeEnded
+                  ? "border-neutral-800/60 bg-black/30 opacity-40"
+                  : isQaActive
+                  ? isQaCritical
+                    ? "border-red-500/60 bg-red-950/25 shadow-[0_0_20px_rgba(239,68,68,0.25)] ring-1 ring-red-500/40"
+                    : isQaWarning
+                    ? "border-orange-500/60 bg-orange-950/20 shadow-[0_0_20px_rgba(249,115,22,0.2)] ring-1 ring-orange-500/30"
+                    : isRunning
+                    ? "breathe-cyan bg-cyan-950/20 ring-1 ring-cyan-500/20 opacity-100"
+                    : "border-cyan-500/40 bg-cyan-950/15 opacity-100"
+                  : "border-neutral-800/60 bg-black/30 opacity-45"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-1 mb-1">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isQaActive
+                        ? "bg-cyan-400 live-dot shadow-[0_0_6px_rgba(6,182,212,0.8)]"
+                        : "bg-neutral-600"
+                    }`}
+                  />
+                  Q&A <span className="hidden sm:inline text-neutral-500 text-[10px] font-normal">(2 MIN)</span>
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase tracking-wider border ${
+                    isQaActive
+                      ? isRunning
+                        ? "bg-cyan-950/80 text-cyan-300 border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
+                        : "bg-cyan-950/40 text-cyan-400 border-cyan-500/30"
+                      : isTimeEnded
+                      ? "bg-neutral-900/60 text-neutral-400 border-neutral-800/60"
+                      : "bg-neutral-900/40 text-neutral-500 border-neutral-800/40"
+                  }`}
+                >
+                  {isQaActive
+                    ? isRunning
+                      ? "● ACTIVE"
+                      : "READY"
+                    : isTimeEnded
+                    ? "COMPLETED ✓"
+                    : "○ QUEUED"}
+                </span>
+              </div>
+
+              <div className="flex items-baseline justify-between mt-1">
+                <span
+                  className={`text-xl sm:text-3xl font-black font-mono tracking-wider tabular-nums leading-none transition-colors duration-200 ${
+                    isQaActive
+                      ? isQaCritical
+                        ? "text-red-400"
+                        : isQaWarning
+                        ? "text-orange-400"
+                        : "text-cyan-200"
+                      : "text-neutral-500"
+                  }`}
+                >
+                  {qaDisplay}
+                </span>
+                <span className="text-[9px] sm:text-[10px] text-neutral-500 uppercase font-mono">
+                  {isTimeEnded ? "00:00" : "/ 02:00"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* TIME ENDED NOTIFICATION BANNER (IF 10-MIN FINISHED) — SETTLES STABLY AFTER SHORT PULSE */}
+          {isTimeEnded && !isSubmitted && (
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg border border-red-500/40 bg-red-950/30 text-red-300 text-xs font-semibold time-ended-pulse">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <span>FULL 10-MINUTE SESSION COMPLETED // TIME ENDED</span>
+              </div>
+              <span className="text-[10px] uppercase font-mono text-red-400 font-bold">FINISH SCORING</span>
+            </div>
+          )}
+
+          {/* CONTROLS ROW — Visually secondary, compact, refined */}
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-800/40">
+            {!isSubmitted ? (
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => timer.start()}
                   disabled={isRunning}
                   aria-label="Start presentation timer"
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl border transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                     isRunning
-                      ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-extrabold cursor-default"
-                      : "bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 border-emerald-500/30 hover:border-emerald-500/60 active:scale-95"
+                      ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-bold cursor-default"
+                      : "bg-neutral-900/60 hover:bg-emerald-950/40 text-emerald-400 border-neutral-800 hover:border-emerald-500/40 active:scale-95"
                   }`}
                 >
-                  <Play className={`w-3.5 h-3.5 ${isRunning ? "fill-current" : ""}`} />
+                  <Play className={`w-3 h-3 ${isRunning ? "fill-current" : ""}`} />
                   <span>{isRunning ? "RUNNING" : "START"}</span>
                 </button>
 
@@ -612,13 +580,13 @@ export function JudgingWorkspaceClient({
                   onClick={() => timer.stop()}
                   disabled={!isRunning}
                   aria-label="Stop presentation timer"
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl border transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                     !isRunning
-                      ? "bg-neutral-900/50 border-neutral-800 text-neutral-600 opacity-50 cursor-not-allowed"
-                      : "bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-500/40 hover:border-amber-500/70 active:scale-95"
+                      ? "bg-neutral-900/30 border-neutral-850 text-neutral-600 opacity-40 cursor-not-allowed"
+                      : "bg-neutral-900/60 hover:bg-amber-950/40 text-neutral-300 hover:text-amber-300 border-neutral-800 hover:border-amber-500/40 active:scale-95"
                   }`}
                 >
-                  <Square className="w-3 h-3 fill-current" />
+                  <Square className="w-2.5 h-2.5 fill-current" />
                   <span>STOP</span>
                 </button>
 
@@ -626,101 +594,111 @@ export function JudgingWorkspaceClient({
                   type="button"
                   onClick={() => setShowResetModal(true)}
                   aria-label="Reset presentation timer"
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800 hover:border-neutral-700 transition-all cursor-pointer active:scale-95"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-900/60 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800/80 text-xs font-semibold transition-all cursor-pointer active:scale-95"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>RESET</span>
                 </button>
               </div>
+            ) : (
+              <span className="px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-950/30 text-emerald-300 text-xs font-semibold flex items-center gap-1.5">
+                <Lock className="w-3 h-3" />
+                SESSION LOCKED
+              </span>
             )}
+
+            {/* Dossier Toggle on mobile (< sm) */}
+            <button
+              type="button"
+              onClick={() => setIsDossierOpen((prev) => !prev)}
+              className="inline-flex sm:hidden items-center gap-1 py-1.5 px-2.5 rounded-lg border border-neutral-800/70 bg-neutral-900/60 text-neutral-300 text-xs font-medium shrink-0"
+            >
+              <Users className="w-3.5 h-3.5 text-amber-500/80" />
+              <span>DOSSIER</span>
+              {isDossierOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
           </div>
         </div>
-
-        {/* Expandable Team Dossier Toggle */}
-        <div className="mt-6 pt-4 border-t border-neutral-800/80">
-          <button
-            type="button"
-            onClick={() => setIsDossierOpen((prev) => !prev)}
-            className="flex items-center justify-between w-full text-xs font-mono text-neutral-300 hover:text-amber-400 transition-colors cursor-pointer select-none"
-          >
-            <span className="flex items-center gap-2 font-semibold">
-              <Users className="w-3.5 h-3.5 text-amber-500" />
-              TEAM DOSSIER ({team.participant_count} PARTICIPANTS)
-            </span>
-            <div className="flex items-center gap-1 text-[11px] text-neutral-500">
-              <span>{isDossierOpen ? "COLLAPSE DOSSIER" : "EXPAND DOSSIER"}</span>
-              {isDossierOpen ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </div>
-          </button>
-
-          {isDossierOpen && (
-            <div className="mt-4 pt-4 border-t border-neutral-900 grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs animate-in fade-in duration-150">
-              {/* Leader Details */}
-              <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950/70 space-y-2.5">
-                <div className="text-[11px] uppercase tracking-wider text-amber-500 font-bold flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
-                  TEAM LEADER SPECIFICATIONS
-                </div>
-                <div className="space-y-1.5 text-neutral-300">
-                  <p>
-                    <span className="text-neutral-500">Name:</span> {team.team_leader_name}
-                  </p>
-                  {team.team_leader_roll_no && (
-                    <p>
-                      <span className="text-neutral-500">Roll No:</span>{" "}
-                      {team.team_leader_roll_no}
-                    </p>
-                  )}
-                  {team.team_leader_mobile && (
-                    <p className="flex items-center gap-1.5">
-                      <Phone className="w-3 h-3 text-neutral-500" />
-                      <span>+91 {team.team_leader_mobile}</span>
-                    </p>
-                  )}
-                  {team.team_leader_email && (
-                    <p className="flex items-center gap-1.5">
-                      <Mail className="w-3 h-3 text-neutral-500" />
-                      <span>{team.team_leader_email}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Participants Roster */}
-              <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950/70 space-y-2.5">
-                <div className="text-[11px] uppercase tracking-wider text-amber-500 font-bold flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5" />
-                  PARTICIPANT ROSTER
-                </div>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {team.participants && team.participants.length > 0 ? (
-                    team.participants.map((m, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between text-neutral-300 text-[11px] border-b border-neutral-900/60 pb-1 last:border-none"
-                      >
-                        <span className="font-medium text-white truncate max-w-[160px]">
-                          {idx + 1}. {m.name} {m.isLeader && "(Leader)"}
-                        </span>
-                        <div className="flex items-center gap-3 text-neutral-400 text-[10px]">
-                          {m.roll_no && <span>Roll: {m.roll_no}</span>}
-                          {m.mobile && <span>Ph: +91 {m.mobile}</span>}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-neutral-500 italic">No participants listed.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
+
+      {/*
+        ============================================================
+        TEAM DOSSIER (EXPANDABLE BELOW FLOATING BLOCK)
+        ============================================================
+      */}
+      {isDossierOpen && (
+        <div className="rounded-2xl border border-neutral-800 bg-[#110f0c] p-4 sm:p-6 space-y-4 font-mono text-xs animate-in fade-in duration-150 shadow-lg">
+          <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+            <span className="font-bold text-white uppercase text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-amber-500" />
+              Official Team Dossier: {team.team_name}
+            </span>
+            <span className="text-neutral-500 text-xs">
+              {team.participant_count} Registered Members
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Leader Details */}
+            <div className="p-4 rounded-xl border border-neutral-800/80 bg-neutral-950/80 space-y-2">
+              <div className="text-[11px] uppercase tracking-wider text-amber-500 font-bold flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
+                TEAM LEADER SPECIFICATIONS
+              </div>
+              <div className="space-y-1.5 text-neutral-300">
+                <p>
+                  <span className="text-neutral-500">Name:</span> {team.team_leader_name}
+                </p>
+                {team.team_leader_roll_no && (
+                  <p>
+                    <span className="text-neutral-500">Roll No:</span> {team.team_leader_roll_no}
+                  </p>
+                )}
+                {team.team_leader_mobile && (
+                  <p className="flex items-center gap-1.5">
+                    <Phone className="w-3 h-3 text-neutral-500" />
+                    <span>+91 {team.team_leader_mobile}</span>
+                  </p>
+                )}
+                {team.team_leader_email && (
+                  <p className="flex items-center gap-1.5">
+                    <Mail className="w-3 h-3 text-neutral-500" />
+                    <span>{team.team_leader_email}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Participants Roster */}
+            <div className="p-4 rounded-xl border border-neutral-800/80 bg-neutral-950/80 space-y-2">
+              <div className="text-[11px] uppercase tracking-wider text-amber-500 font-bold flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5" />
+                PARTICIPANT ROSTER
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {team.participants && team.participants.length > 0 ? (
+                  team.participants.map((m, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between text-neutral-300 text-[11px] border-b border-neutral-900/60 pb-1 last:border-none"
+                    >
+                      <span className="font-medium text-white truncate max-w-[160px]">
+                        {idx + 1}. {m.name} {m.isLeader && "(Leader)"}
+                      </span>
+                      <div className="flex items-center gap-3 text-neutral-400 text-[10px]">
+                        {m.roll_no && <span>Roll: {m.roll_no}</span>}
+                        {m.mobile && <span>Ph: +91 {m.mobile}</span>}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-neutral-500 italic">No participants listed.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ERROR BANNER */}
       {errorMessage && (
@@ -733,73 +711,40 @@ export function JudgingWorkspaceClient({
         </div>
       )}
 
-      {/* SUBMISSION LOCKED / CORRECTION BANNER */}
+      {/* SUBMISSION LOCKED BANNER */}
       {isSubmitted && (
-        <div className="space-y-3 font-mono text-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/30 text-emerald-300">
-            <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-              <div>
-                <p className="font-bold uppercase tracking-wider text-emerald-200">
-                  OFFICIAL EVALUATION RECORDED &amp; LOCKED
-                </p>
-                <p className="text-[11px] text-emerald-400/80 mt-0.5">
-                  Submitted on{" "}
-                  {evaluation.submitted_at
-                    ? new Date(evaluation.submitted_at).toLocaleString()
-                    : "Record Complete"}{" "}
-                  • Authoritative Score: {evaluation.total_score} / 50
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setShowCorrectionModal(true)}
-                className="px-3.5 py-2 rounded-lg border border-amber-500/40 bg-amber-950/30 hover:bg-amber-950/50 text-amber-300 font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <FileEdit className="w-3.5 h-3.5 text-amber-400" />
-                <span>REQUEST CORRECTION</span>
-              </button>
-
-              <Link
-                href="/judge"
-                className="px-4 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold uppercase transition-colors shrink-0"
-              >
-                NEXT TEAM
-              </Link>
+        <div className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/30 text-emerald-300 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <div>
+              <p className="font-bold uppercase tracking-wider text-emerald-200">
+                OFFICIAL EVALUATION RECORDED &amp; LOCKED
+              </p>
+              <p className="text-[11px] text-emerald-400/80 mt-0.5">
+                Submitted on{" "}
+                {evaluation.submitted_at
+                  ? new Date(evaluation.submitted_at).toLocaleString()
+                  : "Record Complete"}{" "}
+                • Authoritative Score: {evaluation.total_score} / 50
+              </p>
             </div>
           </div>
 
-          {/* Pending Correction Banner */}
-          {correctionStatus?.requested && (
-            <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/40 bg-amber-950/20 text-amber-300">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold uppercase tracking-wider text-amber-200">
-                    CORRECTION REQUEST REGISTERED // PENDING ADMIN APPROVAL
-                  </span>
-                  {correctionStatus.requestId && (
-                    <span className="px-2 py-0.5 rounded bg-black/60 border border-amber-500/30 text-[10px] text-amber-400">
-                      ID: {correctionStatus.requestId}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-neutral-300">
-                  Reason: <span className="text-white">{correctionStatus.reason}</span>
-                </p>
-                <p className="text-[10px] text-neutral-400 italic">
-                  Note: The evaluation remains locked to maintain competition integrity. An organizer will review and authorize any score modification during Phase 4 Admin Command Center processing.
-                </p>
-              </div>
-            </div>
-          )}
+          <Link
+            href="/judge"
+            className="px-4 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold uppercase transition-colors shrink-0 text-center"
+          >
+            NEXT TEAM
+          </Link>
         </div>
       )}
 
-      {/* RUBRIC SCORING SUITE */}
+      {/*
+        ============================================================
+        OFFICIAL RUBRIC SCORING SUITE (5 CRITERIA, 0-10 BUTTONS ONLY)
+        Scores and CURRENT TOTAL are clearly displayed here.
+        ============================================================
+      */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
           <div>
@@ -808,13 +753,13 @@ export function JudgingWorkspaceClient({
               Official Rubric Scoring Suite
             </h2>
             <p className="font-mono text-xs text-neutral-400 mt-0.5">
-              Score each criterion from 0 to 10 points. Use keys 1–5 to quick-jump to criteria.
+              Score each criterion from 0 to 10 points. Use keys 1–5 to jump to criteria.
             </p>
           </div>
 
-          {/* Current Live Total HUD */}
+          {/* CURRENT TOTAL HUD */}
           <div className="flex items-center gap-3 px-4 py-2 rounded-xl border border-amber-500/40 bg-[#110f0c] font-mono">
-            <span className="text-[11px] text-neutral-400 uppercase">CURRENT TOTAL:</span>
+            <span className="text-[11px] text-neutral-400 uppercase font-semibold">CURRENT TOTAL:</span>
             <span className="text-xl sm:text-2xl font-black text-amber-400">
               {isSubmitted ? evaluation.total_score : clientLiveTotal}
             </span>
@@ -834,7 +779,7 @@ export function JudgingWorkspaceClient({
                 key={rubric.id}
                 id={`rubric-criterion-${idx}`}
                 tabIndex={-1}
-                className={`rounded-2xl border p-5 sm:p-6 transition-all font-mono outline-none focus:ring-2 focus:ring-amber-500/50 ${
+                className={`scroll-mt-64 rounded-2xl border p-5 sm:p-6 transition-all font-mono outline-none focus:ring-2 focus:ring-amber-500/50 ${
                   isScored
                     ? "border-amber-500/40 bg-[#110f0c] shadow-[0_0_20px_rgba(245,158,11,0.03)]"
                     : "border-neutral-800 bg-[#0d0c09]"
@@ -856,7 +801,7 @@ export function JudgingWorkspaceClient({
                   </div>
 
                   <div className="flex items-center gap-2 self-start sm:self-auto pl-8.5 sm:pl-0">
-                    <span className="text-xs text-neutral-500 uppercase">Score:</span>
+                    <span className="text-xs text-neutral-500 uppercase font-semibold">Score:</span>
                     <span className="text-lg font-black text-amber-400 px-3 py-1 rounded-lg border border-amber-500/30 bg-amber-950/30">
                       {currentScore}
                     </span>
@@ -864,8 +809,8 @@ export function JudgingWorkspaceClient({
                   </div>
                 </div>
 
-                {/* Score Controls: Touch friendly quick score buttons (0 to 10) */}
-                <div className="pl-0 sm:pl-8.5 space-y-3.5">
+                {/* Score Controls: Clickable numeric buttons 0 to 10 ONLY (NO SLIDERS, NO TRACKS) */}
+                <div className="pl-0 sm:pl-8.5">
                   <div className="grid grid-cols-6 sm:grid-cols-11 gap-1.5 sm:gap-2">
                     {Array.from({ length: max + 1 }, (_, i) => i).map((scoreVal) => {
                       const isSelected = scores[rubric.id] === scoreVal;
@@ -886,23 +831,6 @@ export function JudgingWorkspaceClient({
                         </button>
                       );
                     })}
-                  </div>
-
-                  {/* Range Slider for granular control */}
-                  <div className="flex items-center gap-3 pt-1">
-                    <span className="text-[10px] text-neutral-500">0</span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={max}
-                      step={1}
-                      value={currentScore}
-                      disabled={isSubmitted}
-                      onChange={(e) => handleScoreChange(rubric.id, Number(e.target.value))}
-                      className="w-full accent-amber-500 h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
-                      aria-label={`${rubric.name} slider`}
-                    />
-                    <span className="text-[10px] text-neutral-500">{max}</span>
                   </div>
                 </div>
               </div>
@@ -925,21 +853,23 @@ export function JudgingWorkspaceClient({
           </label>
 
           {/* Draft Autosave indicator */}
-          <div className="text-[11px] flex items-center gap-1.5">
-            {draftSaveStatus === "saving" && (
-              <span className="text-amber-400 flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" /> Saving draft...
-              </span>
-            )}
-            {draftSaveStatus === "saved" && (
-              <span className="text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Draft saved
-              </span>
-            )}
-            {draftSaveStatus === "error" && (
-              <span className="text-red-400">Save failed</span>
-            )}
-          </div>
+          {!isSubmitted && (
+            <div className="text-[11px] flex items-center gap-1.5">
+              {draftSaveStatus === "saving" && (
+                <span className="text-amber-400 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Saving draft...
+                </span>
+              )}
+              {draftSaveStatus === "saved" && (
+                <span className="text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Draft saved
+                </span>
+              )}
+              {draftSaveStatus === "error" && (
+                <span className="text-red-400">Save failed</span>
+              )}
+            </div>
+          )}
         </div>
 
         <textarea
@@ -952,21 +882,27 @@ export function JudgingWorkspaceClient({
             hasUnsavedChanges.current = true;
             setDraftSaveStatus("idle");
           }}
-          placeholder="Enter notes on technical feasibility, innovation, demo execution, and recommendations for the team..."
+          placeholder="Enter notes on technical feasibility, innovation, prototype demo execution, and recommendations for the team..."
           className="w-full bg-[#0a0907] border border-neutral-800 focus:border-amber-500/60 rounded-xl p-3.5 text-white placeholder-neutral-600 outline-none text-xs transition-colors disabled:opacity-50 resize-y"
         />
       </div>
 
-      {/* ACTION BAR */}
+      {/*
+        ============================================================
+        BOTTOM SUBMISSION ACTION BAR (WHEN NOT SUBMITTED)
+        Styled as part of the command deck, strictly non-overlapping
+        ============================================================
+      */}
       {!isSubmitted && (
-        <div className="sticky bottom-4 z-30 p-4 rounded-2xl border border-amber-500/30 bg-[#0c0a08]/95 backdrop-blur-md shadow-[0_0_40px_rgba(0,0,0,0.8)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
+        <div className="sticky bottom-4 z-30 p-4 rounded-2xl border border-amber-500/35 bg-[#0c0a08]/98 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.85)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
           <div className="flex items-center gap-3">
-            <span className="text-xs text-neutral-400 uppercase">SUMMARY:</span>
-            <span className="text-lg font-black text-amber-400">
-              {clientLiveTotal} / {maxPossibleScore} POINTS
+            <span className="text-xs text-neutral-400 uppercase font-semibold">CURRENT TOTAL:</span>
+            <span className="text-xl sm:text-2xl font-black text-amber-400">
+              {clientLiveTotal} / {maxPossibleScore}
             </span>
+            <span className="text-xs text-neutral-500">POINTS</span>
             {!allRubricsScored && (
-              <span className="text-[11px] text-amber-500/90 italic">
+              <span className="text-[11px] text-amber-500/90 italic hidden md:inline">
                 (Please evaluate all {rubrics.length} criteria)
               </span>
             )}
@@ -1005,7 +941,11 @@ export function JudgingWorkspaceClient({
         </div>
       )}
 
-      {/* FINAL SUBMISSION CONFIRMATION MODAL */}
+      {/*
+        ============================================================
+        FINAL SUBMISSION CONFIRMATION MODAL
+        ============================================================
+      */}
       {showConfirmModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-150"
@@ -1015,28 +955,27 @@ export function JudgingWorkspaceClient({
           aria-labelledby="confirm-submission-title"
         >
           <div
-            className="relative w-full max-w-lg bg-[#110f0c] border border-amber-500/40 rounded-2xl p-6 sm:p-7 shadow-[0_0_60px_rgba(245,158,11,0.15)] space-y-6 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-lg bg-[#110f0c] border border-amber-500/40 rounded-2xl p-6 sm:p-7 shadow-[0_0_60px_rgba(245,158,11,0.15)] space-y-6 max-h-[90vh] overflow-y-auto font-mono"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-1.5 border-b border-neutral-800 pb-4">
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-950/30 text-amber-400 font-mono text-[11px] uppercase tracking-wider font-semibold">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-950/30 text-amber-400 text-[11px] uppercase tracking-wider font-semibold">
                 <Shield className="w-3 h-3" />
-                OFFICIAL SUBMISSION CONFIRMATION
+                FINAL SUBMISSION
               </div>
               <h2
                 id="confirm-submission-title"
                 className="text-xl font-bold text-white uppercase font-sans tracking-wide"
               >
-                Submit &amp; Lock Evaluation
+                Are you absolutely sure?
               </h2>
-              <p className="text-xs text-neutral-400 font-mono">
-                Verify scores before permanent submission for team:{" "}
-                <span className="text-white font-bold">{team.team_name}</span>
+              <p className="text-xs text-neutral-400">
+                Team: <span className="text-white font-bold">{team.team_name}</span> ({team.domain})
               </p>
             </div>
 
             {/* Rubrics breakdown table */}
-            <div className="space-y-2 font-mono text-xs">
+            <div className="space-y-2 text-xs">
               <div className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">
                 SCORE BREAKDOWN
               </div>
@@ -1065,7 +1004,7 @@ export function JudgingWorkspaceClient({
 
             {/* Feedback preview */}
             {feedback.trim() ? (
-              <div className="space-y-1 font-mono text-xs">
+              <div className="space-y-1 text-xs">
                 <span className="text-[11px] text-neutral-500 uppercase font-semibold">
                   FEEDBACK PREVIEW
                 </span>
@@ -1074,28 +1013,30 @@ export function JudgingWorkspaceClient({
                 </p>
               </div>
             ) : (
-              <div className="text-neutral-500 text-[11px] italic font-mono">
+              <div className="text-neutral-500 text-[11px] italic">
                 (No feedback provided)
               </div>
             )}
 
             {/* Permanent lock warning */}
-            <div className="flex items-start gap-2.5 p-3 rounded-xl border border-amber-500/30 bg-amber-950/20 text-amber-300 text-xs font-mono">
+            <div className="flex items-start gap-2.5 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-200 text-xs leading-relaxed">
               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span>
-                <strong>Warning:</strong> Submitting will lock this evaluation permanently. You will not be able to modify scores or feedback without organizer approval.
-              </span>
+              <div className="space-y-1">
+                <p className="font-bold">Once submitted, this evaluation is permanently locked.</p>
+                <p className="text-neutral-300">Scores cannot be changed by the judge or administrator after final submission.</p>
+                <p className="text-neutral-400 text-[11px]">Make sure all five criteria have been reviewed before continuing.</p>
+              </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800 font-mono text-xs">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800 text-xs">
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => setShowConfirmModal(false)}
                 className="px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 font-bold transition-colors cursor-pointer"
               >
-                BACK TO EDIT
+                CANCEL
               </button>
 
               <button
@@ -1112,7 +1053,7 @@ export function JudgingWorkspaceClient({
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-black" />
-                    <span>CONFIRM &amp; LOCK</span>
+                    <span>CONFIRM FINAL SUBMISSION</span>
                   </>
                 )}
               </button>
@@ -1130,21 +1071,21 @@ export function JudgingWorkspaceClient({
           aria-modal="true"
         >
           <div
-            className="relative w-full max-w-md bg-[#110f0c] border border-amber-500/40 rounded-2xl p-6 shadow-[0_0_50px_rgba(245,158,11,0.12)] space-y-4"
+            className="relative w-full max-w-md bg-[#110f0c] border border-amber-500/40 rounded-2xl p-6 shadow-[0_0_50px_rgba(245,158,11,0.12)] space-y-4 font-mono"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2.5 text-amber-400 font-mono text-xs uppercase font-bold tracking-wider">
+            <div className="flex items-center gap-2.5 text-amber-400 text-xs uppercase font-bold tracking-wider">
               <RotateCcw className="w-4 h-4" />
               <span>CONFIRM TIMER RESET</span>
             </div>
             <h3 className="text-lg font-bold text-white font-sans">
               Reset Presentation Pitch Clock?
             </h3>
-            <p className="text-xs text-neutral-400 font-mono leading-relaxed">
+            <p className="text-xs text-neutral-400 leading-relaxed">
               This will reset the countdown timer back to the full 10:00 duration for{" "}
               <strong className="text-white">{team.team_name}</strong>. If an in-progress session exists, it will return to standby.
             </p>
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800 font-mono text-xs">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800 text-xs">
               <button
                 type="button"
                 onClick={() => setShowResetModal(false)}
@@ -1166,104 +1107,6 @@ export function JudgingWorkspaceClient({
           </div>
         </div>
       )}
-
-      {/* CORRECTION REQUEST MODAL */}
-      {showCorrectionModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-150"
-          onClick={() => !isSubmittingCorrection && setShowCorrectionModal(false)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div
-            className="relative w-full max-w-lg bg-[#110f0c] border border-amber-500/40 rounded-2xl p-6 sm:p-7 shadow-[0_0_60px_rgba(245,158,11,0.15)] space-y-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="space-y-1.5 border-b border-neutral-800 pb-3">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-950/30 text-amber-400 font-mono text-[11px] uppercase tracking-wider font-semibold">
-                <FileEdit className="w-3 h-3" />
-                OFFICIAL CORRECTION REQUEST
-              </div>
-              <h2 className="text-xl font-bold text-white uppercase font-sans tracking-wide">
-                Request Evaluation Correction
-              </h2>
-              <p className="text-xs text-neutral-400 font-mono">
-                Team: <span className="text-white font-bold">{team.team_name}</span> • Current Score:{" "}
-                <span className="text-amber-400 font-bold">{evaluation.total_score} / 50</span>
-              </p>
-            </div>
-
-            <div className="space-y-4 font-mono text-xs">
-              <div className="space-y-1.5">
-                <label className="text-[11px] uppercase text-neutral-400 font-semibold block">
-                  Correction Reason:
-                </label>
-                <select
-                  value={correctionReason}
-                  onChange={(e) => setCorrectionReason(e.target.value)}
-                  className="w-full bg-[#0a0907] border border-neutral-800 focus:border-amber-500/60 rounded-xl p-3 text-white text-xs outline-none"
-                >
-                  {CORRECTION_REASONS.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] uppercase text-neutral-400 font-semibold block">
-                  Detailed Explanation (min 10 characters):
-                </label>
-                <textarea
-                  rows={4}
-                  value={correctionExplanation}
-                  onChange={(e) => setCorrectionExplanation(e.target.value)}
-                  placeholder="Specify the exact rubric criterion, requested score adjustment, and rationale..."
-                  className="w-full bg-[#0a0907] border border-neutral-800 focus:border-amber-500/60 rounded-xl p-3 text-white placeholder-neutral-600 text-xs outline-none resize-y"
-                />
-              </div>
-
-              <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-[11px] text-neutral-400 space-y-1">
-                <p className="font-semibold text-neutral-300">Phase 4 Admin Processing Note:</p>
-                <p>
-                  To preserve competition integrity, this evaluation remains permanently locked until an organizer reviews and authorizes the adjustment in the Admin Command Center.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800 font-mono text-xs">
-              <button
-                type="button"
-                disabled={isSubmittingCorrection}
-                onClick={() => setShowCorrectionModal(false)}
-                className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 font-semibold cursor-pointer"
-              >
-                CANCEL
-              </button>
-              <button
-                type="button"
-                disabled={isSubmittingCorrection || correctionExplanation.trim().length < 10}
-                onClick={handleCorrectionSubmit}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-black font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
-              >
-                {isSubmittingCorrection ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
-                    <span>FILING REQUEST...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5 text-black" />
-                    <span>SUBMIT REQUEST</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      </div>
-    </>
+    </div>
   );
 }
