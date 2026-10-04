@@ -254,19 +254,22 @@ export function RegistrationChamber({ onReturnToHero, onNextAct }: RegistrationC
     }
   };
 
-  const handleRegisterAnother = () => {
-    setSuccessData(null);
-    setSubmitError(null);
-    setErrors({});
-    setTeamName(""); setCollege(""); setDomain("");
-    setLeaderName(""); setLeaderRollNo(""); setLeaderMobile(""); setLeaderEmail("");
-    setP2({ name: "", rollNo: "", mobile: "" });
-    setP3({ name: "", rollNo: "", mobile: "" });
-    setP4({ name: "", rollNo: "", mobile: "" });
-    setP5({ name: "", rollNo: "", mobile: "" });
-    setParticipantCount(2);
-    setStep(1);
+  const handleBackToHome = () => {
+    if (onReturnToHero) {
+      onReturnToHero();
+    } else if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
+
+  React.useEffect(() => {
+    if (step === 7) {
+      const el = document.getElementById("register");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [step]);
 
   const handlePaymentSubmit = async () => {
     setPaymentError(null);
@@ -314,20 +317,30 @@ export function RegistrationChamber({ onReturnToHero, onNextAct }: RegistrationC
 
   return (
     <section id="register" className="relative z-30 w-full max-w-4xl mx-auto px-4 sm:px-8 py-10 sm:py-14 flex flex-col justify-between items-center text-center min-h-[90vh]">
-      <div className="flex flex-col items-center">
-        <div className="inline-flex items-center gap-2.5 mb-2.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
-          <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-amber-400 uppercase font-bold">ACT IX // REGISTRATION CHAMBER</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
+      {step < 7 && (
+        <div className="flex flex-col items-center">
+          <div className="inline-flex items-center gap-2.5 mb-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
+            <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-amber-400 uppercase font-bold">ACT IX // REGISTRATION CHAMBER</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]" />
+          </div>
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase drop-shadow-[0_4px_30px_rgba(0,0,0,0.9)]">{SPARKATHON_CONFIG.registration.chamberTitle}</h2>
+          <p className="mt-2 font-mono text-xs sm:text-sm tracking-wider text-neutral-300 uppercase max-w-md">{SPARKATHON_CONFIG.registration.chamberSubtitle}</p>
         </div>
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase drop-shadow-[0_4px_30px_rgba(0,0,0,0.9)]">{SPARKATHON_CONFIG.registration.chamberTitle}</h2>
-        <p className="mt-2 font-mono text-xs sm:text-sm tracking-wider text-neutral-300 uppercase max-w-md">{SPARKATHON_CONFIG.registration.chamberSubtitle}</p>
-      </div>
+      )}
 
-      <div className="relative my-auto w-full max-w-2xl mt-6 sm:mt-8">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[85%] rounded-full blur-[100px] opacity-25" style={{ background: "radial-gradient(circle, rgba(255, 140, 0, 0.5) 0%, rgba(255, 60, 0, 0.15) 50%, transparent 75%)" }} aria-hidden="true" />
+      <div className={`relative my-auto w-full max-w-2xl ${step === 7 ? "mt-2 sm:mt-4" : "mt-6 sm:mt-8"}`}>
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[85%] rounded-full blur-[100px] opacity-25"
+          style={{
+            background: step === 7
+              ? "radial-gradient(circle, rgba(251, 191, 36, 0.45) 0%, rgba(245, 158, 11, 0.15) 50%, transparent 75%)"
+              : "radial-gradient(circle, rgba(255, 140, 0, 0.5) 0%, rgba(255, 60, 0, 0.15) 50%, transparent 75%)",
+          }}
+          aria-hidden="true"
+        />
 
-        <div className="relative rounded-2xl sm:rounded-3xl border border-neutral-800 bg-[#070709] p-2 sm:p-3 shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden text-left">
+        <div className={`relative rounded-2xl sm:rounded-3xl border bg-[#070709] p-2 sm:p-3 shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden text-left ${step === 7 ? "border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.15)]" : "border-neutral-800"}`}>
           {/* Top Progress Tracker */}
           {step < 6 && (
             <div className="flex flex-col border-b border-neutral-800/80 bg-neutral-950/90 font-mono text-xs sm:text-sm">
@@ -615,53 +628,267 @@ export function RegistrationChamber({ onReturnToHero, onNextAct }: RegistrationC
                 </motion.div>
               )}
 
-              {/* STEP 7: HANDOFF SUCCESS */}
-              {step === 7 && successData && (
-                <motion.div key="step-7" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center py-3">
-                  <div className="h-12 w-12 rounded-full border border-amber-400/80 bg-amber-500/10 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="2.2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  </div>
-                  <span className="mt-4 font-mono text-xs sm:text-sm tracking-[0.3em] text-amber-400 uppercase font-bold">EXPEDITION CONFIRMED</span>
-                  <h3 className="mt-1 text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">{successData.teamName}</h3>
-                  <p className="mt-1 font-mono text-xs text-neutral-300 uppercase">{successData.college}</p>
-                  
-                  <div className="my-5 w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-950/80 p-4 space-y-2.5 font-mono text-xs text-left">
-                    <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-300 uppercase">REGISTRATION ID</span><span className="text-amber-300 font-bold uppercase select-all">{successData.displayId || successData.id}</span></div>
-                    <div className="flex justify-between items-center border-b border-neutral-800/80 pb-2"><span className="text-neutral-300 uppercase">SQUAD STRENGTH</span><span className="text-white font-semibold">{successData.participantCount} MEMBERS</span></div>
-                    <div className="flex justify-between items-center"><span className="text-neutral-300 uppercase">PAYMENT STATUS</span><span className="text-amber-400 font-bold text-sm">PENDING VERIFICATION</span></div>
+              {/* STEP 7: REGISTRATION COMPLETED CELEBRATION */}
+              {step === 7 && (
+                <motion.div
+                  key="step-7"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative flex flex-col items-center text-center py-4 sm:py-6 px-1 sm:px-4 overflow-hidden"
+                >
+                  {/* Subtle Tech Grid Background Atmosphere */}
+                  <div
+                    className="pointer-events-none absolute inset-0 opacity-[0.035] bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:18px_18px]"
+                    aria-hidden="true"
+                  />
+
+                  {/* Top HUD Tag */}
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 mb-3 sm:mb-5 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
+                    <span className="font-mono text-[10px] sm:text-xs tracking-[0.3em] text-amber-300 uppercase font-bold">
+                      ACT IX // PROTOCOL SECURED
+                    </span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
                   </div>
 
-                  <div className="w-full max-w-md p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center mb-5 space-y-1.5">
-                     <p className="font-mono text-xs text-neutral-300 leading-relaxed">Your squad dossier has been officially recorded. Our operators will manually verify your payment and finalize your domain dispatch.</p>
+                  {/* CELEBRATION EMBLEM */}
+                  <div className="relative flex items-center justify-center my-3 sm:my-5">
+                    {/* Ambient Background Bloom */}
+                    <div
+                      className="pointer-events-none absolute w-48 h-48 sm:w-60 sm:h-60 rounded-full blur-[65px] opacity-40"
+                      style={{ background: "radial-gradient(circle, rgba(251,191,36,0.55) 0%, rgba(245,158,11,0.2) 50%, transparent 70%)" }}
+                      aria-hidden="true"
+                    />
+
+                    {/* Concentric Expanding Amber/Gold Energy Ring 1 */}
+                    <motion.div
+                      className="absolute rounded-full border border-amber-400/50"
+                      style={{ width: "80px", height: "80px" }}
+                      initial={{ scale: 0.8, opacity: 0.9 }}
+                      animate={{
+                        scale: [1, 1.7, 2.3],
+                        opacity: [0.9, 0.35, 0],
+                      }}
+                      transition={{
+                        duration: 2.8,
+                        repeat: Infinity,
+                        ease: "easeOut",
+                      }}
+                    />
+
+                    {/* Concentric Expanding Amber/Gold Energy Ring 2 */}
+                    <motion.div
+                      className="absolute rounded-full border border-amber-500/30"
+                      style={{ width: "80px", height: "80px" }}
+                      initial={{ scale: 0.8, opacity: 0.9 }}
+                      animate={{
+                        scale: [1, 1.9, 2.7],
+                        opacity: [0.8, 0.2, 0],
+                      }}
+                      transition={{
+                        duration: 2.8,
+                        delay: 1.1,
+                        repeat: Infinity,
+                        ease: "easeOut",
+                      }}
+                    />
+
+                    {/* Particle / Spark Burst */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, idx) => {
+                        const rad = (angle * Math.PI) / 180;
+                        const tx = Math.cos(rad) * 52;
+                        const ty = Math.sin(rad) * 52;
+                        return (
+                          <motion.div
+                            key={angle}
+                            initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                            animate={{
+                              opacity: [0, 1, 0],
+                              scale: [0.2, 1.4, 0],
+                              x: [0, tx * 0.7, tx],
+                              y: [0, ty * 0.7, ty],
+                            }}
+                            transition={{
+                              duration: 1.4,
+                              delay: 0.25 + idx * 0.05,
+                              ease: "easeOut",
+                            }}
+                            className="absolute w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,1)]"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Core Glowing Emblem Housing */}
+                    <motion.div
+                      initial={{ scale: 0.35, opacity: 0 }}
+                      animate={{
+                        scale: 1,
+                        opacity: 1,
+                        boxShadow: [
+                          "0 0 25px rgba(251,191,36,0.35), inset 0 0 15px rgba(251,191,36,0.2)",
+                          "0 0 55px rgba(251,191,36,0.65), inset 0 0 25px rgba(251,191,36,0.35)",
+                          "0 0 25px rgba(251,191,36,0.35), inset 0 0 15px rgba(251,191,36,0.2)",
+                        ],
+                      }}
+                      transition={{
+                        scale: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                        opacity: { duration: 0.4 },
+                        boxShadow: { duration: 3.2, repeat: Infinity, ease: "easeInOut" },
+                      }}
+                      className="relative z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-amber-400 bg-gradient-to-b from-[#1c150a] via-[#0d0905] to-black flex items-center justify-center"
+                    >
+                      <svg
+                        className="w-10 h-10 sm:w-12 sm:h-12 text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.8"
+                        stroke="currentColor"
+                      >
+                        <motion.path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4.5 12.75l6 6 9-13.5"
+                          initial={{ pathLength: 0, opacity: 0 }}
+                          animate={{ pathLength: 1, opacity: 1 }}
+                          transition={{ duration: 0.55, delay: 0.35, ease: "easeOut" }}
+                        />
+                      </svg>
+                    </motion.div>
                   </div>
 
-                  <button type="button" onClick={handleRegisterAnother} className="font-mono text-xs text-neutral-300 hover:text-white uppercase py-2.5 px-5 rounded-lg border border-neutral-800 transition-colors">REGISTER ANOTHER SQUAD</button>
+                  {/* HEADLINE: REGISTRATION COMPLETED */}
+                  <h2 className="mt-3 sm:mt-4 text-2xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase text-center leading-none">
+                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-[0_0_30px_rgba(251,191,36,0.6)]">
+                      REGISTRATION
+                    </span>
+                    <span className="block text-white tracking-widest mt-1 sm:mt-2">
+                      COMPLETED
+                    </span>
+                  </h2>
+
+                  {/* SUB-HEADLINE */}
+                  <p className="mt-3 sm:mt-4 font-mono text-[11px] sm:text-xs md:text-sm tracking-[0.16em] sm:tracking-[0.25em] text-amber-200/90 uppercase font-semibold text-center max-w-xl px-2 break-words">
+                    YOUR SQUAD HAS OFFICIALLY JOINED SPARK-A-THON 2026
+                  </p>
+
+                  {/* STATUS / CONFIRMATION BADGE */}
+                  <div className="mt-4 sm:mt-5 inline-flex items-center justify-center gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 font-mono text-[11px] sm:text-xs md:text-sm font-bold tracking-wider sm:tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.25)] text-center max-w-full">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,1)] shrink-0" />
+                    <span>TEAM REGISTERED SUCCESSFULLY</span>
+                  </div>
+
+                  {/* CONFIRMATION SUBTEXT */}
+                  <p className="mt-3 font-mono text-xs sm:text-sm text-neutral-400 text-center max-w-md px-4 leading-relaxed">
+                    Your registration has been successfully recorded.
+                  </p>
+
+                  {/* SQUAD DOSSIER CARD */}
+                  {(successData || teamName) && (
+                    <div className="mt-6 sm:mt-7 w-full max-w-md rounded-xl sm:rounded-2xl border border-neutral-800/90 bg-neutral-950/80 p-4 sm:p-5 space-y-3 font-mono text-xs text-left shadow-inner">
+                      <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center border-b border-neutral-800/80 pb-2.5 gap-1">
+                        <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
+                          REGISTRATION ID
+                        </span>
+                        <span className="text-amber-300 font-bold uppercase select-all tracking-wider text-[11px] sm:text-xs md:text-sm break-all">
+                          {successData?.displayId || successData?.id || "CONFIRMED"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center border-b border-neutral-800/80 pb-2.5 gap-1">
+                        <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
+                          TEAM NAME
+                        </span>
+                        <span className="text-white font-bold uppercase text-xs sm:text-sm">
+                          {successData?.teamName || teamName}
+                        </span>
+                      </div>
+                      {(successData?.domain || domain) && (
+                        <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center border-b border-neutral-800/80 pb-2.5 gap-1">
+                          <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
+                            TECHNICAL DOMAIN
+                          </span>
+                          <span className="text-neutral-200 font-medium text-xs sm:text-sm text-left xs:text-right">
+                            {successData?.domain || domain}
+                          </span>
+                        </div>
+                      )}
+                      {(successData?.college || college) && (
+                        <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center border-b border-neutral-800/80 pb-2.5 gap-1">
+                          <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
+                            COLLEGE / INSTITUTION
+                          </span>
+                          <span className="text-neutral-200 font-medium text-xs sm:text-sm text-left xs:text-right">
+                            {successData?.college || college}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs shrink-0">
+                          SQUAD STRENGTH
+                        </span>
+                        <span className="text-amber-400 font-bold text-xs sm:text-sm">
+                          {successData?.participantCount || participantCount} MEMBERS
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MINIMAL BACK TO HOME BUTTON */}
+                  <div className="mt-6 sm:mt-8 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleBackToHome}
+                      className="group inline-flex items-center gap-2 font-mono text-xs sm:text-sm text-neutral-400 hover:text-amber-300 tracking-[0.2em] uppercase py-2.5 px-6 rounded-full border border-neutral-800/80 hover:border-amber-500/50 bg-neutral-950/80 hover:bg-neutral-900 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(251,191,36,0.15)]"
+                    >
+                      <span className="transition-transform duration-300 group-hover:-translate-x-0.5">←</span>
+                      <span>BACK TO HOME</span>
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/90 font-mono text-xs sm:text-sm text-neutral-300 tracking-wider">
-            <div className="flex items-center gap-2"><span className="text-neutral-300">DATA PROTOCOL:</span><span className="text-amber-400/90">ENCRYPTED // SQUAD PROTOCOL</span></div>
-            <div className="flex items-center gap-2"><span className="text-neutral-300">ORGANIZER DISPATCH:</span><span className="text-neutral-300">STAGE 01 REGISTRATION DESK</span></div>
+            {step === 7 ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-400">DATA PROTOCOL:</span>
+                  <span className="text-amber-400/90 font-bold">TRANSMISSION CONFIRMED</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-400">STATUS:</span>
+                  <span className="text-emerald-400 font-semibold">ALL PROTOCOLS VERIFIED</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2"><span className="text-neutral-300">DATA PROTOCOL:</span><span className="text-amber-400/90">ENCRYPTED // SQUAD PROTOCOL</span></div>
+                <div className="flex items-center gap-2"><span className="text-neutral-300">ORGANIZER DISPATCH:</span><span className="text-neutral-300">STAGE 01 REGISTRATION DESK</span></div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => {
-          if (onNextAct) {
-            onNextAct();
-          } else {
-            document.getElementById('arena')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }}
-        className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors cursor-pointer"
-      >
-        <span>CONTINUE TO ARENA</span>
-        <span className="text-amber-400">↓</span>
-      </button>
+      {step < 7 && (
+        <button
+          type="button"
+          onClick={() => {
+            if (onNextAct) {
+              onNextAct();
+            } else {
+              document.getElementById('arena')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }}
+          className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-neutral-300 hover:text-amber-300 uppercase py-2 px-5 rounded-full border border-neutral-800 hover:border-amber-500/50 transition-colors cursor-pointer"
+        >
+          <span>CONTINUE TO ARENA</span>
+          <span className="text-amber-400">↓</span>
+        </button>
+      )}
     </section>
   );
 }
