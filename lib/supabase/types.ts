@@ -167,12 +167,12 @@ export type OfficialDomain = (typeof OFFICIAL_DOMAINS)[number];
 export const OFFICIAL_DOMAIN_CAPACITIES: Record<OfficialDomain, number> = {
   "AI and Cybersec": 12,
   "Smart Energy Systems": 10,
-  "Robotics or Drone and Fixed Wing": 7,
+  "Robotics or Drone and Fixed Wing": 8,
   "IoT or Embedded Systems": 8,
   "Open Innovation": 16,
 };
 
-export const TOTAL_OFFICIAL_CAPACITY = 53;
+export const TOTAL_OFFICIAL_CAPACITY = 54;
 
 export interface DomainCapacityStats {
   domain: OfficialDomain;
