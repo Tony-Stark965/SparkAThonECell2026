@@ -1,19 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type {
   RegistrationRecord,
   RegistrationStats,
-  AttendanceRecord,
-  AttendanceStatus,
 } from "@/lib/supabase/types";
 import { calculateRegistrationStats } from "@/lib/supabase/types";
 import { ATTENDANCE_DOMAINS, getTeamsForDomain } from "@/lib/attendance-export";
+import { createClient } from "@/lib/supabase/client";
 import { AdminStats } from "./AdminStats";
 import { RegistrationTable } from "./RegistrationTable";
-import { AttendanceRegister } from "./AttendanceRegister";
-import { DomainAttendanceSheets } from "./DomainAttendanceSheets";
 import { JudgesManagement } from "./JudgesManagement";
 import { RubricsManagement } from "./RubricsManagement";
 import { JudgingOverview } from "./JudgingOverview";
@@ -25,10 +22,8 @@ import {
   AlertTriangle,
   LayoutDashboard,
   FileText,
-  UserCheck,
   Compass,
   ArrowRight,
-  FileSpreadsheet,
   Users,
   Award,
   Activity,
@@ -37,47 +32,32 @@ import {
 
 interface AdminDashboardClientProps {
   initialRegistrations: RegistrationRecord[];
-  initialAttendance?: AttendanceRecord[];
   userEmail: string;
   fetchError?: string | null;
   onLogout: () => Promise<void>;
 }
 
 type ActiveTab =
-  | "COMMAND_CENTER"
-  | "REGISTRATIONS"
-  | "ATTENDANCE"
-  | "JUDGES"
-  | "RUBRICS"
+  | "OVERVIEW"
+  | "SQUADS"
   | "JUDGING"
-  | "RESULTS";
+  | "RESULTS"
+  | "JUDGES"
+  | "RUBRICS";
 
 export function AdminDashboardClient({
   initialRegistrations,
-  initialAttendance = [],
   userEmail,
   fetchError,
   onLogout,
 }: AdminDashboardClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<ActiveTab>("COMMAND_CENTER");
-  const [attendanceSubTab, setAttendanceSubTab] = useState<"ROSTERS" | "LIVE_CHECKIN">("ROSTERS");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("OVERVIEW");
   const [registrations, setRegistrations] =
     useState<RegistrationRecord[]>(initialRegistrations);
   const [selectedRegistrationDomain, setSelectedRegistrationDomain] =
     useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Initialize attendance map from server records
-  const [attendanceMap, setAttendanceMap] = useState<
-    Record<string, AttendanceStatus>
-  >(() => {
-    const map: Record<string, AttendanceStatus> = {};
-    for (const rec of initialAttendance) {
-      map[`${rec.registration_id}_${rec.participant_index}`] = rec.status;
-    }
-    return map;
-  });
 
   // Dynamic live telemetry calculated from current registrations state
   const stats: RegistrationStats = calculateRegistrationStats(registrations);
@@ -105,50 +85,17 @@ export function AdminDashboardClient({
     };
   });
 
-  const handleRegistrationUpdated = (
-    updated: RegistrationRecord,
-    updatedAttendance?: AttendanceRecord[]
-  ) => {
+  const handleRegistrationUpdated = (updated: RegistrationRecord) => {
     setRegistrations((prev) =>
       prev.map((r) => (r.id === updated.id ? updated : r))
     );
-    if (updatedAttendance && updatedAttendance.length > 0) {
-      setAttendanceMap((prev) => {
-        const next = { ...prev };
-        for (const key of Object.keys(next)) {
-          if (key.startsWith(`${updated.id}_`)) {
-            delete next[key];
-          }
-        }
-        for (const rec of updatedAttendance) {
-          next[`${rec.registration_id}_${rec.participant_index}`] = rec.status;
-        }
-        return next;
-      });
-    }
   };
 
   const handleRegistrationDeleted = (deletedId: string) => {
     setRegistrations((prev) => prev.filter((r) => r.id !== deletedId));
-    setAttendanceMap((prev) => {
-      const next = { ...prev };
-      for (const key of Object.keys(next)) {
-        if (key.startsWith(`${deletedId}_`)) {
-          delete next[key];
-        }
-      }
-      return next;
-    });
   };
 
-  const handleAttendanceUpdated = (key: string, status: AttendanceStatus) => {
-    setAttendanceMap((prev) => ({
-      ...prev,
-      [key]: status,
-    }));
-  };
-
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       const res = await fetch("/api/admin/registration", { cache: "no-store" });
@@ -164,7 +111,30 @@ export function AdminDashboardClient({
     } finally {
       setTimeout(() => setIsRefreshing(false), 600);
     }
-  };
+  }, [router]);
+
+  // Real-time synchronization for registration mutations across multiple admin devices
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("admin_registrations_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "registrations",
+        },
+        () => {
+          handleRefresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [handleRefresh]);
 
   return (
     <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -179,7 +149,7 @@ export function AdminDashboardClient({
             SPARK-A-THON 2026
           </h1>
           <p className="font-mono text-xs tracking-widest text-neutral-400 uppercase">
-            OPERATIONAL REGISTRATION, PAYMENT &amp; ATTENDANCE LEDGER
+            OPERATIONAL REGISTRATION, JUDGING &amp; RESULTS LEDGER
           </p>
         </div>
 
@@ -247,39 +217,51 @@ export function AdminDashboardClient({
         aria-label="Admin Navigation"
       >
         <button
-          onClick={() => setActiveTab("COMMAND_CENTER")}
+          onClick={() => setActiveTab("OVERVIEW")}
           className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-            activeTab === "COMMAND_CENTER"
+            activeTab === "OVERVIEW"
               ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
           }`}
         >
           <LayoutDashboard className="w-3.5 h-3.5" />
-          <span>COMMAND CENTER</span>
+          <span>OVERVIEW</span>
         </button>
 
         <button
-          onClick={() => setActiveTab("REGISTRATIONS")}
+          onClick={() => setActiveTab("SQUADS")}
           className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-            activeTab === "REGISTRATIONS"
+            activeTab === "SQUADS"
               ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
           }`}
         >
           <FileText className="w-3.5 h-3.5" />
-          <span>REGISTRATIONS ({registrations.length})</span>
+          <span>SQUADS ({registrations.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveTab("ATTENDANCE")}
+          onClick={() => setActiveTab("JUDGING")}
           className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-            activeTab === "ATTENDANCE"
+            activeTab === "JUDGING"
               ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
           }`}
         >
-          <UserCheck className="w-3.5 h-3.5" />
-          <span>ATTENDANCE</span>
+          <Activity className="w-3.5 h-3.5" />
+          <span>JUDGING</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("RESULTS")}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+            activeTab === "RESULTS"
+              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
+          }`}
+        >
+          <Trophy className="w-3.5 h-3.5" />
+          <span>RESULTS</span>
         </button>
 
         <button
@@ -305,34 +287,10 @@ export function AdminDashboardClient({
           <Award className="w-3.5 h-3.5" />
           <span>RUBRICS</span>
         </button>
-
-        <button
-          onClick={() => setActiveTab("JUDGING")}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-            activeTab === "JUDGING"
-              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
-              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
-          }`}
-        >
-          <Activity className="w-3.5 h-3.5" />
-          <span>JUDGING TELEMETRY</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("RESULTS")}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-            activeTab === "RESULTS"
-              ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
-              : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
-          }`}
-        >
-          <Trophy className="w-3.5 h-3.5" />
-          <span>RESULTS &amp; RANKINGS</span>
-        </button>
       </nav>
 
-      {/* Tab 1: COMMAND CENTER */}
-      {activeTab === "COMMAND_CENTER" && (
+      {/* Tab 1: OVERVIEW */}
+      {activeTab === "OVERVIEW" && (
         <div className="space-y-6">
           {/* Telemetry Overview: 5 Stat Cards */}
           <section aria-labelledby="telemetry-heading">
@@ -362,7 +320,7 @@ export function AdminDashboardClient({
                   key={domain.name}
                   onClick={() => {
                     setSelectedRegistrationDomain(domain.name);
-                    setActiveTab("REGISTRATIONS");
+                    setActiveTab("SQUADS");
                   }}
                   className="bg-[#0e0c0a] border border-neutral-800/80 rounded-lg p-3.5 space-y-2 hover:border-amber-500/40 hover:bg-[#12100d] transition-all cursor-pointer group shadow-sm"
                   title={`View ${domain.displayName} registrations`}
@@ -427,67 +385,19 @@ export function AdminDashboardClient({
             <div
               onClick={() => {
                 setSelectedRegistrationDomain(null);
-                setActiveTab("REGISTRATIONS");
+                setActiveTab("SQUADS");
               }}
               className="bg-[#12100d] border border-neutral-800 hover:border-amber-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
             >
               <div className="flex items-center justify-between">
                 <span className="font-bold text-white text-sm uppercase">
-                  MANAGE REGISTRATIONS
+                  MANAGE SQUADS
                 </span>
                 <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-amber-400 group-hover:translate-x-1 transition-all" />
               </div>
               <p className="text-neutral-400 leading-relaxed">
                 Review squad rosters, verify participant payment transactions,
                 open dossiers, or remove registrations.
-              </p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("ATTENDANCE")}
-              className="bg-[#12100d] border border-neutral-800 hover:border-emerald-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-white text-sm uppercase">
-                  EVENT ATTENDANCE
-                </span>
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-              </div>
-              <p className="text-neutral-400 leading-relaxed">
-                Check in participants on event day, mark present/absent status,
-                and monitor live venue check-in statistics.
-              </p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("JUDGES")}
-              className="bg-[#12100d] border border-neutral-800 hover:border-blue-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-white text-sm uppercase">
-                  JUDGES MANAGEMENT
-                </span>
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
-              </div>
-              <p className="text-neutral-400 leading-relaxed">
-                Register official evaluators, assign squads by technical domain,
-                and manage evaluator accounts.
-              </p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("RUBRICS")}
-              className="bg-[#12100d] border border-neutral-800 hover:border-purple-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-white text-sm uppercase">
-                  RUBRIC CRITERIA
-                </span>
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
-              </div>
-              <p className="text-neutral-400 leading-relaxed">
-                Configure standardized evaluation criteria, maximum points,
-                weighting, and score guidelines.
               </p>
             </div>
 
@@ -522,19 +432,50 @@ export function AdminDashboardClient({
                 spotlights dynamically scored by evaluators.
               </p>
             </div>
+
+            <div
+              onClick={() => setActiveTab("JUDGES")}
+              className="bg-[#12100d] border border-neutral-800 hover:border-blue-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm uppercase">
+                  JUDGES MANAGEMENT
+                </span>
+                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+              </div>
+              <p className="text-neutral-400 leading-relaxed">
+                Register official evaluators, assign squads by technical domain,
+                and manage evaluator accounts.
+              </p>
+            </div>
+
+            <div
+              onClick={() => setActiveTab("RUBRICS")}
+              className="bg-[#12100d] border border-neutral-800 hover:border-purple-500/40 rounded-xl p-5 space-y-3 cursor-pointer transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm uppercase">
+                  RUBRIC CRITERIA
+                </span>
+                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
+              </div>
+              <p className="text-neutral-400 leading-relaxed">
+                Configure standardized evaluation criteria, maximum points,
+                weighting, and score guidelines.
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Tab 2: REGISTRATIONS */}
-      {activeTab === "REGISTRATIONS" && (
+      {/* Tab 2: SQUADS */}
+      {activeTab === "SQUADS" && (
         <section aria-labelledby="ledger-heading">
           <h2 id="ledger-heading" className="sr-only">
             Registration Control Ledger
           </h2>
           <RegistrationTable
             registrations={registrations}
-            attendanceMap={attendanceMap}
             onRegistrationUpdated={handleRegistrationUpdated}
             onRegistrationDeleted={handleRegistrationDeleted}
             onRefresh={handleRefresh}
@@ -544,56 +485,7 @@ export function AdminDashboardClient({
         </section>
       )}
 
-      {/* Tab 3: ATTENDANCE */}
-      {activeTab === "ATTENDANCE" && (
-        <section aria-labelledby="attendance-heading" className="space-y-6">
-          <h2 id="attendance-heading" className="sr-only">
-            Event Day Attendance &amp; Domain Rosters
-          </h2>
-
-          {/* Sub Navigation Bar */}
-          <div className="no-print flex items-center gap-2 border-b border-neutral-800/80 pb-3 overflow-x-auto">
-            <button
-              onClick={() => setAttendanceSubTab("ROSTERS")}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                attendanceSubTab === "ROSTERS"
-                  ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.12)]"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
-              }`}
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>OFFICIAL DOMAIN ATTENDANCE SHEETS</span>
-            </button>
-
-            <button
-              onClick={() => setAttendanceSubTab("LIVE_CHECKIN")}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                attendanceSubTab === "LIVE_CHECKIN"
-                  ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.12)]"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900 border border-transparent"
-              }`}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>LIVE CHECK-IN LEDGER</span>
-            </button>
-          </div>
-
-          {attendanceSubTab === "ROSTERS" ? (
-            <DomainAttendanceSheets
-              registrations={registrations}
-              onRefresh={handleRefresh}
-            />
-          ) : (
-            <AttendanceRegister
-              registrations={registrations}
-              attendanceMap={attendanceMap}
-              onAttendanceUpdated={handleAttendanceUpdated}
-            />
-          )}
-        </section>
-      )}
-
-      {/* Tab 4: JUDGES */}
+      {/* Tab 3: JUDGES */}
       {activeTab === "JUDGES" && (
         <section aria-labelledby="judges-heading">
           <h2 id="judges-heading" className="sr-only">
@@ -603,7 +495,7 @@ export function AdminDashboardClient({
         </section>
       )}
 
-      {/* Tab 5: RUBRICS */}
+      {/* Tab 4: RUBRICS */}
       {activeTab === "RUBRICS" && (
         <section aria-labelledby="rubrics-heading">
           <h2 id="rubrics-heading" className="sr-only">
@@ -613,7 +505,7 @@ export function AdminDashboardClient({
         </section>
       )}
 
-      {/* Tab 6: JUDGING TELEMETRY */}
+      {/* Tab 5: JUDGING TELEMETRY */}
       {activeTab === "JUDGING" && (
         <section aria-labelledby="judging-heading">
           <h2 id="judging-heading" className="sr-only">
@@ -623,7 +515,7 @@ export function AdminDashboardClient({
         </section>
       )}
 
-      {/* Tab 7: RESULTS & RANKINGS */}
+      {/* Tab 6: RESULTS & RANKINGS */}
       {activeTab === "RESULTS" && (
         <section aria-labelledby="results-heading">
           <h2 id="results-heading" className="sr-only">

@@ -251,12 +251,30 @@ export interface JudgeWithDetails extends Judge {
   assigned_registration_ids: string[];
 }
 
+export interface DomainTeamTelemetry {
+  team_id: string;
+  team_name: string;
+  college: string;
+  domain: string;
+  judge_id: string | null;
+  judge_name: string;
+  status: "SUBMITTED" | "IN PROGRESS" | "DRAFT" | "NOT STARTED";
+  total_score: number | null;
+  started_at: string | null;
+  submitted_at: string | null;
+}
+
 export interface DomainJudgingProgress {
   domain: OfficialDomain;
   totalTeams: number;
   judged: number;
   remaining: number;
   progressPercent: number;
+  submittedCount?: number;
+  inProgressCount?: number;
+  draftCount?: number;
+  notStartedCount?: number;
+  teams?: DomainTeamTelemetry[];
 }
 
 export interface JudgeProgressItem {

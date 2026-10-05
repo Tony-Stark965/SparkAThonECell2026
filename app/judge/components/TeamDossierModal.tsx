@@ -12,9 +12,9 @@ import {
   Clock,
   CheckCircle2,
   ArrowRight,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
-import { TeamTimerWidget } from "./TeamTimerWidget";
 
 interface TeamDossierModalProps {
   team: JudgeAssignedTeam | null;
@@ -80,12 +80,15 @@ export function TeamDossierModal({ team, onClose }: TeamDossierModalProps) {
                 ? "border border-emerald-500/40 bg-emerald-950/30 text-emerald-400"
                 : team.status === "in_progress"
                 ? "border border-amber-500/40 bg-amber-950/30 text-amber-400 animate-pulse"
+                : team.status === "draft"
+                ? "border border-sky-500/40 bg-sky-950/30 text-sky-400"
                 : "border border-neutral-700 bg-neutral-900 text-neutral-300"
             }`}
           >
             {team.status === "submitted" && <CheckCircle2 className="w-3.5 h-3.5" />}
             {team.status === "in_progress" && <Clock className="w-3.5 h-3.5" />}
-            STATUS: {team.status === "standby" ? "STANDBY" : team.status === "in_progress" ? "IN PROGRESS" : "SUBMITTED"}
+            {team.status === "draft" && <FileText className="w-3.5 h-3.5" />}
+            STATUS: {team.status === "submitted" ? "SUBMITTED" : team.status === "draft" ? "DRAFT" : team.status === "in_progress" ? "IN PROGRESS" : "NOT STARTED"}
           </span>
           {team.total_score != null && (
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-emerald-500/30 bg-emerald-950/20 text-emerald-300 font-mono text-xs font-bold">
@@ -163,14 +166,6 @@ export function TeamDossierModal({ team, onClose }: TeamDossierModalProps) {
           </div>
         </div>
 
-        {/* Presentation Pitch Timer & Controls */}
-        <div className="pt-2">
-          <TeamTimerWidget
-            teamId={team.id}
-            teamStatus={team.status}
-          />
-        </div>
-
         {/* Modal Action Footer */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
           <button
@@ -187,6 +182,8 @@ export function TeamDossierModal({ team, onClose }: TeamDossierModalProps) {
             <span>
               {team.status === "submitted"
                 ? "VIEW EVALUATION"
+                : team.status === "draft"
+                ? "RESUME DRAFT"
                 : team.status === "in_progress"
                 ? "RESUME JUDGING"
                 : "START JUDGING"}

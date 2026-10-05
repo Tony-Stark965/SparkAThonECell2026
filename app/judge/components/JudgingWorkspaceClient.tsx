@@ -24,6 +24,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useTeamTimer } from "@/lib/hooks/useTeamTimer";
+import { createClient } from "@/lib/supabase/client";
+import type { JudgingEvaluation } from "@/lib/supabase/types";
 
 interface JudgingWorkspaceClientProps {
   initialDossier: JudgeTeamDossier;
@@ -67,6 +69,48 @@ export function JudgingWorkspaceClient({
     latestScoresRef.current = scores;
     latestFeedbackRef.current = feedback;
   }, [scores, feedback]);
+
+  // Realtime subscription for evaluation changes across tabs/devices
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`judging_eval_${team.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "judging_evaluations",
+          filter: `registration_id=eq.${team.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
+            const updated = payload.new as JudgingEvaluation;
+            if (updated.judge_id === judge.id) {
+              setEvaluation(updated);
+              if (updated.feedback && !hasUnsavedChanges.current) {
+                setFeedback(updated.feedback);
+              }
+              if (updated.status === "submitted") {
+                setIsSubmitting(false);
+                setShowConfirmModal(false);
+              }
+            }
+          } else if (payload.eventType === "DELETE") {
+            setEvaluation((prev) => ({
+              ...prev,
+              started_at: null,
+              status: "draft",
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [team.id, judge.id]);
 
   // Max possible score (5 criteria * 10 = 50)
   const maxPossibleScore =

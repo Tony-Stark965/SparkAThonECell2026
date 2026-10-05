@@ -162,6 +162,51 @@ export function useTeamTimer(
   // Ref to track phase changes and detect exact pitch -> qa transition
   const prevPhaseRef = useRef<JudgingPhase>(judgingPhase);
 
+  // Sync with database started_at on mount or change
+  useEffect(() => {
+    queueMicrotask(() => {
+      if (options?.isSubmitted) {
+        setTimerState((prev) => ({
+          ...prev,
+          isRunning: false,
+        }));
+        return;
+      }
+
+      if (options?.initialStartedAt !== undefined) {
+        if (options.initialStartedAt) {
+          const startTimeMs = new Date(options.initialStartedAt).getTime();
+          if (!isNaN(startTimeMs)) {
+            const now = Date.now();
+            const elapsed = Math.floor((now - startTimeMs) / 1000);
+            const remaining = Math.max(0, TOTAL_SESSION_DURATION - elapsed);
+            const isRunning = remaining > 0;
+            const nextState: StoredTimerState = {
+              remaining,
+              isRunning,
+              lastStartedAt: isRunning ? startTimeMs : null,
+              duration: TOTAL_SESSION_DURATION,
+            };
+            setTimerState(nextState);
+            writeStoredState(teamId, nextState);
+            setCurrentTimeMs(now);
+          }
+        } else if (options.initialStartedAt === null) {
+          // Explicitly reset on server
+          const nextState: StoredTimerState = {
+            remaining: TOTAL_SESSION_DURATION,
+            isRunning: false,
+            lastStartedAt: null,
+            duration: TOTAL_SESSION_DURATION,
+          };
+          setTimerState(nextState);
+          writeStoredState(teamId, nextState);
+          setCurrentTimeMs(Date.now());
+        }
+      }
+    });
+  }, [teamId, options?.initialStartedAt, options?.isSubmitted]);
+
   // Sync with storage on mount and when external events fire
   useEffect(() => {
     const syncState = () => {

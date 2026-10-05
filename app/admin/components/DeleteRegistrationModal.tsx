@@ -171,7 +171,7 @@ export function DeleteRegistrationModal({
         {/* Warning Callout */}
         <p className="font-mono text-xs text-neutral-400 leading-relaxed">
           Are you sure you want to permanently delete this registration? All
-          associated participant records and attendance data will be permanently
+          associated participant and evaluation records will be permanently
           removed.
         </p>
 

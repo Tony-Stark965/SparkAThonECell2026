@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient, isAuthorizedAdmin } from "@/lib/supabase/server";
-import { getRegistrations, getAttendance } from "@/lib/supabase/admin";
-import type { AttendanceRecord } from "@/lib/supabase/types";
+import { getRegistrations } from "@/lib/supabase/admin";
 import { AdminDashboardClient } from "./components/AdminDashboardClient";
 
 export const dynamic = "force-dynamic";
@@ -18,26 +17,20 @@ export default async function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
-  // 3. Server Action for logout
+  // 3. Server Action for logout (local scope to prevent invalidating other admin sessions)
   async function handleLogout() {
     "use server";
     const serverSupabase = await createClient();
-    await serverSupabase.auth.signOut();
+    await serverSupabase.auth.signOut({ scope: "local" });
     redirect("/admin/login");
   }
 
-  // 4. Fetch registrations and attendance server-side with service-role helper
+  // 4. Fetch registrations server-side with service-role helper
   let registrations: Awaited<ReturnType<typeof getRegistrations>> = [];
-  let attendance: AttendanceRecord[] = [];
   let fetchError: string | null = null;
 
   try {
-    const [regs, atts] = await Promise.all([
-      getRegistrations(),
-      getAttendance(),
-    ]);
-    registrations = regs;
-    attendance = atts;
+    registrations = await getRegistrations();
   } catch {
     fetchError = "Unable to load data from the database. Please try refreshing the page.";
   }
@@ -45,7 +38,6 @@ export default async function AdminDashboardPage() {
   return (
     <AdminDashboardClient
       initialRegistrations={registrations}
-      initialAttendance={attendance}
       userEmail={user.email || "Unknown Operator"}
       fetchError={fetchError}
       onLogout={handleLogout}

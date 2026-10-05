@@ -43,7 +43,7 @@ export interface JudgeAssignedTeam {
   team_leader_mobile: string;
   team_leader_email?: string | null;
   participants: Participant[];
-  status: "standby" | "in_progress" | "submitted";
+  status: "standby" | "in_progress" | "draft" | "submitted";
   evaluation_id?: string | null;
   started_at?: string | null;
   submitted_at?: string | null;
@@ -269,12 +269,15 @@ export async function getJudgeAssignedTeams(judgeId: string): Promise<{
 
   const teams: JudgeAssignedTeam[] = (regs || []).map((r) => {
     const evaluation = evalMap.get(r.id);
-    let status: "standby" | "in_progress" | "submitted" = "standby";
+    let status: "standby" | "in_progress" | "draft" | "submitted" = "standby";
 
     if (evaluation?.status === "submitted") {
       status = "submitted";
       completed++;
-    } else if (evaluation?.status === "in_progress") {
+    } else if (evaluation?.status === "draft") {
+      status = "draft";
+      inProgress++;
+    } else if (evaluation?.status === "in_progress" || evaluation?.started_at) {
       status = "in_progress";
       inProgress++;
     }
@@ -376,24 +379,20 @@ export async function getJudgeTeamDossier(
 
   let evaluation = evalData as JudgingEvaluation | null;
 
-  // 3. If no evaluation exists yet, create one in draft status
+  // 3. If no evaluation exists yet, return unpersisted draft object without writing to database
   if (!evaluation) {
-    const { data: newEval, error: createEvalErr } = await admin
-      .from("judging_evaluations")
-      .insert({
-        judge_id: judgeId,
-        registration_id: registrationId,
-        status: "draft",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (createEvalErr || !newEval) {
-      throw new Error(`Failed to initialize evaluation: ${createEvalErr?.message || "Unknown error"}`);
-    }
-    evaluation = newEval as JudgingEvaluation;
+    evaluation = {
+      id: "",
+      judge_id: judgeId,
+      registration_id: registrationId,
+      status: "draft",
+      started_at: null,
+      submitted_at: null,
+      total_score: null,
+      feedback: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
   }
 
   // 4. Fetch existing scores for this evaluation
@@ -640,16 +639,36 @@ export async function saveJudgingDraft(
     throw new Error("Unauthorized: You are not assigned to evaluate this team.");
   }
 
-  // 2. Fetch evaluation
-  const { data: evaluation, error: evalErr } = await admin
+  // 2. Fetch or create evaluation
+  const { data: existingEval, error: evalErr } = await admin
     .from("judging_evaluations")
     .select("*")
     .eq("judge_id", judgeId)
     .eq("registration_id", registrationId)
-    .single();
+    .maybeSingle();
 
-  if (evalErr || !evaluation) {
-    throw new Error("Evaluation record not found. Please start judging first.");
+  if (evalErr) {
+    throw new Error(`Failed to query evaluation: ${evalErr.message}`);
+  }
+
+  let evaluation = existingEval;
+  if (!evaluation) {
+    const { data: newEval, error: createErr } = await admin
+      .from("judging_evaluations")
+      .insert({
+        judge_id: judgeId,
+        registration_id: registrationId,
+        status: "draft",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (createErr || !newEval) {
+      throw new Error(`Failed to initialize evaluation: ${createErr?.message || "Unknown error"}`);
+    }
+    evaluation = newEval;
   }
 
   // 3. Strict Locking: Submitted evaluations cannot be edited
@@ -714,16 +733,13 @@ export async function saveJudgingDraft(
 
   // 6. Update evaluation draft with atomic lock safeguard
   const updates: Record<string, unknown> = {
+    status: "draft",
     total_score: Math.round(computedTotal * 100) / 100,
     updated_at: new Date().toISOString(),
   };
 
   if (payload.feedback !== undefined) {
     updates.feedback = payload.feedback.trim() || null;
-  }
-
-  if (evaluation.status === "draft") {
-    updates.status = "in_progress";
   }
 
   const { data: updatedEval, error: updateErr } = await admin

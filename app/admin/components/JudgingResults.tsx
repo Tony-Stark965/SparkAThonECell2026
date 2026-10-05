@@ -3,16 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import type { TeamResultRank } from "@/lib/supabase/types";
 import { OFFICIAL_DOMAINS } from "@/lib/supabase/types";
+import { createClient } from "@/lib/supabase/client";
 import {
   Trophy,
   Medal,
   RefreshCw,
-  Award,
   Loader2,
   AlertCircle,
   CheckCircle2,
   Clock,
-  HelpCircle,
   Crown,
 } from "lucide-react";
 
@@ -25,7 +24,9 @@ export function JudgingResults() {
 
   const fetchResults = useCallback(async (domain: string) => {
     try {
-      const res = await fetch(`/api/admin/results?domain=${encodeURIComponent(domain)}`);
+      const res = await fetch(`/api/admin/results?domain=${encodeURIComponent(domain)}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Failed to load domain results.");
@@ -45,30 +46,56 @@ export function JudgingResults() {
     await fetchResults(selectedDomain);
   };
 
+  // Fetch when selectedDomain changes
   useEffect(() => {
-    let isSubscribed = true;
-    fetch(`/api/admin/results?domain=${encodeURIComponent(selectedDomain)}`)
+    let ignore = false;
+    fetch(`/api/admin/results?domain=${encodeURIComponent(selectedDomain)}`, {
+      cache: "no-store",
+    })
       .then((res) => res.json())
       .then((data) => {
-        if (isSubscribed && data.success) {
+        if (!ignore && data.success) {
           setResults(data.results || []);
         }
       })
       .catch((err) => {
-        if (isSubscribed) {
+        if (!ignore) {
           setError(err instanceof Error ? err.message : "Failed to load results.");
         }
       })
       .finally(() => {
-        if (isSubscribed) {
+        if (!ignore) {
           setIsLoading(false);
         }
       });
 
     return () => {
-      isSubscribed = false;
+      ignore = true;
     };
   }, [selectedDomain]);
+
+  // Real-time synchronization when any evaluation is submitted or updated
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`admin_judging_results_${selectedDomain}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "judging_evaluations",
+        },
+        () => {
+          fetchResults(selectedDomain);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedDomain, fetchResults]);
 
   // Safe results array guard
   const safeResults = Array.isArray(results) ? results : [];
@@ -143,20 +170,20 @@ export function JudgingResults() {
           <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
           <span>Computing domain standings...</span>
         </div>
-      ) : results.length === 0 ? (
-        <div className="bg-[#12100d] border border-neutral-800 rounded-xl p-12 text-center space-y-3 font-mono text-xs">
-          <Award className="w-10 h-10 text-neutral-600 mx-auto" />
-          <p className="text-neutral-300 font-semibold text-sm">
-            No Squads Registered in &quot;{selectedDomain}&quot;
-          </p>
-          <p className="text-neutral-500 max-w-sm mx-auto text-[11px]">
-            Once teams are registered in this domain and evaluated by judges, rankings will appear here.
+      ) : safeResults.length === 0 ? (
+        <div className="bg-[#12100d] border border-amber-500/25 rounded-2xl p-12 text-center space-y-3 font-mono text-xs shadow-lg">
+          <Clock className="w-10 h-10 text-amber-400 mx-auto animate-pulse" />
+          <h3 className="text-base font-bold text-white uppercase tracking-wider font-sans">
+            EVALUATIONS PENDING
+          </h3>
+          <p className="text-neutral-400 max-w-md mx-auto text-xs">
+            Scorecards for &quot;{selectedDomain}&quot; will appear here once submitted by judges.
           </p>
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Winner Spotlight (If top team has evaluations) */}
-          {topTeam && topTeam.evaluation_count > 0 ? (
+          {/* Winner Spotlight */}
+          {topTeam && (
             <div className="relative overflow-hidden bg-gradient-to-r from-amber-950/40 via-[#16120b] to-[#12100d] border-2 border-amber-500/50 rounded-2xl p-6 shadow-[0_0_40px_rgba(245,158,11,0.15)] font-mono text-xs">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-4">
@@ -199,30 +226,19 @@ export function JudgingResults() {
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="bg-[#12100d] border border-amber-500/20 bg-amber-950/10 rounded-xl p-5 text-center space-y-1.5 font-mono text-xs">
-              <div className="inline-flex items-center gap-1.5 text-amber-400 font-bold uppercase">
-                <Clock className="w-4 h-4" />
-                Evaluations Pending For This Domain
-              </div>
-              <p className="text-neutral-400 text-[11px] max-w-lg mx-auto">
-                No evaluation scorecards have been submitted yet for &quot;{selectedDomain}&quot;.
-                Teams are listed below in standby order until judge scorecards are submitted.
-              </p>
-            </div>
           )}
 
-          {/* Leaderboard Table */}
+          {/* Leaderboard Table (Strictly Submitted Evaluations) */}
           <div className="bg-[#12100d] border border-neutral-800 rounded-xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-neutral-800 bg-[#0a0907] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Medal className="w-4 h-4 text-amber-400" />
                 <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-                  Official Domain Leaderboard ({safeResults.length} Squads)
+                  Official Domain Leaderboard ({safeResults.length} Evaluated)
                 </h3>
               </div>
               <span className="font-mono text-xs text-neutral-400">
-                {evaluatedTeams.length} Evaluated
+                {safeResults.length} Submitted
               </span>
             </div>
 
@@ -241,33 +257,31 @@ export function JudgingResults() {
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
                   {safeResults.map((team, idx) => {
-                    const hasEvaluations = team.evaluation_count > 0;
-                    const rankDisplay = hasEvaluations ? `#${team.rank}` : `—`;
                     const totalScore = team.evaluations.reduce((s, e) => s + e.total_score, 0);
 
                     return (
                       <tr
                         key={team.team_id}
                         className={`hover:bg-neutral-900/40 transition-colors ${
-                          idx === 0 && hasEvaluations ? "bg-amber-500/5 font-medium" : ""
+                          idx === 0 ? "bg-amber-500/5 font-medium" : ""
                         }`}
                       >
                         {/* Rank */}
                         <td className="py-3.5 px-4 text-center">
-                          {idx === 0 && hasEvaluations ? (
+                          {team.rank === 1 ? (
                             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 font-bold text-xs">
                               1
                             </span>
-                          ) : idx === 1 && hasEvaluations ? (
+                          ) : team.rank === 2 ? (
                             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-neutral-300/10 border border-neutral-300/30 text-neutral-200 font-bold text-xs">
                               2
                             </span>
-                          ) : idx === 2 && hasEvaluations ? (
+                          ) : team.rank === 3 ? (
                             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-700/20 border border-amber-700/30 text-amber-500 font-bold text-xs">
                               3
                             </span>
                           ) : (
-                            <span className="text-neutral-500 text-xs">{rankDisplay}</span>
+                            <span className="text-neutral-400 font-bold text-xs">#{team.rank}</span>
                           )}
                         </td>
 
@@ -285,53 +299,29 @@ export function JudgingResults() {
 
                         {/* Evaluations Count */}
                         <td className="py-3.5 px-4 text-center font-bold">
-                          {hasEvaluations ? (
-                            <span className="text-amber-400">{team.evaluation_count}</span>
-                          ) : (
-                            <span className="text-neutral-600">0</span>
-                          )}
+                          <span className="text-amber-400">{team.evaluation_count}</span>
                         </td>
 
                         {/* Avg Score */}
                         <td className="py-3.5 px-4 text-right">
-                          {hasEvaluations ? (
-                            <span className="font-bold text-amber-300">
-                              {team.average_score.toFixed(1)}
-                            </span>
-                          ) : (
-                            <span className="text-neutral-600">—</span>
-                          )}
+                          <span className="font-bold text-amber-300">
+                            {team.average_score.toFixed(1)}
+                          </span>
                         </td>
 
                         {/* Total Score */}
                         <td className="py-3.5 px-4 text-right">
-                          {hasEvaluations ? (
-                            <span className="font-bold text-white text-sm">
-                              {totalScore}
-                            </span>
-                          ) : (
-                            <span className="text-neutral-600">—</span>
-                          )}
+                          <span className="font-bold text-white text-sm">
+                            {totalScore}
+                          </span>
                         </td>
 
                         {/* Status */}
                         <td className="py-3.5 px-4 text-center">
-                          {team.status === "Completed" ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                              <CheckCircle2 className="w-3 h-3" />
-                              EVALUATED
-                            </span>
-                          ) : team.status === "In Progress" ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                              <Clock className="w-3 h-3" />
-                              IN PROGRESS
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] uppercase font-medium tracking-wider bg-neutral-900 text-neutral-500 border border-neutral-800">
-                              <HelpCircle className="w-3 h-3" />
-                              STANDBY
-                            </span>
-                          )}
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] uppercase font-bold tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            <CheckCircle2 className="w-3 h-3" />
+                            SUBMITTED
+                          </span>
                         </td>
                       </tr>
                     );

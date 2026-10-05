@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { RegistrationRecord, AttendanceStatus, AttendanceRecord } from "@/lib/supabase/types";
+import type { RegistrationRecord } from "@/lib/supabase/types";
 import {
   X,
   User,
@@ -26,16 +26,14 @@ import { RemoveMemberModal } from "./RemoveMemberModal";
 
 interface RegistrationDetailsProps {
   registration: RegistrationRecord;
-  attendanceMap?: Record<string, AttendanceStatus>;
   onClose: () => void;
   onPaymentStatusUpdated?: (updated: RegistrationRecord) => void;
-  onRegistrationUpdated?: (updated: RegistrationRecord, updatedAttendance?: AttendanceRecord[]) => void;
+  onRegistrationUpdated?: (updated: RegistrationRecord) => void;
   onDeleteRequested?: (registration: RegistrationRecord) => void;
 }
 
 export function RegistrationDetails({
   registration,
-  attendanceMap,
   onClose,
   onPaymentStatusUpdated,
   onRegistrationUpdated,
@@ -52,14 +50,11 @@ export function RegistrationDetails({
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [removingMemberIndex, setRemovingMemberIndex] = useState<number | null>(null);
 
-  const handleDataUpdated = (
-    updated: RegistrationRecord,
-    updatedAttendance?: AttendanceRecord[]
-  ) => {
+  const handleDataUpdated = (updated: RegistrationRecord) => {
     setCurrentReg(updated);
     setActionSuccess("Squad specifications & participant records synchronized.");
     if (onRegistrationUpdated) {
-      onRegistrationUpdated(updated, updatedAttendance);
+      onRegistrationUpdated(updated);
     }
     if (onPaymentStatusUpdated) {
       onPaymentStatusUpdated(updated);
@@ -317,8 +312,6 @@ export function RegistrationDetails({
           <div className="space-y-2">
             {(currentReg.participants || []).map((member, index) => {
               const isLeader = member.isLeader || index === 0;
-              const attKey = `${currentReg.id}_${index}`;
-              const attStatus = attendanceMap ? attendanceMap[attKey] || "not_marked" : null;
               const totalMembers = currentReg.participants?.length || currentReg.participant_count;
               const canRemove = !isLeader && totalMembers > 2;
 
@@ -355,24 +348,6 @@ export function RegistrationDetails({
                         <Phone className="w-3 h-3 text-neutral-400" />
                         <span>{member.mobile}</span>
                       </a>
-                    )}
-
-                    {attStatus && (
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border ${
-                          attStatus === "present"
-                            ? "bg-emerald-950/60 text-emerald-400 border-emerald-500/40"
-                            : attStatus === "absent"
-                            ? "bg-red-950/60 text-red-400 border-red-500/40"
-                            : "bg-neutral-900 text-neutral-400 border-neutral-800"
-                        }`}
-                      >
-                        {attStatus === "present"
-                          ? "PRESENT"
-                          : attStatus === "absent"
-                          ? "ABSENT"
-                          : "NOT MARKED"}
-                      </span>
                     )}
 
                     {/* Member Edit & Remove Actions */}
@@ -508,9 +483,9 @@ export function RegistrationDetails({
         <EditTeamModal
           registration={currentReg}
           onClose={() => setIsEditingTeam(false)}
-          onSuccess={(updated, updatedAttendance) => {
+          onSuccess={(updated) => {
             setIsEditingTeam(false);
-            handleDataUpdated(updated, updatedAttendance);
+            handleDataUpdated(updated);
           }}
         />
       )}
@@ -521,9 +496,9 @@ export function RegistrationDetails({
           memberIndex={editingMemberIndex}
           participant={currentReg.participants[editingMemberIndex]}
           onClose={() => setEditingMemberIndex(null)}
-          onSuccess={(updated, updatedAttendance) => {
+          onSuccess={(updated) => {
             setEditingMemberIndex(null);
-            handleDataUpdated(updated, updatedAttendance);
+            handleDataUpdated(updated);
           }}
         />
       )}
@@ -532,9 +507,9 @@ export function RegistrationDetails({
         <AddMemberModal
           registration={currentReg}
           onClose={() => setIsAddingMember(false)}
-          onSuccess={(updated, updatedAttendance) => {
+          onSuccess={(updated) => {
             setIsAddingMember(false);
-            handleDataUpdated(updated, updatedAttendance);
+            handleDataUpdated(updated);
           }}
         />
       )}
@@ -545,9 +520,9 @@ export function RegistrationDetails({
           memberIndex={removingMemberIndex}
           participant={currentReg.participants[removingMemberIndex]}
           onClose={() => setRemovingMemberIndex(null)}
-          onSuccess={(updated, updatedAttendance) => {
+          onSuccess={(updated) => {
             setRemovingMemberIndex(null);
-            handleDataUpdated(updated, updatedAttendance);
+            handleDataUpdated(updated);
           }}
         />
       )}

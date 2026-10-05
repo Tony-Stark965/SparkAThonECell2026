@@ -138,7 +138,7 @@ export function RemoveMemberModal({
         <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-950/30 border border-amber-500/30 text-amber-300 font-mono text-xs">
           <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Removing this member will remove their attendance record. Attendance statuses of other squad members will be automatically re-indexed and preserved. Protocol fee will be ₹{calculateRegistrationFee(newCount)}.
+            Removing this member will update the squad roster. Minimum squad size requirement is 2 members. Protocol fee will be ₹{calculateRegistrationFee(newCount)}.
           </p>
         </div>
 

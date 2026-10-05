@@ -7,6 +7,7 @@ import type {
   RegistrationRecord,
   JudgeTeamAssignment,
   OfficialDomain,
+  Participant,
 } from "@/lib/supabase/types";
 import { OFFICIAL_DOMAIN_CAPACITIES } from "@/lib/supabase/types";
 import {
@@ -187,15 +188,53 @@ export function AssignTeamsModal({
     }
   };
 
-  // Filter domain teams by search query
+  // Filter domain teams by search query across team, college, leader, and EVERY participant
   const filteredTeams = domainTeams.filter((t) => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      t.team_name.toLowerCase().includes(q) ||
-      t.team_leader_name.toLowerCase().includes(q) ||
-      t.college.toLowerCase().includes(q)
-    );
+    const q = searchQuery.toLowerCase().trim();
+    const team = (t.team_name || "").toLowerCase();
+    const college = (t.college || "").toLowerCase();
+    const leader = (t.team_leader_name || "").toLowerCase();
+    const leaderRoll = (t.team_leader_roll_no || "").toLowerCase();
+    const leaderMobile = (t.team_leader_mobile || "").toLowerCase();
+    const leaderEmail = (t.team_leader_email || "").toLowerCase();
+
+    if (
+      team.includes(q) ||
+      college.includes(q) ||
+      leader.includes(q) ||
+      leaderRoll.includes(q) ||
+      leaderMobile.includes(q) ||
+      leaderEmail.includes(q)
+    ) {
+      return true;
+    }
+
+    let members: Participant[] = [];
+    if (Array.isArray(t.participants)) {
+      members = t.participants;
+    } else if (typeof t.participants === "string") {
+      try {
+        const parsed = JSON.parse(t.participants);
+        if (Array.isArray(parsed)) members = parsed;
+      } catch {
+        // ignore parse error
+      }
+    }
+
+    return members.some((p) => {
+      if (!p || typeof p !== "object") return false;
+      const pName = String(p.name || "").toLowerCase();
+      const pRoll = String(p.roll_no || "").toLowerCase();
+      const pMobile = String(p.mobile || "").toLowerCase();
+      const pEmail = String(p.email || "").toLowerCase();
+      return (
+        pName.includes(q) ||
+        pRoll.includes(q) ||
+        pMobile.includes(q) ||
+        pEmail.includes(q)
+      );
+    });
   });
 
   return (

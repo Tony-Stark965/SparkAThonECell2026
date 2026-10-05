@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import type { Judge, JudgeAssignedTeam, JudgeDashboardStats } from "@/lib/supabase/judge";
 import { TeamDossierModal } from "./TeamDossierModal";
-import { TeamTimerWidget } from "./TeamTimerWidget";
+import { createClient } from "@/lib/supabase/client";
 import {
   Gavel,
   Shield,
@@ -37,7 +37,7 @@ export function JudgeDashboardClient({
   const [teams, setTeams] = useState<JudgeAssignedTeam[]>(initialTeams);
   const [stats, setStats] = useState<JudgeDashboardStats>(initialStats);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "standby" | "in_progress" | "submitted">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "standby" | "in_progress" | "draft" | "submitted">("ALL");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedDossierTeam, setSelectedDossierTeam] = useState<JudgeAssignedTeam | null>(null);
 
@@ -59,23 +59,41 @@ export function JudgeDashboardClient({
     }
   };
 
-  const handleTeamStatusChange = (
-    teamId: string,
-    newStatus: "standby" | "in_progress" | "submitted"
-  ) => {
-    setTeams((prev) => {
-      const updated = prev.map((t) => (t.id === teamId ? { ...t, status: newStatus } : t));
-      const completed = updated.filter((t) => t.status === "submitted").length;
-      const inProgress = updated.filter((t) => t.status === "in_progress").length;
-      setStats((prevStats) => ({
-        ...prevStats,
-        completed,
-        inProgress,
-        remaining: Math.max(0, updated.length - completed),
-      }));
-      return updated;
-    });
-  };
+  // Realtime synchronization for judge's assigned evaluations and teams
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`judge_teams_${judge.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "judging_evaluations",
+          filter: `judge_id=eq.${judge.id}`,
+        },
+        () => {
+          handleRefresh();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "judge_team_assignments",
+          filter: `judge_id=eq.${judge.id}`,
+        },
+        () => {
+          handleRefresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [judge.id]);
 
   const filteredTeams = useMemo(() => {
     return teams.filter((team) => {
@@ -84,16 +102,37 @@ export function JudgeDashboardClient({
         return false;
       }
 
-      // Search query
+      // Search query across Team, College, Leader, and EVERY Member
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const matchesName = team.team_name.toLowerCase().includes(q);
-        const matchesCollege = team.college.toLowerCase().includes(q);
-        const matchesLeader = team.team_leader_name.toLowerCase().includes(q);
-        const matchesMembers = (team.participants || []).some((p) =>
-          p.name.toLowerCase().includes(q)
+        const matchesName = (team.team_name || "").toLowerCase().includes(q);
+        const matchesCollege = (team.college || "").toLowerCase().includes(q);
+        const matchesLeader = (team.team_leader_name || "").toLowerCase().includes(q);
+        const matchesLeaderRoll = (team.team_leader_roll_no || "").toLowerCase().includes(q);
+        const matchesLeaderMobile = (team.team_leader_mobile || "").toLowerCase().includes(q);
+        const matchesLeaderEmail = (team.team_leader_email || "").toLowerCase().includes(q);
+        const matchesMembers = (team.participants || []).some((p) => {
+          if (!p) return false;
+          const pName = (p.name || "").toLowerCase();
+          const pRoll = (p.roll_no || "").toLowerCase();
+          const pMobile = (p.mobile || "").toLowerCase();
+          const pEmail = (p.email || "").toLowerCase();
+          return (
+            pName.includes(q) ||
+            pRoll.includes(q) ||
+            pMobile.includes(q) ||
+            pEmail.includes(q)
+          );
+        });
+        return (
+          matchesName ||
+          matchesCollege ||
+          matchesLeader ||
+          matchesLeaderRoll ||
+          matchesLeaderMobile ||
+          matchesLeaderEmail ||
+          matchesMembers
         );
-        return matchesName || matchesCollege || matchesLeader || matchesMembers;
       }
 
       return true;
@@ -239,11 +278,15 @@ export function JudgeDashboardClient({
               { key: "ALL", label: `ALL (${teams.length})` },
               {
                 key: "standby",
-                label: `STANDBY (${teams.filter((t) => t.status === "standby").length})`,
+                label: `NOT STARTED (${teams.filter((t) => t.status === "standby").length})`,
               },
               {
                 key: "in_progress",
                 label: `IN PROGRESS (${teams.filter((t) => t.status === "in_progress").length})`,
+              },
+              {
+                key: "draft",
+                label: `DRAFT (${teams.filter((t) => t.status === "draft").length})`,
               },
               {
                 key: "submitted",
@@ -282,6 +325,7 @@ export function JudgeDashboardClient({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTeams.map((team) => {
             const isSubmitted = team.status === "submitted";
+            const isDraft = team.status === "draft";
             const isInProgress = team.status === "in_progress";
 
             return (
@@ -290,6 +334,8 @@ export function JudgeDashboardClient({
                 className={`flex flex-col justify-between rounded-2xl border bg-[#110f0c] p-5 sm:p-6 transition-all duration-200 shadow-md ${
                   isSubmitted
                     ? "border-emerald-500/30 hover:border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.04)]"
+                    : isDraft
+                    ? "border-cyan-500/40 hover:border-cyan-500/70 shadow-[0_0_20px_rgba(6,182,212,0.06)]"
                     : isInProgress
                     ? "border-amber-500/40 hover:border-amber-500/70 shadow-[0_0_25px_rgba(245,158,11,0.08)]"
                     : "border-neutral-800 hover:border-neutral-700"
@@ -302,18 +348,23 @@ export function JudgeDashboardClient({
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-[11px] font-bold tracking-wider uppercase ${
                         isSubmitted
                           ? "bg-emerald-950/40 border border-emerald-500/40 text-emerald-400"
+                          : isDraft
+                          ? "bg-cyan-950/40 border border-cyan-500/40 text-cyan-400"
                           : isInProgress
                           ? "bg-amber-950/40 border border-amber-500/40 text-amber-400 animate-pulse"
                           : "bg-neutral-900 border border-neutral-700 text-neutral-400"
                       }`}
                     >
                       {isSubmitted && <CheckCircle2 className="w-3 h-3" />}
+                      {isDraft && <FileText className="w-3 h-3" />}
                       {isInProgress && <Clock className="w-3 h-3" />}
                       {isSubmitted
                         ? "SUBMITTED"
+                        : isDraft
+                        ? "DRAFT"
                         : isInProgress
                         ? "IN PROGRESS"
-                        : "STANDBY"}
+                        : "NOT STARTED"}
                     </span>
 
                     {isSubmitted && team.total_score != null && (
@@ -370,22 +421,12 @@ export function JudgeDashboardClient({
                   </div>
                 </div>
 
-                {/* Presentation Pitch Timer & Controls (Start / Stop / Reset) */}
-                <div className="mt-4 pt-3 border-t border-neutral-900/60">
-                  <TeamTimerWidget
-                    teamId={team.id}
-                    teamStatus={team.status}
-                    onStatusChange={(newStatus) => handleTeamStatusChange(team.id, newStatus)}
-                    compact
-                  />
-                </div>
-
                 {/* Team Card Actions */}
                 <div className="pt-5 mt-4 border-t border-neutral-900 flex items-center gap-2 font-mono text-xs">
                   <button
                     type="button"
                     onClick={() => setSelectedDossierTeam(team)}
-                    className="flex-1 py-2 px-3 rounded-xl border border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 py-2.5 px-3 rounded-xl border border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5 text-neutral-400" />
                     <span>DOSSIER</span>
@@ -393,16 +434,18 @@ export function JudgeDashboardClient({
 
                   <Link
                     href={`/judge/team/${team.id}`}
-                    className={`flex-1 py-2 px-3 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`flex-1 py-2.5 px-3 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       isSubmitted
                         ? "border border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-300"
+                        : isDraft
+                        ? "bg-gradient-to-r from-cyan-600 to-amber-600 hover:from-cyan-500 hover:to-amber-500 text-black shadow-md hover:shadow-cyan-500/20"
                         : isInProgress
                         ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-black shadow-md hover:shadow-amber-500/20"
                         : "bg-amber-500 hover:bg-amber-400 text-black shadow-sm"
                     }`}
                   >
                     <span>
-                      {isSubmitted ? "LOCKED" : isInProgress ? "RESUME" : "START"}
+                      {isSubmitted ? "LOCKED" : isDraft ? "RESUME DRAFT" : isInProgress ? "RESUME" : "START JUDGING"}
                     </span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>

@@ -1119,7 +1119,7 @@ export async function getJudgingProgress(): Promise<JudgingProgressStats> {
       { data: evaluationsData },
     ] = await Promise.all([
       supabase.from("judges").select("*").order("name", { ascending: true }),
-      supabase.from("registrations").select("id, team_name, domain"),
+      supabase.from("registrations").select("id, team_name, college, domain"),
       supabase.from("judge_team_assignments").select("*"),
       supabase.from("judging_evaluations").select("*"),
     ]);
@@ -1128,6 +1128,10 @@ export async function getJudgingProgress(): Promise<JudgingProgressStats> {
     const registrations = (registrationsData || []) as RegistrationRecord[];
     const assignments = (assignmentsData || []) as JudgeTeamAssignment[];
     const evaluations = (evaluationsData || []) as JudgingEvaluation[];
+
+    const judgeMap = new Map(judges.map((j) => [j.id, j.name]));
+    const assignmentMap = new Map(assignments.map((a) => [a.registration_id, a.judge_id]));
+    const evalMap = new Map(evaluations.map((e) => [e.registration_id, e]));
 
     const submittedEvaluations = evaluations.filter((e) => e.status === "submitted");
 
@@ -1140,22 +1144,61 @@ export async function getJudgingProgress(): Promise<JudgingProgressStats> {
     const totalJudged = judgedTeamIds.size;
     const totalRemaining = Math.max(0, totalAssignedTeams - totalJudged);
 
-    // Domain progress computation
+    // Domain progress computation with live team-level telemetry
     const domainProgress = OFFICIAL_DOMAINS.map((domainName) => {
       const domainTeams = registrations.filter(
         (r) => (r.domain || "").trim().toLowerCase() === domainName.toLowerCase()
       );
       const totalTeams = domainTeams.length;
-      const domainJudged = domainTeams.filter((t) => judgedTeamIds.has(t.id)).length;
-      const remaining = Math.max(0, totalTeams - domainJudged);
-      const progressPercent = totalTeams > 0 ? Math.round((domainJudged / totalTeams) * 100) : 0;
+
+      const teamItems = domainTeams.map((team) => {
+        const judgeId = assignmentMap.get(team.id) || null;
+        const judgeName = judgeId ? (judgeMap.get(judgeId) || "Judge") : "Unassigned";
+        const ev = evalMap.get(team.id);
+
+        let status: "SUBMITTED" | "IN PROGRESS" | "DRAFT" | "NOT STARTED" = "NOT STARTED";
+        if (ev) {
+          if (ev.status === "submitted") {
+            status = "SUBMITTED";
+          } else if (ev.status === "draft") {
+            status = "DRAFT";
+          } else if (ev.status === "in_progress" || ev.started_at) {
+            status = "IN PROGRESS";
+          }
+        }
+
+        return {
+          team_id: team.id,
+          team_name: team.team_name,
+          college: team.college || "",
+          domain: domainName,
+          judge_id: judgeId,
+          judge_name: judgeName,
+          status,
+          total_score: ev?.total_score != null ? Number(ev.total_score) : null,
+          started_at: ev?.started_at || null,
+          submitted_at: ev?.submitted_at || null,
+        };
+      });
+
+      const submittedCount = teamItems.filter((t) => t.status === "SUBMITTED").length;
+      const inProgressCount = teamItems.filter((t) => t.status === "IN PROGRESS").length;
+      const draftCount = teamItems.filter((t) => t.status === "DRAFT").length;
+      const notStartedCount = teamItems.filter((t) => t.status === "NOT STARTED").length;
+      const remaining = Math.max(0, totalTeams - submittedCount);
+      const progressPercent = totalTeams > 0 ? Math.round((submittedCount / totalTeams) * 100) : 0;
 
       return {
         domain: domainName,
         totalTeams,
-        judged: domainJudged,
+        judged: submittedCount,
         remaining,
         progressPercent,
+        submittedCount,
+        inProgressCount,
+        draftCount,
+        notStartedCount,
+        teams: teamItems,
       };
     });
 
@@ -1248,8 +1291,6 @@ export async function getJudgingResults(
       );
 
       const evaluatedTeams: TeamResultRank[] = [];
-      const inProgressTeams: TeamResultRank[] = [];
-      const standbyTeams: TeamResultRank[] = [];
 
       for (const team of domainTeams) {
         const teamEvals = evaluations.filter((e) => e.registration_id === team.id);
@@ -1280,38 +1321,6 @@ export async function getJudgingResults(
             })),
             rank: 0,
           });
-        } else if (teamEvals.length > 0) {
-          inProgressTeams.push({
-            team_id: team.id,
-            team_name: team.team_name,
-            college: team.college,
-            domain: team.domain || domain,
-            evaluation_count: 0,
-            average_score: 0,
-            max_possible_score: maxPossibleScore,
-            status: "In Progress",
-            evaluations: teamEvals.map((e) => ({
-              judge_id: e.judge_id,
-              judge_name: judgeMap.get(e.judge_id) || "Judge",
-              total_score: Number(e.total_score) || 0,
-              submitted_at: e.submitted_at || null,
-              status: e.status,
-            })),
-            rank: 0,
-          });
-        } else {
-          standbyTeams.push({
-            team_id: team.id,
-            team_name: team.team_name,
-            college: team.college,
-            domain: team.domain || domain,
-            evaluation_count: 0,
-            average_score: 0,
-            max_possible_score: maxPossibleScore,
-            status: "Unassigned",
-            evaluations: [],
-            rank: 0,
-          });
         }
       }
 
@@ -1323,7 +1332,7 @@ export async function getJudgingResults(
         team.rank = idx + 1;
       });
 
-      resultsByDomain[domain] = [...evaluatedTeams, ...inProgressTeams, ...standbyTeams];
+      resultsByDomain[domain] = evaluatedTeams;
     }
 
     return resultsByDomain;
